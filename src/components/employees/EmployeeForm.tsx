@@ -44,6 +44,13 @@ const employeeFormSchema = z.object({
   contact_urgence_tel: z.string().min(8, "Téléphone du contact requis"),
   contact_urgence_whatsapp: z.string().optional(),
   unit_id: z.string().min(1, "Direction/Service requis"),
+  employee_category: z.enum([
+    "Personnel de décision",
+    "Personnel d'encadrement",
+    "Personnel Professionnel certifié ou diplômé",
+    "Personnel administratif",
+    "Personnel de soutien"
+  ]).optional(),
   position_id: z.string().optional(),
   employment_type: z.enum(["permanent", "contractuel", "temporaire", "stagiaire", "professeur"]),
   employee_status: z.enum(["actif", "inactif", "en_conge", "suspendu"]),
@@ -657,10 +664,35 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
 
             <FormField
               control={form.control}
+              name="employee_category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Catégorie d'employé</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Personnel de décision">Personnel de décision</SelectItem>
+                      <SelectItem value="Personnel d'encadrement">Personnel d'encadrement</SelectItem>
+                      <SelectItem value="Personnel Professionnel certifié ou diplômé">Personnel Professionnel certifié ou diplômé</SelectItem>
+                      <SelectItem value="Personnel administratif">Personnel administratif</SelectItem>
+                      <SelectItem value="Personnel de soutien">Personnel de soutien</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="position_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Poste/Catégorie {!isProfessor && "*"}</FormLabel>
+                  <FormLabel>Poste {!isProfessor && "*"}</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value} disabled={isProfessor}>
                     <FormControl>
                       <SelectTrigger>
