@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,6 +50,7 @@ export default function Navbar() {
   if (isRH) {
     navItems.push({ path: "/approvals", icon: ClipboardCheck, label: "Approbations" });
     navItems.push({ path: "/badges", icon: CreditCard, label: "Badges" });
+    navItems.push({ path: "/attendance", icon: CheckSquare, label: "Présence" });
   }
 
   return (
