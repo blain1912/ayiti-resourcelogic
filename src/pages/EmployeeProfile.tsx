@@ -103,6 +103,9 @@ export default function EmployeeProfile() {
           date_naissance: formData.date_naissance instanceof Date 
             ? formData.date_naissance.toISOString().split('T')[0]
             : formData.date_naissance,
+          date_entree_fonction: formData.date_entree_fonction instanceof Date 
+            ? formData.date_entree_fonction.toISOString().split('T')[0]
+            : formData.date_entree_fonction,
           full_name: `${formData.prenom} ${formData.nom}`,
           profile_completed: true,
         })
@@ -219,7 +222,8 @@ export default function EmployeeProfile() {
                 professorGrades={professorGrades}
                 defaultValues={{
                   ...profile,
-                  date_naissance: profile?.date_naissance ? new Date(profile.date_naissance) : undefined
+                  date_naissance: profile?.date_naissance ? new Date(profile.date_naissance) : undefined,
+                  date_entree_fonction: profile?.date_entree_fonction ? new Date(profile.date_entree_fonction) : undefined
                 }}
               />
             </CardContent>
