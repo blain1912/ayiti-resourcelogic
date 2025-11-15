@@ -46,10 +46,19 @@ const emailSchema = z.string().trim().email({ message: "Email invalide" }).max(2
 const roleLabels: Record<AppRole, string> = {
   directeur_general: "Directeur Général",
   directeur_administratif: "Directeur Administratif",
-  directeur_rh: "Directeur/Responsable RH",
+  directeur_rh: "Directeur / Responsable RH",
   employe: "Employé",
-  admin: "Administrateur Système",
-  user: "Utilisateur",
+  admin: "Administrateur",
+  user: "Utilisateur"
+};
+
+const roleHierarchy: Record<AppRole, number> = {
+  directeur_general: 5,
+  admin: 4,
+  directeur_administratif: 3,
+  directeur_rh: 2,
+  employe: 1,
+  user: 1
 };
 
 const AdminUsers = () => {
@@ -223,7 +232,7 @@ const AdminUsers = () => {
       setInviteForm({
         email: "",
         fullName: "",
-        role: "user",
+        role: "employe",
         organizationId: "",
         unitId: "",
       });
@@ -298,11 +307,17 @@ const AdminUsers = () => {
     }
   };
 
-  const getUserRole = (userId: string) => {
+  const getUserRole = (userId: string): AppRole => {
     const role = userRoles.find(
       r => r.user_id === userId && r.organization_id === currentUserOrgId
     );
-    return role?.role || "user";
+    return (role?.role as AppRole) || "employe";
+  };
+
+  const getRoleBadgeVariant = (role: AppRole) => {
+    if (roleHierarchy[role] >= 4) return "default";
+    if (roleHierarchy[role] >= 2) return "secondary";
+    return "outline";
   };
 
   const getUnitName = (unitId: string | null) => {
@@ -457,11 +472,11 @@ const AdminUsers = () => {
                   </TableCell>
                   <TableCell>{getUnitName(profile.unit_id)}</TableCell>
                   <TableCell>
-                    <Badge variant={["admin", "directeur_general", "directeur_administratif"].includes(getUserRole(profile.user_id)) ? "default" : "secondary"}>
-                      {["admin", "directeur_general", "directeur_administratif"].includes(getUserRole(profile.user_id)) && (
+                    <Badge variant={getRoleBadgeVariant(getUserRole(profile.user_id))}>
+                      {roleHierarchy[getUserRole(profile.user_id)] >= 4 && (
                         <Shield className="h-3 w-3 mr-1" />
                       )}
-                      {roleLabels[getUserRole(profile.user_id) as AppRole] || "Utilisateur"}
+                      {roleLabels[getUserRole(profile.user_id)]}
                     </Badge>
                   </TableCell>
                   <TableCell>
