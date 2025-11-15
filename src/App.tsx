@@ -16,6 +16,8 @@ import Settings from "./pages/Settings";
 import AdminOrganization from "./pages/AdminOrganization";
 import AdminUnits from "./pages/AdminUnits";
 import AdminUsers from "./pages/AdminUsers";
+import EmployeeProfile from "./pages/EmployeeProfile";
+import PendingApprovals from "./pages/PendingApprovals";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 
@@ -38,6 +40,8 @@ const App = () => (
             <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
             <Route path="/organization-setup" element={<ProtectedRoute><OrganizationSetup /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><EmployeeProfile /></ProtectedRoute>} />
+            <Route path="/approvals" element={<ProtectedRoute><PendingApprovals /></ProtectedRoute>} />
             <Route path="/admin/organization" element={<ProtectedRoute><AdminOrganization /></ProtectedRoute>} />
             <Route path="/admin/organization/:orgId/units" element={<ProtectedRoute><AdminUnits /></ProtectedRoute>} />
             <Route path="/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />

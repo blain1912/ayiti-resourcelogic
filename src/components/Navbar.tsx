@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,12 +12,33 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganization } from "@/hooks/useOrganization";
 import { Building2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Navbar() {
   const { language, setLanguage, t } = useLanguage();
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { organization } = useOrganization();
+  const [isRH, setIsRH] = useState(false);
+
+  useEffect(() => {
+    const checkRHRole = async () => {
+      if (!user || !organization) return;
+      
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("organization_id", organization.id)
+        .in("role", ["admin", "directeur_rh"])
+        .maybeSingle();
+      
+      setIsRH(!!data);
+    };
+
+    checkRHRole();
+  }, [user, organization]);
 
   const navItems = [
     { path: "/", icon: LayoutDashboard, label: t("dashboard") },
@@ -25,6 +46,10 @@ export default function Navbar() {
     { path: "/leaves", icon: Calendar, label: t("leaves") },
     { path: "/documents", icon: FileText, label: t("documents") },
   ];
+
+  if (isRH) {
+    navItems.push({ path: "/approvals", icon: ClipboardCheck, label: "Approbations" });
+  }
 
   return (
     <nav className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
@@ -97,6 +122,13 @@ export default function Navbar() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="flex items-center">
+                      <UserCircle className="h-4 w-4 mr-2" />
+                      Mon profil
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => signOut()}>
                     <LogOut className="h-4 w-4 mr-2" />
                     {t("logout") || "Déconnexion"}
