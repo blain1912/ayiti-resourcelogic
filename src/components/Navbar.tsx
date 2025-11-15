@@ -177,6 +177,12 @@ export default function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to="/role-management" className="flex items-center cursor-pointer">
+                        <Shield className="h-4 w-4 mr-2" />
+                        Gestion des Rôles
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/super-admin" className="flex items-center cursor-pointer">
                         <Shield className="h-4 w-4 mr-2" />
                         Super Admin
