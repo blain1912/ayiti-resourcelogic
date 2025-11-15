@@ -10,11 +10,14 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
+import { useOrganization } from "@/hooks/useOrganization";
+import { Building2 } from "lucide-react";
 
 export default function Navbar() {
   const { language, setLanguage, t } = useLanguage();
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const { organization } = useOrganization();
 
   const navItems = [
     { path: "/", icon: LayoutDashboard, label: t("dashboard") },
@@ -30,11 +33,21 @@ export default function Navbar() {
           <div className="flex items-center gap-8">
             <Link to="/" className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                <Users className="h-5 w-5 text-primary-foreground" />
+                <Building2 className="h-5 w-5 text-primary-foreground" />
               </div>
-              <span className="font-semibold text-lg hidden md:block">
-                GRH Haiti
-              </span>
+              <div className="hidden md:flex flex-col">
+                <span className="font-semibold text-sm leading-tight">
+                  {organization?.name || "GRH Haiti"}
+                </span>
+                {organization && (
+                  <span className="text-xs text-muted-foreground leading-tight">
+                    {organization.type === "ministere" && "Ministère"}
+                    {organization.type === "direction_generale" && "Direction Générale"}
+                    {organization.type === "organisme_autonome" && "Organisme Autonome"}
+                    {organization.type === "organisme_deconcentre" && "Organisme Déconcentré"}
+                  </span>
+                )}
+              </div>
             </Link>
             
             <div className="hidden md:flex items-center gap-1">
