@@ -123,7 +123,7 @@ export default function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
-                    <Link to="/profile" className="flex items-center">
+                    <Link to="/employee-profile" className="flex items-center">
                       <UserCircle className="h-4 w-4 mr-2" />
                       Mon profil
                     </Link>
