@@ -44,7 +44,14 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       // Check if employee profile is completed
       const userType = user.user_metadata?.user_type;
       const currentPath = window.location.pathname;
-      if (userType === "employe" && !profile.profile_completed && currentPath !== "/employee-profile") {
+      
+      // Allow access to employee-profile page for approved employees
+      if (currentPath === "/employee-profile" && profile.approval_status === "approved") {
+        setHasOrganization(true);
+        return;
+      }
+      
+      if (userType === "employe" && !profile.profile_completed && profile.approval_status === "approved") {
         navigate("/employee-profile");
         return;
       }
