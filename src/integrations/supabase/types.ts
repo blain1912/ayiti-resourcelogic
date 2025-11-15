@@ -231,6 +231,7 @@ export type Database = {
           contact_urgence_tel: string | null
           contact_urgence_whatsapp: string | null
           created_at: string
+          date_entree_fonction: string | null
           date_naissance: string | null
           email: string | null
           employee_category: string | null
@@ -273,6 +274,7 @@ export type Database = {
           contact_urgence_tel?: string | null
           contact_urgence_whatsapp?: string | null
           created_at?: string
+          date_entree_fonction?: string | null
           date_naissance?: string | null
           email?: string | null
           employee_category?: string | null
@@ -321,6 +323,7 @@ export type Database = {
           contact_urgence_tel?: string | null
           contact_urgence_whatsapp?: string | null
           created_at?: string
+          date_entree_fonction?: string | null
           date_naissance?: string | null
           email?: string | null
           employee_category?: string | null

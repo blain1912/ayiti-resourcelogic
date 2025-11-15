@@ -43,6 +43,7 @@ const employeeFormSchema = z.object({
   contact_urgence_lien: z.string().min(2, "Lien requis"),
   contact_urgence_tel: z.string().min(8, "Téléphone du contact requis"),
   contact_urgence_whatsapp: z.string().optional(),
+  date_entree_fonction: z.date().optional(),
   unit_id: z.string().min(1, "Direction requise"),
   employee_category: z.enum([
     "Personnel de décision",
@@ -81,6 +82,7 @@ interface EmployeeFormProps {
 
 export function EmployeeForm({ onSubmit, defaultValues, units, positions, professorGrades = [], isLoading }: EmployeeFormProps) {
   const [selectedDirectionId, setSelectedDirectionId] = useState<string>("");
+  const [anneesService, setAnneesService] = useState<number | null>(null);
   
   const form = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeFormSchema),
@@ -105,6 +107,7 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
   const selectedBirthDate = form.watch("date_naissance");
   const employmentType = form.watch("employment_type");
   const selectedUnitId = form.watch("unit_id");
+  const dateEntreeFonction = form.watch("date_entree_fonction");
   const age = selectedBirthDate ? calculateAge(selectedBirthDate) : null;
   const isProfessor = employmentType === "professeur";
 
@@ -131,6 +134,17 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
       }
     }
   }, [defaultValues?.unit_id, units]);
+
+  // Calculer les années de service
+  useEffect(() => {
+    if (dateEntreeFonction) {
+      const entreeYear = new Date(dateEntreeFonction).getFullYear();
+      const currentYear = new Date().getFullYear();
+      setAnneesService(currentYear - entreeYear);
+    } else {
+      setAnneesService(null);
+    }
+  }, [dateEntreeFonction]);
 
   const GRADE_LABELS: Record<string, string> = {
     assistant: "Assistant",
@@ -674,6 +688,59 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
             <CardTitle>Informations professionnelles</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="date_entree_fonction"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Date d'entrée en fonction</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Sélectionner une date</span>
+                          )}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        disabled={(date) => date > new Date() || date < new Date("1960-01-01")}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormItem>
+              <FormLabel>Nombre d'années de service</FormLabel>
+              <FormControl>
+                <Input 
+                  value={anneesService !== null ? `${anneesService} ans` : "—"} 
+                  disabled 
+                  className="bg-muted"
+                />
+              </FormControl>
+              <p className="text-xs text-muted-foreground">Calculé automatiquement</p>
+            </FormItem>
+
             <FormField
               control={form.control}
               name="unit_id"
