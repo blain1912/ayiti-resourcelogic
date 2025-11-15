@@ -53,7 +53,7 @@ const Auth = () => {
             // Check if user has an organization
             const { data: profile } = await supabase
               .from("profiles")
-              .select("organization_id")
+              .select("organization_id, profile_completed")
               .eq("user_id", session.user.id)
               .maybeSingle();
             
@@ -65,6 +65,8 @@ const Auth = () => {
               } else {
                 navigate("/onboarding");
               }
+            } else if (userType === "employe" && !profile.profile_completed) {
+              navigate("/employee-profile");
             } else {
               navigate("/");
             }
@@ -80,7 +82,7 @@ const Auth = () => {
         // Check if user has an organization
         const { data: profile } = await supabase
           .from("profiles")
-          .select("organization_id")
+          .select("organization_id, profile_completed")
           .eq("user_id", session.user.id)
           .maybeSingle();
         
@@ -92,6 +94,8 @@ const Auth = () => {
           } else {
             navigate("/onboarding");
           }
+        } else if (userType === "employe" && !profile.profile_completed) {
+          navigate("/employee-profile");
         } else {
           navigate("/");
         }

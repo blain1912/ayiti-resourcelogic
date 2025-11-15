@@ -60,10 +60,10 @@ const EmployeeWaiting = () => {
       if (profile?.organization_id) {
         toast({
           title: "Compte activé",
-          description: "Vous avez été ajouté à une organisation. Redirection...",
+          description: "Vous avez été ajouté à une organisation. Veuillez compléter votre fiche...",
         });
         setTimeout(() => {
-          navigate("/");
+          navigate("/employee-profile");
         }, 1500);
       }
     } catch (error) {
