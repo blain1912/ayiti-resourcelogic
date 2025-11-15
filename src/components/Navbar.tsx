@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -128,6 +128,12 @@ export default function Navbar() {
                     <Link to="/employee-profile" className="flex items-center">
                       <UserCircle className="h-4 w-4 mr-2" />
                       Mon profil
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/my-qr-code" className="flex items-center">
+                      <QrCode className="h-4 w-4 mr-2" />
+                      Mon QR Code
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

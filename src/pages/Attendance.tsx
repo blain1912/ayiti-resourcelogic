@@ -11,10 +11,12 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { CalendarIcon, Search, CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
+import { CalendarIcon, Search, CheckCircle, XCircle, Clock, Loader2, QrCode } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { QRScanner } from "@/components/attendance/QRScanner";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface Employee {
   id: string;
@@ -41,6 +43,7 @@ const Attendance = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [markingAttendance, setMarkingAttendance] = useState(false);
+  const [showQRScanner, setShowQRScanner] = useState(false);
 
   useEffect(() => {
     if (organization) {
@@ -170,6 +173,50 @@ const Attendance = () => {
     }
   };
 
+  const handleQRScan = async (qrData: string) => {
+    try {
+      const data = JSON.parse(qrData);
+      const { employeeId } = data;
+
+      if (!employeeId) {
+        toast({
+          title: "QR Code invalide",
+          description: "Le QR code scanné n'est pas valide",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Verify employee exists
+      const employee = employees.find(e => e.id === employeeId);
+      if (!employee) {
+        toast({
+          title: "Employé non trouvé",
+          description: "L'employé n'a pas été trouvé dans la base de données",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Mark attendance as present
+      await markAttendance(employeeId, "present");
+      
+      setShowQRScanner(false);
+      
+      toast({
+        title: "Pointage réussi",
+        description: `Présence enregistrée pour ${employee.full_name}`,
+      });
+    } catch (error) {
+      console.error("Error processing QR scan:", error);
+      toast({
+        title: "Erreur de scan",
+        description: "Impossible de traiter le QR code",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { label: string; variant: "default" | "destructive" | "secondary" | "outline" }> = {
       present: { label: "Présent", variant: "default" },
@@ -207,7 +254,20 @@ const Attendance = () => {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Gestion de la Présence</h1>
+        <Button onClick={() => setShowQRScanner(true)}>
+          <QrCode className="mr-2 h-4 w-4" />
+          Scanner QR Code
+        </Button>
       </div>
+
+      <Dialog open={showQRScanner} onOpenChange={setShowQRScanner}>
+        <DialogContent className="max-w-md">
+          <QRScanner 
+            onScanSuccess={handleQRScan}
+            onClose={() => setShowQRScanner(false)}
+          />
+        </DialogContent>
+      </Dialog>
 
       <Card>
         <CardHeader>
