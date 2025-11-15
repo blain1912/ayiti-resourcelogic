@@ -52,8 +52,8 @@ const employeeFormSchema = z.object({
     "Personnel de soutien"
   ]).optional(),
   position_id: z.string().optional(),
-  employment_type: z.enum(["permanent", "contractuel", "temporaire", "stagiaire", "professeur"]),
-  employee_status: z.enum(["actif", "inactif", "en_conge", "suspendu"]),
+  employment_type: z.enum(["permanent", "contractuel", "journalier", "professeur"]),
+  employee_status: z.enum(["actif", "conge_annuel", "conge_maladie", "conge_maternite", "conge_etudes", "mis_a_disposition", "transfere", "renvoye", "decede"]),
   professor_grade: z.enum(["assistant", "adjoint", "associe", "titulaire", "emerite"]).optional(),
 }).refine(
   (data) => {
@@ -742,8 +742,7 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
                     <SelectContent>
                       <SelectItem value="permanent">Permanent</SelectItem>
                       <SelectItem value="contractuel">Contractuel</SelectItem>
-                      <SelectItem value="temporaire">Temporaire</SelectItem>
-                      <SelectItem value="stagiaire">Stagiaire</SelectItem>
+                      <SelectItem value="journalier">Journalier</SelectItem>
                       <SelectItem value="professeur">Professeur</SelectItem>
                     </SelectContent>
                   </Select>
@@ -793,9 +792,14 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="actif">Actif</SelectItem>
-                      <SelectItem value="inactif">Inactif</SelectItem>
-                      <SelectItem value="en_conge">En congé</SelectItem>
-                      <SelectItem value="suspendu">Suspendu</SelectItem>
+                      <SelectItem value="conge_annuel">Congé annuel</SelectItem>
+                      <SelectItem value="conge_maladie">Congé maladie</SelectItem>
+                      <SelectItem value="conge_maternite">Congé maternité</SelectItem>
+                      <SelectItem value="conge_etudes">Congé d'études</SelectItem>
+                      <SelectItem value="mis_a_disposition">Mis à disposition</SelectItem>
+                      <SelectItem value="transfere">Transféré</SelectItem>
+                      <SelectItem value="renvoye">Renvoyé</SelectItem>
+                      <SelectItem value="decede">Décédé</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
