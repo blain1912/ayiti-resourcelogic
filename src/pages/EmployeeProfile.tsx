@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { EmployeeForm } from "@/components/employees/EmployeeForm";
 import { EmployeeBadge } from "@/components/employees/EmployeeBadge";
 import { toast } from "@/hooks/use-toast";
-import { AlertCircle, CheckCircle, Clock, Download, CreditCard } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, Download, CreditCard, Printer } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useProfessorGrades } from "@/hooks/useProfessorGrades";
 import { QRCodeSVG } from "qrcode.react";
@@ -226,7 +226,37 @@ export default function EmployeeProfile() {
             </TabsList>
 
             <TabsContent value="info" className="space-y-4">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="flex gap-2 mb-4 print:hidden">
+                <Button onClick={() => window.print()} variant="outline" className="flex-1">
+                  <Printer className="h-4 w-4 mr-2" />
+                  Imprimer la fiche
+                </Button>
+                <Button 
+                  onClick={() => {
+                    const element = document.getElementById('employee-info-card');
+                    if (!element) return;
+                    
+                    import('html2canvas').then((html2canvas) => {
+                      html2canvas.default(element, {
+                        backgroundColor: '#ffffff',
+                        scale: 2
+                      }).then((canvas) => {
+                        const link = document.createElement('a');
+                        link.download = `fiche-employe-${profile.code_budgetaire || profile.id}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                      });
+                    });
+                  }}
+                  variant="outline" 
+                  className="flex-1"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Télécharger la fiche
+                </Button>
+              </div>
+
+              <div id="employee-info-card" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Card className="lg:col-span-2">
                   <CardHeader>
                     <CardTitle>Informations complètes</CardTitle>
