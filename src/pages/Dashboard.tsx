@@ -2,12 +2,43 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import StatCard from "@/components/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, Calendar, FileCheck, Building2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Users, Calendar, UserCheck, UserX, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
+import { format, formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
 import heroImage from "@/assets/hero-admin.jpg";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 export default function Dashboard() {
   const { t } = useLanguage();
+  const { stats, loading } = useDashboardStats();
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      present: "Présent",
+      absent: "Absent",
+      conge: "Congé",
+      maladie: "Maladie",
+      retard: "Retard",
+      permission: "Permission",
+    };
+    return labels[status] || status;
+  };
+
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      present: "text-primary",
+      absent: "text-destructive",
+      conge: "text-accent",
+      maladie: "text-muted-foreground",
+      retard: "text-accent",
+      permission: "text-muted-foreground",
+    };
+    return colors[status] || "text-foreground";
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -38,95 +69,125 @@ export default function Dashboard() {
 
       {/* Stats Section */}
       <div className="container mx-auto px-4 -mt-16 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatCard
-            title={t("totalEmployees")}
-            value="1,247"
-            icon={Users}
-            trend="+12% ce mois"
-          />
-          <StatCard
-            title={t("activeLeaves")}
-            value="45"
-            icon={Calendar}
-            trend="8 nouvelles"
-          />
-          <StatCard
-            title={t("pendingRequests")}
-            value="23"
-            icon={FileCheck}
-            trend="En attente"
-          />
-          <StatCard
-            title={t("departments")}
-            value="18"
-            icon={Building2}
-            trend="Actifs"
-          />
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {[...Array(4)].map((_, i) => (
+              <Card key={i}>
+                <CardContent className="p-6">
+                  <Skeleton className="h-20 w-full" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <StatCard
+              title="Total Employés"
+              value={stats?.totalEmployees || 0}
+              icon={Users}
+              trend={`${stats?.totalEmployees || 0} actifs`}
+            />
+            <StatCard
+              title="Présents Aujourd'hui"
+              value={stats?.presentToday || 0}
+              icon={UserCheck}
+              trend={`${stats?.attendanceRate || 0}% de présence`}
+            />
+            <StatCard
+              title="Absents Aujourd'hui"
+              value={stats?.absentToday || 0}
+              icon={UserX}
+              trend={`${stats?.onLeaveToday || 0} en congé`}
+            />
+            <StatCard
+              title="Taux de Présence"
+              value={`${stats?.attendanceRate || 0}%`}
+              icon={TrendingUp}
+              trend="Ce mois"
+            />
+          </div>
+        )}
 
-        {/* Recent Activity */}
+        {/* Charts and Activity */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <Card>
             <CardHeader>
-              <CardTitle>Activité Récente</CardTitle>
+              <CardTitle>Présence des 7 derniers jours</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {[
-                  { name: "Marie Jean", action: "Demande de congé approuvée", time: "Il y a 2h" },
-                  { name: "Jean Baptiste", action: "Nouveau document ajouté", time: "Il y a 4h" },
-                  { name: "Pierre Dupont", action: "Profil mis à jour", time: "Il y a 6h" },
-                ].map((item, idx) => (
-                  <div key={idx} className="flex items-start gap-3 pb-3 border-b last:border-0">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Users className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium">{item.name}</p>
-                      <p className="text-sm text-muted-foreground">{item.action}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{item.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {loading ? (
+                <Skeleton className="h-[300px] w-full" />
+              ) : (
+                <ChartContainer
+                  config={{
+                    present: {
+                      label: "Présents",
+                      color: "hsl(var(--primary))",
+                    },
+                    absent: {
+                      label: "Absents",
+                      color: "hsl(var(--destructive))",
+                    },
+                  }}
+                  className="h-[300px]"
+                >
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={stats?.monthlyAttendance || []}>
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                      <XAxis
+                        dataKey="date"
+                        tickFormatter={(value) => format(new Date(value), "dd/MM", { locale: fr })}
+                        className="text-xs"
+                      />
+                      <YAxis className="text-xs" />
+                      <ChartTooltip content={<ChartTooltipContent />} />
+                      <Legend />
+                      <Bar dataKey="present" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="absent" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              )}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Statistiques du Mois</CardTitle>
+              <CardTitle>Activité Récente de Présence</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Nouvelles embauches</span>
-                    <span className="font-medium">24</span>
-                  </div>
-                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                    <div className="h-full bg-primary w-[60%]" />
-                  </div>
+              {loading ? (
+                <div className="space-y-4">
+                  {[...Array(5)].map((_, i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
                 </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Congés validés</span>
-                    <span className="font-medium">89</span>
-                  </div>
-                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                    <div className="h-full bg-accent w-[80%]" />
-                  </div>
+              ) : (
+                <div className="space-y-4">
+                  {stats?.recentActivity && stats.recentActivity.length > 0 ? (
+                    stats.recentActivity.map((item, idx) => (
+                      <div key={idx} className="flex items-start gap-3 pb-3 border-b border-border last:border-0">
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <Calendar className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-foreground">{item.full_name}</p>
+                          <p className={`text-sm font-medium ${getStatusColor(item.status)}`}>
+                            {getStatusLabel(item.status)}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {formatDistanceToNow(new Date(item.created_at), { addSuffix: true, locale: fr })}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-8">
+                      Aucune activité récente
+                    </p>
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Documents traités</span>
-                    <span className="font-medium">156</span>
-                  </div>
-                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                    <div className="h-full bg-primary w-[90%]" />
-                  </div>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </div>
