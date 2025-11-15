@@ -10,6 +10,8 @@ import Employees from "./pages/Employees";
 import Leaves from "./pages/Leaves";
 import Documents from "./pages/Documents";
 import Auth from "./pages/Auth";
+import OrganizationSetup from "./pages/OrganizationSetup";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +30,8 @@ const App = () => (
             <Route path="/leaves" element={<Leaves />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/organization-setup" element={<OrganizationSetup />} />
+            <Route path="/settings" element={<Settings />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
