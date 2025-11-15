@@ -174,24 +174,29 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
             <FormField
               control={form.control}
               name="date_naissance"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Date de naissance *</FormLabel>
-                  <div className="flex gap-2">
-                    <FormControl>
+              render={({ field }) => {
+                const [dateInput, setDateInput] = useState(field.value ? format(field.value, "dd/MM/yyyy") : "");
+                
+                return (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Date de naissance *</FormLabel>
+                    <div className="flex gap-2">
                       <Input
                         type="text"
                         placeholder="jj/mm/aaaa"
-                        value={field.value ? format(field.value, "dd/MM/yyyy") : ""}
+                        value={dateInput}
                         onChange={(e) => {
                           const value = e.target.value;
-                          // Format: jj/mm/aaaa
+                          setDateInput(value);
+                          
+                          // Essayer de parser la date si le format est complet
                           const parts = value.split("/");
-                          if (parts.length === 3) {
+                          if (parts.length === 3 && parts[0].length <= 2 && parts[1].length <= 2 && parts[2].length === 4) {
                             const day = parseInt(parts[0]);
-                            const month = parseInt(parts[1]) - 1; // Les mois commencent à 0
+                            const month = parseInt(parts[1]) - 1;
                             const year = parseInt(parts[2]);
-                            if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                            
+                            if (!isNaN(day) && !isNaN(month) && !isNaN(year) && year > 1900 && year < 2100) {
                               const date = new Date(year, month, day);
                               if (date.getDate() === day && date.getMonth() === month) {
                                 field.onChange(date);
@@ -199,37 +204,49 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
                             }
                           }
                         }}
+                        onBlur={() => {
+                          // Reformater au blur si une date valide existe
+                          if (field.value) {
+                            setDateInput(format(field.value, "dd/MM/yyyy"));
+                          }
+                        }}
                         className="flex-1"
                       />
-                    </FormControl>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "w-10 p-0",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="h-4 w-4" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) => date > new Date() || date < new Date("1940-01-01")}
-                          initialFocus
-                          className={cn("p-3 pointer-events-auto")}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  {age && <p className="text-sm text-muted-foreground">Âge: {age} ans</p>}
-                  <FormMessage />
-                </FormItem>
-              )}
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            type="button"
+                            className={cn(
+                              "w-10 p-0",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="h-4 w-4" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={(date) => {
+                              field.onChange(date);
+                              if (date) {
+                                setDateInput(format(date, "dd/MM/yyyy"));
+                              }
+                            }}
+                            disabled={(date) => date > new Date() || date < new Date("1940-01-01")}
+                            initialFocus
+                            className={cn("p-3 pointer-events-auto")}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    {age && <p className="text-sm text-muted-foreground">Âge: {age} ans</p>}
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
 
             <FormField
