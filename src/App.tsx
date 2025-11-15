@@ -14,6 +14,7 @@ import OrganizationSetup from "./pages/OrganizationSetup";
 import Settings from "./pages/Settings";
 import AdminOrganization from "./pages/AdminOrganization";
 import AdminUnits from "./pages/AdminUnits";
+import AdminUsers from "./pages/AdminUsers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/settings" element={<Settings />} />
             <Route path="/admin/organization" element={<AdminOrganization />} />
             <Route path="/admin/organization/:orgId/units" element={<AdminUnits />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
