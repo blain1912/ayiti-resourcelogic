@@ -61,11 +61,11 @@ const AdminUnits = () => {
         .select("role")
         .eq("user_id", user.id)
         .eq("organization_id", orgId)
-        .in("role", ["admin", "directeur_general", "directeur_administratif"])
+        .in("role", ["admin", "directeur_general", "directeur_administratif", "directeur_rh"])
         .single();
 
       if (!roles) {
-        toast.error("Accès refusé");
+        toast.error("Accès refusé. Vous devez avoir un rôle de direction ou RH.");
         navigate("/");
       }
     } catch (error) {
