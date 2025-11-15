@@ -43,6 +43,7 @@ export default function Navbar() {
   const navItems = [
     { path: "/", icon: LayoutDashboard, label: t("dashboard") },
     { path: "/employees", icon: Users, label: t("employees") },
+    { path: "/units", icon: Building2, label: "Unités" },
     { path: "/leaves", icon: Calendar, label: t("leaves") },
     { path: "/documents", icon: FileText, label: t("documents") },
   ];
