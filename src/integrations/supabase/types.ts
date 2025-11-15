@@ -183,6 +183,7 @@ export type Database = {
           adresse_departement: string | null
           adresse_rue: string | null
           adresse_ville: string | null
+          approval_status: string | null
           cin: string | null
           code_budgetaire: string | null
           code_postal: string | null
@@ -208,6 +209,7 @@ export type Database = {
           photo_url: string | null
           position_id: string | null
           prenom: string | null
+          profile_completed: boolean | null
           religion: string | null
           sexe: string | null
           tel_1: string | null
@@ -221,6 +223,7 @@ export type Database = {
           adresse_departement?: string | null
           adresse_rue?: string | null
           adresse_ville?: string | null
+          approval_status?: string | null
           cin?: string | null
           code_budgetaire?: string | null
           code_postal?: string | null
@@ -250,6 +253,7 @@ export type Database = {
           photo_url?: string | null
           position_id?: string | null
           prenom?: string | null
+          profile_completed?: boolean | null
           religion?: string | null
           sexe?: string | null
           tel_1?: string | null
@@ -263,6 +267,7 @@ export type Database = {
           adresse_departement?: string | null
           adresse_rue?: string | null
           adresse_ville?: string | null
+          approval_status?: string | null
           cin?: string | null
           code_budgetaire?: string | null
           code_postal?: string | null
@@ -292,6 +297,7 @@ export type Database = {
           photo_url?: string | null
           position_id?: string | null
           prenom?: string | null
+          profile_completed?: boolean | null
           religion?: string | null
           sexe?: string | null
           tel_1?: string | null
