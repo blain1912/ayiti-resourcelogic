@@ -62,22 +62,40 @@ export type Database = {
       organizations: {
         Row: {
           created_at: string
+          custom_domain: string | null
           id: string
+          max_units: number
+          max_users: number
           name: string
+          subscription_expires_at: string | null
+          subscription_started_at: string | null
+          subscription_tier: Database["public"]["Enums"]["subscription_tier"]
           type: Database["public"]["Enums"]["organization_type"]
           updated_at: string
         }
         Insert: {
           created_at?: string
+          custom_domain?: string | null
           id?: string
+          max_units?: number
+          max_users?: number
           name: string
+          subscription_expires_at?: string | null
+          subscription_started_at?: string | null
+          subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           type: Database["public"]["Enums"]["organization_type"]
           updated_at?: string
         }
         Update: {
           created_at?: string
+          custom_domain?: string | null
           id?: string
+          max_units?: number
+          max_users?: number
           name?: string
+          subscription_expires_at?: string | null
+          subscription_started_at?: string | null
+          subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           type?: Database["public"]["Enums"]["organization_type"]
           updated_at?: string
         }
@@ -165,6 +183,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_unit_limit: { Args: { _organization_id: string }; Returns: boolean }
+      check_user_limit: { Args: { _organization_id: string }; Returns: boolean }
       has_admin_role: {
         Args: { _organization_id: string; _user_id: string }
         Returns: boolean
@@ -191,6 +211,7 @@ export type Database = {
         | "direction_generale"
         | "organisme_autonome"
         | "organisme_deconcentre"
+      subscription_tier: "free" | "pro" | "enterprise"
       unit_type:
         | "direction_generale"
         | "direction_technique"
@@ -338,6 +359,7 @@ export const Constants = {
         "organisme_autonome",
         "organisme_deconcentre",
       ],
+      subscription_tier: ["free", "pro", "enterprise"],
       unit_type: [
         "direction_generale",
         "direction_technique",

@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import OrganizationInfo from "@/components/settings/OrganizationInfo";
 import OrganizationalUnits from "@/components/settings/OrganizationalUnits";
+import { SubscriptionInfo } from "@/components/settings/SubscriptionInfo";
 
 const Settings = () => {
   const [loading, setLoading] = useState(true);
@@ -71,6 +72,18 @@ const Settings = () => {
     }
   };
 
+  const refetchOrganization = async () => {
+    if (!organization) return;
+    
+    const { data: org } = await supabase
+      .from("organizations")
+      .select("*")
+      .eq("id", organization.id)
+      .single();
+    
+    if (org) setOrganization(org);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -125,8 +138,9 @@ const Settings = () => {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="organization">
-            <OrganizationInfo organization={organization} onUpdate={checkUserAndOrganization} />
+          <TabsContent value="organization" className="space-y-6">
+            <OrganizationInfo organization={organization} onUpdate={refetchOrganization} />
+            <SubscriptionInfo organization={organization} onUpdate={refetchOrganization} />
           </TabsContent>
 
           <TabsContent value="units">
