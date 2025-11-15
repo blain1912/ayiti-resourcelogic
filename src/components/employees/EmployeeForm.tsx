@@ -14,6 +14,8 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useState, useEffect } from "react";
+import { toast } from "@/hooks/use-toast";
+import type { FieldErrors } from "react-hook-form";
 import type { ProfessorGradeData } from "@/hooks/useProfessorGrades";
 
 const employeeFormSchema = z.object({
@@ -94,6 +96,8 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
     },
   });
 
+  const { isSubmitting } = form.formState;
+
   const calculateAge = (birthDate: Date) => {
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
@@ -156,7 +160,20 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form
+        onSubmit={form.handleSubmit(
+          onSubmit,
+          (errors: FieldErrors<EmployeeFormData>) => {
+            const firstError = Object.values(errors)[0] as any;
+            toast({
+              title: "Champs requis manquants",
+              description: firstError?.message || "Veuillez vérifier le formulaire.",
+              variant: "destructive",
+            });
+          }
+        )}
+        className="space-y-6"
+      >
         {/* Informations de base */}
         <Card>
           <CardHeader>
@@ -942,8 +959,8 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
         </Card>
 
         <div className="flex justify-end gap-4">
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? "Enregistrement..." : "Enregistrer"}
+          <Button type="submit" disabled={isLoading || isSubmitting}>
+            {isLoading || isSubmitting ? "Enregistrement..." : "Enregistrer"}
           </Button>
         </div>
       </form>
