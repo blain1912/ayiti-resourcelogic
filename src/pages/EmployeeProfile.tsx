@@ -41,16 +41,27 @@ export default function EmployeeProfile() {
         .from("profiles")
         .select("*")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 
-      setProfile(profileData);
+      let currentProfile = profileData;
+      if (!currentProfile) {
+        const { data: inserted, error: insertError } = await supabase
+          .from("profiles")
+          .insert({ user_id: user.id, email: user.email })
+          .select("*")
+          .single();
+        if (insertError) throw insertError;
+        currentProfile = inserted;
+      }
 
-      if (profileData?.organization_id) {
+      setProfile(currentProfile);
+
+      if (currentProfile?.organization_id) {
         await Promise.all([
-          fetchUnits(profileData.organization_id),
-          fetchPositions(profileData.organization_id)
+          fetchUnits(currentProfile.organization_id),
+          fetchPositions(currentProfile.organization_id)
         ]);
       }
     } catch (error: any) {
