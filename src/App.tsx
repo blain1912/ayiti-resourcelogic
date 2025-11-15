@@ -10,11 +10,13 @@ import Employees from "./pages/Employees";
 import Leaves from "./pages/Leaves";
 import Documents from "./pages/Documents";
 import Auth from "./pages/Auth";
+import Onboarding from "./pages/Onboarding";
 import OrganizationSetup from "./pages/OrganizationSetup";
 import Settings from "./pages/Settings";
 import AdminOrganization from "./pages/AdminOrganization";
 import AdminUnits from "./pages/AdminUnits";
 import AdminUsers from "./pages/AdminUsers";
+import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,16 +30,17 @@ const App = () => (
         <BrowserRouter>
           <Navbar />
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/employees" element={<Employees />} />
-            <Route path="/leaves" element={<Leaves />} />
-            <Route path="/documents" element={<Documents />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/organization-setup" element={<OrganizationSetup />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/admin/organization" element={<AdminOrganization />} />
-            <Route path="/admin/organization/:orgId/units" element={<AdminUnits />} />
-            <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/employees" element={<ProtectedRoute><Employees /></ProtectedRoute>} />
+            <Route path="/leaves" element={<ProtectedRoute><Leaves /></ProtectedRoute>} />
+            <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
+            <Route path="/organization-setup" element={<ProtectedRoute><OrganizationSetup /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/admin/organization" element={<ProtectedRoute><AdminOrganization /></ProtectedRoute>} />
+            <Route path="/admin/organization/:orgId/units" element={<ProtectedRoute><AdminUnits /></ProtectedRoute>} />
+            <Route path="/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
