@@ -1,8 +1,11 @@
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search, Plus, MoreVertical } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useOrganization } from "@/hooks/useOrganization";
 import {
   Table,
   TableBody,
@@ -13,16 +16,73 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
+interface Employee {
+  id: string;
+  full_name: string | null;
+  position_name: string | null;
+  position_salary: number | null;
+  unit_name: string | null;
+}
+
 export default function Employees() {
   const { t } = useLanguage();
+  const { organization } = useOrganization();
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const employees = [
-    { id: 1, name: "Marie Jeanne Louis", position: "Directrice RH", department: "Ressources Humaines", status: "active" },
-    { id: 2, name: "Jean Baptiste Pierre", position: "Comptable", department: "Finance", status: "active" },
-    { id: 3, name: "Sophie Duvalsaint", position: "Assistante Administrative", department: "Administration", status: "active" },
-    { id: 4, name: "Marc Antoine Joseph", position: "Chef de Service", department: "Opérations", status: "inactive" },
-    { id: 5, name: "Claire Beaumont", position: "Analyste", department: "Planification", status: "active" },
-  ];
+  useEffect(() => {
+    if (organization?.id) {
+      fetchEmployees();
+    }
+  }, [organization]);
+
+  const fetchEmployees = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select(`
+          id,
+          full_name,
+          position:positions(name, salary),
+          unit:organizational_units(name)
+        `)
+        .eq("organization_id", organization!.id);
+
+      if (error) throw error;
+
+      const formattedEmployees: Employee[] = (data || []).map((profile: any) => ({
+        id: profile.id,
+        full_name: profile.full_name,
+        position_name: profile.position?.name || null,
+        position_salary: profile.position?.salary || null,
+        unit_name: profile.unit?.name || null,
+      }));
+
+      setEmployees(formattedEmployees);
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredEmployees = employees.filter((employee) =>
+    employee.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    employee.position_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    employee.unit_name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center">
+          <p>Chargement...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -42,6 +102,8 @@ export default function Employees() {
               <Input
                 placeholder={t("search")}
                 className="pl-9"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <Button variant="outline">{t("filter")}</Button>
@@ -55,29 +117,39 @@ export default function Employees() {
               <TableRow>
                 <TableHead>{t("name")}</TableHead>
                 <TableHead>{t("position")}</TableHead>
-                <TableHead>{t("department")}</TableHead>
-                <TableHead>{t("status")}</TableHead>
+                <TableHead>Salaire</TableHead>
+                <TableHead>Unité</TableHead>
                 <TableHead className="text-right">{t("actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {employees.map((employee) => (
-                <TableRow key={employee.id}>
-                  <TableCell className="font-medium">{employee.name}</TableCell>
-                  <TableCell>{employee.position}</TableCell>
-                  <TableCell>{employee.department}</TableCell>
-                  <TableCell>
-                    <Badge variant={employee.status === 'active' ? 'default' : 'secondary'}>
-                      {employee.status === 'active' ? t("active") : t("inactive")}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
+              {filteredEmployees.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    Aucun employé trouvé
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                filteredEmployees.map((employee) => (
+                  <TableRow key={employee.id}>
+                    <TableCell className="font-medium">
+                      {employee.full_name || "Non renseigné"}
+                    </TableCell>
+                    <TableCell>{employee.position_name || "-"}</TableCell>
+                    <TableCell>
+                      {employee.position_salary 
+                        ? `${employee.position_salary.toLocaleString("fr-FR")} HTG`
+                        : "-"}
+                    </TableCell>
+                    <TableCell>{employee.unit_name || "-"}</TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

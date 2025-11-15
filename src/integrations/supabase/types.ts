@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      employee_categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_categories_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizational_units: {
         Row: {
           created_at: string
@@ -101,12 +133,58 @@ export type Database = {
         }
         Relationships: []
       }
+      positions: {
+        Row: {
+          category_id: string
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          salary: number
+          updated_at: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+          salary: number
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          salary?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "positions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "employee_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "positions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
           full_name: string | null
           id: string
           organization_id: string | null
+          position_id: string | null
           unit_id: string | null
           updated_at: string
           user_id: string
@@ -116,6 +194,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           organization_id?: string | null
+          position_id?: string | null
           unit_id?: string | null
           updated_at?: string
           user_id: string
@@ -125,6 +204,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           organization_id?: string | null
+          position_id?: string | null
           unit_id?: string | null
           updated_at?: string
           user_id?: string
@@ -135,6 +215,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "positions"
             referencedColumns: ["id"]
           },
           {
