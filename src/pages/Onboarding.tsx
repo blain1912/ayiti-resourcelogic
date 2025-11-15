@@ -80,21 +80,21 @@ const Onboarding = () => {
       nameSchema.parse(formData.organizationName);
 
       // Step 1: Create organization
-      const { data: org, error: orgError } = await supabase
+      const newOrgId = crypto.randomUUID();
+      const { error: orgError } = await supabase
         .from("organizations")
         .insert({
+          id: newOrgId,
           name: formData.organizationName.trim(),
           type: formData.organizationType,
-        })
-        .select()
-        .single();
+        });
 
       if (orgError) throw orgError;
 
       // Step 2: Update user profile with organization
       const { error: profileError } = await supabase
         .from("profiles")
-        .update({ organization_id: org.id })
+        .update({ organization_id: newOrgId })
         .eq("user_id", userId);
 
       if (profileError) throw profileError;
@@ -105,7 +105,7 @@ const Onboarding = () => {
         .insert({
           user_id: userId,
           role: formData.role,
-          organization_id: org.id,
+          organization_id: newOrgId,
         });
 
       if (roleError) throw roleError;
