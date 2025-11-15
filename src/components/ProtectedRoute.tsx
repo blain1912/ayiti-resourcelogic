@@ -27,12 +27,25 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       // Check if user has an organization
       const { data: profile } = await supabase
         .from("profiles")
-        .select("organization_id")
+        .select("organization_id, profile_completed, approval_status")
         .eq("user_id", user.id)
         .maybeSingle();
 
       if (!profile?.organization_id) {
-        navigate("/onboarding");
+        const userType = user.user_metadata?.user_type;
+        if (userType === "employe") {
+          navigate("/employee-waiting");
+        } else {
+          navigate("/onboarding");
+        }
+        return;
+      }
+
+      // Check if employee profile is completed
+      const userType = user.user_metadata?.user_type;
+      const currentPath = window.location.pathname;
+      if (userType === "employe" && !profile.profile_completed && currentPath !== "/employee-profile") {
+        navigate("/employee-profile");
         return;
       }
 

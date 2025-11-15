@@ -20,6 +20,13 @@ export default function EmployeeProfile() {
     fetchProfile();
   }, []);
 
+  useEffect(() => {
+    // Ouvre automatiquement le formulaire si le profil n'est pas complété
+    if (profile && profile.approval_status === "approved" && !profile.profile_completed) {
+      setShowForm(true);
+    }
+  }, [profile]);
+
   const fetchProfile = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -86,11 +93,12 @@ export default function EmployeeProfile() {
 
       toast({
         title: "Succès",
-        description: "Votre fiche a été enregistrée avec succès",
+        description: "Votre fiche a été enregistrée avec succès. Redirection...",
       });
 
-      setShowForm(false);
-      fetchProfile();
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1500);
     } catch (error: any) {
       console.error("Error updating profile:", error);
       toast({
