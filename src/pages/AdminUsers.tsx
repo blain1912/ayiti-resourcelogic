@@ -54,9 +54,9 @@ const roleLabels: Record<AppRole, string> = {
 
 const roleHierarchy: Record<AppRole, number> = {
   directeur_general: 5,
+  directeur_rh: 4,
   admin: 4,
   directeur_administratif: 3,
-  directeur_rh: 2,
   employe: 1,
   user: 1
 };
@@ -119,12 +119,12 @@ const AdminUsers = () => {
         .select("role")
         .eq("user_id", user.id)
         .eq("organization_id", profile.organization_id)
-        .in("role", ["admin", "directeur_general", "directeur_administratif"])
+        .in("role", ["admin", "directeur_general", "directeur_administratif", "directeur_rh"])
         .single();
 
       setIsAdmin(!!roles);
       if (!roles) {
-        toast.error("Accès refusé. Vous devez être administrateur.");
+        toast.error("Accès refusé. Vous devez avoir un rôle de direction ou RH.");
         navigate("/");
       }
     } catch (error) {

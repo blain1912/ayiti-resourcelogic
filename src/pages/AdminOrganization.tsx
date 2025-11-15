@@ -56,12 +56,12 @@ const AdminOrganization = () => {
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id)
-        .in("role", ["admin", "directeur_general", "directeur_administratif"])
+        .in("role", ["admin", "directeur_general", "directeur_administratif", "directeur_rh"])
         .single();
 
       setIsAdmin(!!roles);
       if (!roles) {
-        toast.error("Accès refusé. Vous devez être administrateur.");
+        toast.error("Accès refusé. Vous devez avoir un rôle de direction ou RH.");
         navigate("/");
       }
     } catch (error) {
