@@ -15,9 +15,10 @@ interface EmployeeBadgeProps {
     position_id: string | null;
   };
   organizationName?: string;
+  hideActions?: boolean;
 }
 
-export function EmployeeBadge({ profile, organizationName }: EmployeeBadgeProps) {
+export function EmployeeBadge({ profile, organizationName, hideActions = false }: EmployeeBadgeProps) {
   const handlePrint = () => {
     window.print();
   };
@@ -42,16 +43,18 @@ export function EmployeeBadge({ profile, organizationName }: EmployeeBadgeProps)
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2 print:hidden">
-        <Button onClick={handlePrint} variant="outline" className="flex-1">
-          <Printer className="h-4 w-4 mr-2" />
-          Imprimer
-        </Button>
-        <Button onClick={handleDownload} variant="outline" className="flex-1">
-          <Download className="h-4 w-4 mr-2" />
-          Télécharger
-        </Button>
-      </div>
+      {!hideActions && (
+        <div className="flex gap-2 print:hidden">
+          <Button onClick={handlePrint} variant="outline" className="flex-1">
+            <Printer className="h-4 w-4 mr-2" />
+            Imprimer
+          </Button>
+          <Button onClick={handleDownload} variant="outline" className="flex-1">
+            <Download className="h-4 w-4 mr-2" />
+            Télécharger
+          </Button>
+        </div>
+      )}
 
       <Card id="employee-badge" className="w-[350px] mx-auto bg-gradient-to-br from-primary/5 to-primary/10">
         <CardContent className="p-6 space-y-4">
