@@ -44,7 +44,7 @@ const Settings = () => {
         return;
       }
 
-      // Check if user is admin
+      // Check if user has admin role
       const { data: userRole } = await supabase
         .from("user_roles")
         .select("role")
@@ -52,7 +52,8 @@ const Settings = () => {
         .eq("organization_id", profile.organization_id)
         .single();
 
-      setIsAdmin(userRole?.role === "admin");
+      const adminRoles = ['admin', 'directeur_general', 'directeur_administratif', 'directeur_rh'];
+      setIsAdmin(adminRoles.includes(userRole?.role || ''));
 
       // Get organization details
       const { data: org } = await supabase
