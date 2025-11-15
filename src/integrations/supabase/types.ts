@@ -97,6 +97,59 @@ export type Database = {
           },
         ]
       }
+      manual_payments: {
+        Row: {
+          amount: number
+          cheque_number: string | null
+          created_at: string
+          id: string
+          months_paid: number
+          notes: string | null
+          organization_id: string
+          payment_date: string
+          payment_method: string
+          processed_by: string | null
+          subscription_tier: Database["public"]["Enums"]["subscription_tier"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          cheque_number?: string | null
+          created_at?: string
+          id?: string
+          months_paid?: number
+          notes?: string | null
+          organization_id: string
+          payment_date: string
+          payment_method: string
+          processed_by?: string | null
+          subscription_tier: Database["public"]["Enums"]["subscription_tier"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          cheque_number?: string | null
+          created_at?: string
+          id?: string
+          months_paid?: number
+          notes?: string | null
+          organization_id?: string
+          payment_date?: string
+          payment_method?: string
+          processed_by?: string | null
+          subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_payments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizational_units: {
         Row: {
           created_at: string
@@ -144,12 +197,16 @@ export type Database = {
       }
       organizations: {
         Row: {
+          accent_color: string | null
           created_at: string
           custom_domain: string | null
           id: string
+          logo_url: string | null
           max_units: number
           max_users: number
           name: string
+          primary_color: string | null
+          secondary_color: string | null
           subscription_expires_at: string | null
           subscription_started_at: string | null
           subscription_tier: Database["public"]["Enums"]["subscription_tier"]
@@ -157,12 +214,16 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accent_color?: string | null
           created_at?: string
           custom_domain?: string | null
           id?: string
+          logo_url?: string | null
           max_units?: number
           max_users?: number
           name: string
+          primary_color?: string | null
+          secondary_color?: string | null
           subscription_expires_at?: string | null
           subscription_started_at?: string | null
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
@@ -170,12 +231,16 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accent_color?: string | null
           created_at?: string
           custom_domain?: string | null
           id?: string
+          logo_url?: string | null
           max_units?: number
           max_users?: number
           name?: string
+          primary_color?: string | null
+          secondary_color?: string | null
           subscription_expires_at?: string | null
           subscription_started_at?: string | null
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
@@ -429,6 +494,44 @@ export type Database = {
             columns: ["unit_id"]
             isOneToOne: false
             referencedRelation: "organizational_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          id: string
+          new_tier: Database["public"]["Enums"]["subscription_tier"]
+          old_tier: Database["public"]["Enums"]["subscription_tier"] | null
+          organization_id: string
+          reason: string | null
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_tier: Database["public"]["Enums"]["subscription_tier"]
+          old_tier?: Database["public"]["Enums"]["subscription_tier"] | null
+          organization_id: string
+          reason?: string | null
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_tier?: Database["public"]["Enums"]["subscription_tier"]
+          old_tier?: Database["public"]["Enums"]["subscription_tier"] | null
+          organization_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_history_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
