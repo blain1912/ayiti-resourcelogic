@@ -165,6 +165,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_admin_role: {
+        Args: { _organization_id: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _organization_id: string

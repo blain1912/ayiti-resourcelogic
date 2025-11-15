@@ -39,7 +39,18 @@ interface OrganizationalUnit {
   organization_id: string;
 }
 
+type AppRole = "directeur_general" | "directeur_administratif" | "directeur_rh" | "employe" | "admin" | "user";
+
 const emailSchema = z.string().trim().email({ message: "Email invalide" }).max(255);
+
+const roleLabels: Record<AppRole, string> = {
+  directeur_general: "Directeur Général",
+  directeur_administratif: "Directeur Administratif",
+  directeur_rh: "Directeur/Responsable RH",
+  employe: "Employé",
+  admin: "Administrateur Système",
+  user: "Utilisateur",
+};
 
 const AdminUsers = () => {
   const navigate = useNavigate();
@@ -57,7 +68,7 @@ const AdminUsers = () => {
   const [inviteForm, setInviteForm] = useState({
     email: "",
     fullName: "",
-    role: "user" as "admin" | "user",
+    role: "employe" as AppRole,
     organizationId: "",
     unitId: "",
   });
@@ -99,7 +110,7 @@ const AdminUsers = () => {
         .select("role")
         .eq("user_id", user.id)
         .eq("organization_id", profile.organization_id)
-        .eq("role", "admin")
+        .in("role", ["admin", "directeur_general", "directeur_administratif"])
         .single();
 
       setIsAdmin(!!roles);
@@ -223,7 +234,7 @@ const AdminUsers = () => {
     }
   };
 
-  const handleUpdateRole = async (userId: string, newRole: "admin" | "user") => {
+  const handleUpdateRole = async (userId: string, newRole: AppRole) => {
     try {
       const existingRole = userRoles.find(
         r => r.user_id === userId && r.organization_id === currentUserOrgId
@@ -353,7 +364,7 @@ const AdminUsers = () => {
                   <Label htmlFor="role">Rôle</Label>
                   <Select
                     value={inviteForm.role}
-                    onValueChange={(value: "admin" | "user") =>
+                    onValueChange={(value: AppRole) =>
                       setInviteForm({ ...inviteForm, role: value })
                     }
                   >
@@ -361,8 +372,11 @@ const AdminUsers = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="user">Utilisateur</SelectItem>
-                      <SelectItem value="admin">Administrateur</SelectItem>
+                      {Object.entries(roleLabels).map(([key, label]) => (
+                        <SelectItem key={key} value={key}>
+                          {label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -443,31 +457,30 @@ const AdminUsers = () => {
                   </TableCell>
                   <TableCell>{getUnitName(profile.unit_id)}</TableCell>
                   <TableCell>
-                    <Badge variant={getUserRole(profile.user_id) === "admin" ? "default" : "secondary"}>
-                      {getUserRole(profile.user_id) === "admin" ? (
-                        <>
-                          <Shield className="h-3 w-3 mr-1" />
-                          Administrateur
-                        </>
-                      ) : (
-                        "Utilisateur"
+                    <Badge variant={["admin", "directeur_general", "directeur_administratif"].includes(getUserRole(profile.user_id)) ? "default" : "secondary"}>
+                      {["admin", "directeur_general", "directeur_administratif"].includes(getUserRole(profile.user_id)) && (
+                        <Shield className="h-3 w-3 mr-1" />
                       )}
+                      {roleLabels[getUserRole(profile.user_id) as AppRole] || "Utilisateur"}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                       <Select
                         value={getUserRole(profile.user_id)}
-                        onValueChange={(value: "admin" | "user") =>
+                        onValueChange={(value: AppRole) =>
                           handleUpdateRole(profile.user_id, value)
                         }
                       >
-                        <SelectTrigger className="w-[150px]">
+                        <SelectTrigger className="w-[200px]">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="user">Utilisateur</SelectItem>
-                          <SelectItem value="admin">Administrateur</SelectItem>
+                          {Object.entries(roleLabels).map(([key, label]) => (
+                            <SelectItem key={key} value={key}>
+                              {label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <Button

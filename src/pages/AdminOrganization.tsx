@@ -56,7 +56,7 @@ const AdminOrganization = () => {
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id)
-        .eq("role", "admin")
+        .in("role", ["admin", "directeur_general", "directeur_administratif"])
         .single();
 
       setIsAdmin(!!roles);

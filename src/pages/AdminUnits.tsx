@@ -61,7 +61,7 @@ const AdminUnits = () => {
         .select("role")
         .eq("user_id", user.id)
         .eq("organization_id", orgId)
-        .eq("role", "admin")
+        .in("role", ["admin", "directeur_general", "directeur_administratif"])
         .single();
 
       if (!roles) {
