@@ -52,8 +52,8 @@ export default function PendingApprovals() {
       const { data, error } = await supabase
         .from("profiles")
         .select("id, user_id, full_name, email, approval_status, created_at")
-        .eq("organization_id", organization!.id)
-        .in("approval_status", ["pending", "approved", "rejected"])
+        .is("organization_id", null)
+        .eq("approval_status", "pending")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -72,9 +72,16 @@ export default function PendingApprovals() {
 
   const handleApproval = async (profileId: string, status: "approved" | "rejected") => {
     try {
+      const updateData: any = { approval_status: status };
+      
+      // Si approuvé, assigner l'organisation
+      if (status === "approved") {
+        updateData.organization_id = organization!.id;
+      }
+
       const { error } = await supabase
         .from("profiles")
-        .update({ approval_status: status })
+        .update(updateData)
         .eq("id", profileId);
 
       if (error) throw error;
