@@ -181,6 +181,8 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string
+          employee_status: Database["public"]["Enums"]["employee_status"] | null
+          employment_type: Database["public"]["Enums"]["employment_type"] | null
           full_name: string | null
           id: string
           organization_id: string | null
@@ -191,6 +193,12 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          employee_status?:
+            | Database["public"]["Enums"]["employee_status"]
+            | null
+          employment_type?:
+            | Database["public"]["Enums"]["employment_type"]
+            | null
           full_name?: string | null
           id?: string
           organization_id?: string | null
@@ -201,6 +209,12 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          employee_status?:
+            | Database["public"]["Enums"]["employee_status"]
+            | null
+          employment_type?:
+            | Database["public"]["Enums"]["employment_type"]
+            | null
           full_name?: string | null
           id?: string
           organization_id?: string | null
@@ -293,6 +307,17 @@ export type Database = {
         | "directeur_administratif"
         | "directeur_rh"
         | "employe"
+      employee_status:
+        | "actif"
+        | "conge_annuel"
+        | "conge_maladie"
+        | "conge_maternite"
+        | "conge_etudes"
+        | "mis_a_disposition"
+        | "transfere"
+        | "renvoye"
+        | "decede"
+      employment_type: "permanent" | "contractuel" | "journalier"
       organization_type:
         | "ministere"
         | "direction_generale"
@@ -440,6 +465,18 @@ export const Constants = {
         "directeur_rh",
         "employe",
       ],
+      employee_status: [
+        "actif",
+        "conge_annuel",
+        "conge_maladie",
+        "conge_maternite",
+        "conge_etudes",
+        "mis_a_disposition",
+        "transfere",
+        "renvoye",
+        "decede",
+      ],
+      employment_type: ["permanent", "contractuel", "journalier"],
       organization_type: [
         "ministere",
         "direction_generale",
