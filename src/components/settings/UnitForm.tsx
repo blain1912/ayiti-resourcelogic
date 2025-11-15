@@ -13,7 +13,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 const formSchema = z.object({
   name: z.string().min(3, "Le nom doit contenir au moins 3 caractères"),
   type: z.enum(["direction_generale", "direction_technique", "service", "section", "departement"]),
-  parent_id: z.string().optional(),
+  parent_id: z.string().nullable().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -36,7 +36,7 @@ const UnitForm = ({ organizationId, units, onSuccess, defaultValues, unitId }: U
     defaultValues: defaultValues || {
       name: "",
       type: "service",
-      parent_id: "",
+      parent_id: null,
     },
   });
 
@@ -146,14 +146,17 @@ const UnitForm = ({ organizationId, units, onSuccess, defaultValues, unitId }: U
               <FormLabel>
                 {language === "fr" ? "Structure parente (optionnel)" : "Parent Unit (optional)"}
               </FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select 
+                onValueChange={(value) => field.onChange(value === "none" ? null : value)} 
+                value={field.value || "none"}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder={language === "fr" ? "Aucune" : "None"} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="">
+                  <SelectItem value="none">
                     {language === "fr" ? "Aucune" : "None"}
                   </SelectItem>
                   {units.filter(u => u.id !== unitId).map((unit) => (
