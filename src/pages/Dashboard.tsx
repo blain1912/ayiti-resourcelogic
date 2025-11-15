@@ -1,7 +1,9 @@
 import { useLanguage } from "@/contexts/LanguageContext";
 import StatCard from "@/components/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Users, Calendar, FileCheck, Building2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import heroImage from "@/assets/hero-admin.jpg";
 
 export default function Dashboard() {
@@ -21,9 +23,16 @@ export default function Dashboard() {
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
             {t("welcomeTitle")}
           </h1>
-          <p className="text-xl text-white/90 max-w-2xl">
+          <p className="text-xl text-white/90 max-w-2xl mb-4">
             {t("welcomeSubtitle")}
           </p>
+          <div className="space-x-4">
+            <Link to="/employee-profile">
+              <Button variant="secondary" size="lg">
+                🧪 Test Profil Employé
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
