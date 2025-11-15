@@ -142,9 +142,19 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>URL de la photo</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="https://..." />
-                  </FormControl>
+                  <div className="flex gap-2">
+                    <FormControl>
+                      <Input {...field} placeholder="https://..." className="flex-1" />
+                    </FormControl>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => window.open('https://sanishtech.com/tools/image-to-link-converter/', '_blank')}
+                      className="shrink-0"
+                    >
+                      Convertir image
+                    </Button>
+                  </div>
                   <FormMessage />
                 </FormItem>
               )}
