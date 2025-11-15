@@ -180,48 +180,126 @@ export type Database = {
       }
       profiles: {
         Row: {
+          adresse_departement: string | null
+          adresse_rue: string | null
+          adresse_ville: string | null
+          cin: string | null
+          code_budgetaire: string | null
+          code_postal: string | null
+          contact_urgence_lien: string | null
+          contact_urgence_nom: string | null
+          contact_urgence_prenom: string | null
+          contact_urgence_tel: string | null
+          contact_urgence_whatsapp: string | null
           created_at: string
+          date_naissance: string | null
+          email: string | null
           employee_status: Database["public"]["Enums"]["employee_status"] | null
           employment_type: Database["public"]["Enums"]["employment_type"] | null
+          etat_civil: string | null
           full_name: string | null
+          groupe_sanguin: string | null
           id: string
+          lieu_naissance: string | null
+          nationalite: string | null
+          nif: string | null
+          nom: string | null
           organization_id: string | null
+          photo_url: string | null
           position_id: string | null
+          prenom: string | null
+          religion: string | null
+          sexe: string | null
+          tel_1: string | null
+          tel_2: string | null
           unit_id: string | null
           updated_at: string
           user_id: string
+          whatsapp: string | null
         }
         Insert: {
+          adresse_departement?: string | null
+          adresse_rue?: string | null
+          adresse_ville?: string | null
+          cin?: string | null
+          code_budgetaire?: string | null
+          code_postal?: string | null
+          contact_urgence_lien?: string | null
+          contact_urgence_nom?: string | null
+          contact_urgence_prenom?: string | null
+          contact_urgence_tel?: string | null
+          contact_urgence_whatsapp?: string | null
           created_at?: string
+          date_naissance?: string | null
+          email?: string | null
           employee_status?:
             | Database["public"]["Enums"]["employee_status"]
             | null
           employment_type?:
             | Database["public"]["Enums"]["employment_type"]
             | null
+          etat_civil?: string | null
           full_name?: string | null
+          groupe_sanguin?: string | null
           id?: string
+          lieu_naissance?: string | null
+          nationalite?: string | null
+          nif?: string | null
+          nom?: string | null
           organization_id?: string | null
+          photo_url?: string | null
           position_id?: string | null
+          prenom?: string | null
+          religion?: string | null
+          sexe?: string | null
+          tel_1?: string | null
+          tel_2?: string | null
           unit_id?: string | null
           updated_at?: string
           user_id: string
+          whatsapp?: string | null
         }
         Update: {
+          adresse_departement?: string | null
+          adresse_rue?: string | null
+          adresse_ville?: string | null
+          cin?: string | null
+          code_budgetaire?: string | null
+          code_postal?: string | null
+          contact_urgence_lien?: string | null
+          contact_urgence_nom?: string | null
+          contact_urgence_prenom?: string | null
+          contact_urgence_tel?: string | null
+          contact_urgence_whatsapp?: string | null
           created_at?: string
+          date_naissance?: string | null
+          email?: string | null
           employee_status?:
             | Database["public"]["Enums"]["employee_status"]
             | null
           employment_type?:
             | Database["public"]["Enums"]["employment_type"]
             | null
+          etat_civil?: string | null
           full_name?: string | null
+          groupe_sanguin?: string | null
           id?: string
+          lieu_naissance?: string | null
+          nationalite?: string | null
+          nif?: string | null
+          nom?: string | null
           organization_id?: string | null
+          photo_url?: string | null
           position_id?: string | null
+          prenom?: string | null
+          religion?: string | null
+          sexe?: string | null
+          tel_1?: string | null
+          tel_2?: string | null
           unit_id?: string | null
           updated_at?: string
           user_id?: string
+          whatsapp?: string | null
         }
         Relationships: [
           {

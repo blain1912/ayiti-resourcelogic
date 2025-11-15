@@ -1,0 +1,676 @@
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+
+const employeeFormSchema = z.object({
+  code_budgetaire: z.string().min(1, "Code budgétaire requis"),
+  photo_url: z.string().optional(),
+  nom: z.string().min(2, "Nom requis"),
+  prenom: z.string().min(2, "Prénom requis"),
+  date_naissance: z.date({ required_error: "Date de naissance requise" }),
+  lieu_naissance: z.string().min(2, "Lieu de naissance requis"),
+  sexe: z.enum(["M", "F"], { required_error: "Sexe requis" }),
+  nationalite: z.string().min(2, "Nationalité requise"),
+  etat_civil: z.enum(["Célibataire", "Marié(e)", "Divorcé(e)", "Veuf(ve)", "Union libre"]),
+  groupe_sanguin: z.enum(["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]).optional(),
+  religion: z.enum(["Vodouisant", "Catholique", "Protestant", "Autre"]).optional(),
+  nif: z.string().optional(),
+  cin: z.string().optional(),
+  adresse_rue: z.string().min(3, "Adresse requise"),
+  adresse_ville: z.string().min(2, "Ville requise"),
+  adresse_departement: z.enum(["Artibonite", "Centre", "Grand'Anse", "Nippes", "Nord", "Nord-Est", "Nord-Ouest", "Ouest", "Sud", "Sud-Est"]),
+  code_postal: z.string().optional(),
+  tel_1: z.string().min(8, "Téléphone requis"),
+  tel_2: z.string().optional(),
+  whatsapp: z.string().optional(),
+  email: z.string().email("Email invalide").optional(),
+  contact_urgence_nom: z.string().min(2, "Nom du contact requis"),
+  contact_urgence_prenom: z.string().min(2, "Prénom du contact requis"),
+  contact_urgence_lien: z.string().min(2, "Lien requis"),
+  contact_urgence_tel: z.string().min(8, "Téléphone du contact requis"),
+  contact_urgence_whatsapp: z.string().optional(),
+  unit_id: z.string().min(1, "Direction/Service requis"),
+  position_id: z.string().min(1, "Poste requis"),
+  employment_type: z.enum(["permanent", "contractuel", "temporaire", "stagiaire"]),
+  employee_status: z.enum(["actif", "inactif", "en_conge", "suspendu"]),
+});
+
+type EmployeeFormData = z.infer<typeof employeeFormSchema>;
+
+interface EmployeeFormProps {
+  onSubmit: (data: EmployeeFormData) => Promise<void>;
+  defaultValues?: Partial<EmployeeFormData>;
+  units: Array<{ id: string; name: string }>;
+  positions: Array<{ id: string; name: string; salary: number }>;
+  isLoading?: boolean;
+}
+
+export function EmployeeForm({ onSubmit, defaultValues, units, positions, isLoading }: EmployeeFormProps) {
+  const form = useForm<EmployeeFormData>({
+    resolver: zodResolver(employeeFormSchema),
+    defaultValues: defaultValues || {
+      nationalite: "Haïtienne",
+      etat_civil: "Célibataire",
+      employment_type: "permanent",
+      employee_status: "actif",
+    },
+  });
+
+  const calculateAge = (birthDate: Date) => {
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  const selectedBirthDate = form.watch("date_naissance");
+  const age = selectedBirthDate ? calculateAge(selectedBirthDate) : null;
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Informations de base */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Informations personnelles</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="code_budgetaire"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Code budgétaire *</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="photo_url"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>URL de la photo</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="https://..." />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="nom"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nom *</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="prenom"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Prénom *</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="date_naissance"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Date de naissance *</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full pl-3 text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          {field.value ? format(field.value, "PPP") : <span>Choisir une date</span>}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        disabled={(date) => date > new Date() || date < new Date("1940-01-01")}
+                        initialFocus
+                        className={cn("p-3 pointer-events-auto")}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  {age && <p className="text-sm text-muted-foreground">Âge: {age} ans</p>}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="lieu_naissance"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Lieu de naissance *</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="sexe"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Sexe *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="M">Masculin</SelectItem>
+                      <SelectItem value="F">Féminin</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="nationalite"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nationalité *</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="etat_civil"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>État civil *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Célibataire">Célibataire</SelectItem>
+                      <SelectItem value="Marié(e)">Marié(e)</SelectItem>
+                      <SelectItem value="Divorcé(e)">Divorcé(e)</SelectItem>
+                      <SelectItem value="Veuf(ve)">Veuf(ve)</SelectItem>
+                      <SelectItem value="Union libre">Union libre</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="groupe_sanguin"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Groupe sanguin</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((group) => (
+                        <SelectItem key={group} value={group}>{group}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="religion"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Religion</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Vodouisant">Vodouisant</SelectItem>
+                      <SelectItem value="Catholique">Catholique</SelectItem>
+                      <SelectItem value="Protestant">Protestant</SelectItem>
+                      <SelectItem value="Autre">Autre</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="nif"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>NIF</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="cin"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>CIN</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+
+        <Separator />
+
+        {/* Adresse */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Adresse</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="adresse_rue"
+              render={({ field }) => (
+                <FormItem className="md:col-span-2">
+                  <FormLabel>Rue # *</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="adresse_ville"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ville *</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="adresse_departement"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Département *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {["Artibonite", "Centre", "Grand'Anse", "Nippes", "Nord", "Nord-Est", "Nord-Ouest", "Ouest", "Sud", "Sud-Est"].map((dept) => (
+                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="code_postal"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Code postal</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+
+        <Separator />
+
+        {/* Contact */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Informations de contact</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="tel_1"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Téléphone 1 *</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="+509..." />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="tel_2"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Téléphone 2</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="+509..." />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="whatsapp"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>WhatsApp</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="+509..." />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input {...field} type="email" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+
+        <Separator />
+
+        {/* Contact d'urgence */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Personne à contacter en cas d'urgence</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="contact_urgence_nom"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nom *</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="contact_urgence_prenom"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Prénom *</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="contact_urgence_lien"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Lien (relation) *</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="Ex: Époux(se), Parent, Ami(e)..." />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="contact_urgence_tel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Téléphone *</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="+509..." />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="contact_urgence_whatsapp"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>WhatsApp</FormLabel>
+                  <FormControl>
+                    <Input {...field} placeholder="+509..." />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+
+        <Separator />
+
+        {/* Informations professionnelles */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Informations professionnelles</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="unit_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Direction/Service *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {units.map((unit) => (
+                        <SelectItem key={unit.id} value={unit.id}>
+                          {unit.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="position_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Poste/Catégorie *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {positions.map((position) => (
+                        <SelectItem key={position.id} value={position.id}>
+                          {position.name} - {position.salary.toLocaleString()} HTG
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="employment_type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Type d'employé *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="permanent">Permanent</SelectItem>
+                      <SelectItem value="contractuel">Contractuel</SelectItem>
+                      <SelectItem value="temporaire">Temporaire</SelectItem>
+                      <SelectItem value="stagiaire">Stagiaire</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="employee_status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Statut *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="actif">Actif</SelectItem>
+                      <SelectItem value="inactif">Inactif</SelectItem>
+                      <SelectItem value="en_conge">En congé</SelectItem>
+                      <SelectItem value="suspendu">Suspendu</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+        </Card>
+
+        <div className="flex justify-end gap-4">
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? "Enregistrement..." : "Enregistrer"}
+          </Button>
+        </div>
+      </form>
+    </Form>
+  );
+}
