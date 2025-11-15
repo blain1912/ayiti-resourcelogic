@@ -87,3 +87,27 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Print styles for employee badge */
+@media print {
+  @page {
+    size: A6 portrait;
+    margin: 0;
+  }
+  
+  body * {
+    visibility: hidden;
+  }
+  
+  #employee-badge,
+  #employee-badge * {
+    visibility: visible;
+  }
+  
+  #employee-badge {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+  }
+}

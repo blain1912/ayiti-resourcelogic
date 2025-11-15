@@ -3,10 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { EmployeeForm } from "@/components/employees/EmployeeForm";
+import { EmployeeBadge } from "@/components/employees/EmployeeBadge";
 import { toast } from "@/hooks/use-toast";
-import { AlertCircle, CheckCircle, Clock } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, Download, CreditCard } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useProfessorGrades } from "@/hooks/useProfessorGrades";
+import { QRCodeSVG } from "qrcode.react";
+import { useOrganization } from "@/hooks/useOrganization";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function EmployeeProfile() {
   const [profile, setProfile] = useState<any>(null);
@@ -15,6 +19,7 @@ export default function EmployeeProfile() {
   const [units, setUnits] = useState<Array<{ id: string; name: string }>>([]);
   const [positions, setPositions] = useState<Array<{ id: string; name: string; salary: number }>>([]);
   const { grades: professorGrades } = useProfessorGrades(profile?.organization_id);
+  const { organization } = useOrganization();
 
   useEffect(() => {
     fetchProfile();
@@ -205,43 +210,116 @@ export default function EmployeeProfile() {
         )}
 
         {profile?.profile_completed && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Informations complètes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <Alert>
-                  <CheckCircle className="h-4 w-4" />
-                  <AlertTitle>Profil complet</AlertTitle>
-                  <AlertDescription>
-                    Votre fiche d'employé est complète et à jour.
-                  </AlertDescription>
-                </Alert>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Nom complet</p>
-                    <p className="text-lg">{profile.full_name}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Code budgétaire</p>
-                    <p className="text-lg">{profile.code_budgetaire || "Non renseigné"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Email</p>
-                    <p className="text-lg">{profile.email || "Non renseigné"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Téléphone</p>
-                    <p className="text-lg">{profile.tel_1 || "Non renseigné"}</p>
-                  </div>
-                </div>
-                <Button variant="outline" onClick={() => setShowForm(true)}>
-                  Modifier mes informations
-                </Button>
+          <Tabs defaultValue="info" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="info">Informations</TabsTrigger>
+              <TabsTrigger value="badge">
+                <CreditCard className="h-4 w-4 mr-2" />
+                Badge
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="info" className="space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <Card className="lg:col-span-2">
+                  <CardHeader>
+                    <CardTitle>Informations complètes</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <Alert>
+                        <CheckCircle className="h-4 w-4" />
+                        <AlertTitle>Profil complet</AlertTitle>
+                        <AlertDescription>
+                          Votre fiche d'employé est complète et à jour.
+                        </AlertDescription>
+                      </Alert>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Nom complet</p>
+                          <p className="text-lg">{profile.full_name}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Code budgétaire</p>
+                          <p className="text-lg">{profile.code_budgetaire || "Non renseigné"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Email</p>
+                          <p className="text-lg">{profile.email || "Non renseigné"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Téléphone</p>
+                          <p className="text-lg">{profile.tel_1 || "Non renseigné"}</p>
+                        </div>
+                      </div>
+                      <Button variant="outline" onClick={() => setShowForm(true)}>
+                        Modifier mes informations
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>QR Code Employé</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex flex-col items-center justify-center p-6 bg-white rounded-lg">
+                        <QRCodeSVG
+                          value={JSON.stringify({
+                            id: profile.id,
+                            nom: profile.nom,
+                            prenom: profile.prenom,
+                            code_budgetaire: profile.code_budgetaire,
+                            email: profile.email,
+                            organization_id: profile.organization_id
+                          })}
+                          size={200}
+                          level="H"
+                          includeMargin={true}
+                        />
+                      </div>
+                      <p className="text-sm text-muted-foreground text-center">
+                        Votre QR code personnel pour l'identification
+                      </p>
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => {
+                          const svg = document.querySelector('svg');
+                          if (svg) {
+                            const svgData = new XMLSerializer().serializeToString(svg);
+                            const canvas = document.createElement("canvas");
+                            const ctx = canvas.getContext("2d");
+                            const img = new Image();
+                            img.onload = () => {
+                              canvas.width = img.width;
+                              canvas.height = img.height;
+                              ctx?.drawImage(img, 0, 0);
+                              const pngFile = canvas.toDataURL("image/png");
+                              const downloadLink = document.createElement("a");
+                              downloadLink.download = `qrcode-${profile.code_budgetaire}.png`;
+                              downloadLink.href = pngFile;
+                              downloadLink.click();
+                            };
+                            img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+                          }
+                        }}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Télécharger le QR Code
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
+            </TabsContent>
+
+            <TabsContent value="badge">
+              <EmployeeBadge profile={profile} organizationName={organization?.name} />
+            </TabsContent>
+          </Tabs>
         )}
       </div>
     </div>
