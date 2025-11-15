@@ -46,18 +46,40 @@ const Auth = () => {
         
         // Redirect to dashboard if authenticated
         if (session) {
-          setTimeout(() => {
-            navigate("/");
+          setTimeout(async () => {
+            // Check if user has an organization
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("organization_id")
+              .eq("user_id", session.user.id)
+              .maybeSingle();
+            
+            if (!profile?.organization_id) {
+              navigate("/onboarding");
+            } else {
+              navigate("/");
+            }
           }, 0);
         }
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       if (session) {
-        navigate("/");
+        // Check if user has an organization
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("organization_id")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+        
+        if (!profile?.organization_id) {
+          navigate("/onboarding");
+        } else {
+          navigate("/");
+        }
       }
     });
 
