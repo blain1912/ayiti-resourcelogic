@@ -89,6 +89,9 @@ export default function EmployeeProfile() {
         .from("profiles")
         .update({
           ...formData,
+          date_naissance: formData.date_naissance instanceof Date 
+            ? formData.date_naissance.toISOString().split('T')[0]
+            : formData.date_naissance,
           full_name: `${formData.prenom} ${formData.nom}`,
           profile_completed: true,
         })
@@ -203,7 +206,10 @@ export default function EmployeeProfile() {
                 units={units}
                 positions={positions}
                 professorGrades={professorGrades}
-                defaultValues={profile}
+                defaultValues={{
+                  ...profile,
+                  date_naissance: profile?.date_naissance ? new Date(profile.date_naissance) : undefined
+                }}
               />
             </CardContent>
           </Card>
