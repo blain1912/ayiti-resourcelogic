@@ -43,6 +43,27 @@ export default function PendingApprovals() {
   useEffect(() => {
     if (organization?.id) {
       fetchPendingProfiles();
+      
+      // Set up realtime subscription
+      const channel = supabase
+        .channel('pending-profiles-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'profiles',
+            filter: 'approval_status=eq.pending'
+          },
+          () => {
+            fetchPendingProfiles();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [organization]);
 
