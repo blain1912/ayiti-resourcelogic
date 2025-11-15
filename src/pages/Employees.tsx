@@ -43,7 +43,7 @@ export default function Employees() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [units, setUnits] = useState<Array<{ id: string; name: string }>>([]);
+  const [units, setUnits] = useState<Array<{ id: string; name: string; type?: string; parent_id?: string | null }>>([]);
   const [positions, setPositions] = useState<Array<{ id: string; name: string; salary: number }>>([]);
   const { grades: professorGrades } = useProfessorGrades(organization?.id);
 
@@ -90,7 +90,7 @@ export default function Employees() {
     try {
       const { data, error } = await supabase
         .from("organizational_units")
-        .select("id, name")
+        .select("id, name, type, parent_id")
         .eq("organization_id", organization!.id)
         .order("name");
 

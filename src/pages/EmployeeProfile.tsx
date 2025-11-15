@@ -16,7 +16,7 @@ export default function EmployeeProfile() {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [units, setUnits] = useState<Array<{ id: string; name: string }>>([]);
+  const [units, setUnits] = useState<Array<{ id: string; name: string; type?: string; parent_id?: string | null }>>([]);
   const [positions, setPositions] = useState<Array<{ id: string; name: string; salary: number }>>([]);
   const { grades: professorGrades } = useProfessorGrades(profile?.organization_id);
   const { organization } = useOrganization();
@@ -79,7 +79,7 @@ export default function EmployeeProfile() {
   const fetchUnits = async (orgId: string) => {
     const { data } = await supabase
       .from("organizational_units")
-      .select("id, name")
+      .select("id, name, type, parent_id")
       .eq("organization_id", orgId)
       .order("name");
     setUnits(data || []);

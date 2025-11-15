@@ -13,7 +13,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { ProfessorGradeData } from "@/hooks/useProfessorGrades";
 
 const employeeFormSchema = z.object({
@@ -43,7 +43,7 @@ const employeeFormSchema = z.object({
   contact_urgence_lien: z.string().min(2, "Lien requis"),
   contact_urgence_tel: z.string().min(8, "Téléphone du contact requis"),
   contact_urgence_whatsapp: z.string().optional(),
-  unit_id: z.string().min(1, "Direction/Service requis"),
+  unit_id: z.string().min(1, "Direction requise"),
   employee_category: z.enum([
     "Personnel de décision",
     "Personnel d'encadrement",
@@ -73,13 +73,15 @@ type EmployeeFormData = z.infer<typeof employeeFormSchema>;
 interface EmployeeFormProps {
   onSubmit: (data: EmployeeFormData) => Promise<void>;
   defaultValues?: Partial<EmployeeFormData>;
-  units: Array<{ id: string; name: string }>;
+  units: Array<{ id: string; name: string; type?: string; parent_id?: string | null }>;
   positions: Array<{ id: string; name: string; salary: number }>;
   professorGrades?: ProfessorGradeData[];
   isLoading?: boolean;
 }
 
 export function EmployeeForm({ onSubmit, defaultValues, units, positions, professorGrades = [], isLoading }: EmployeeFormProps) {
+  const [selectedDirectionId, setSelectedDirectionId] = useState<string>("");
+  
   const form = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeFormSchema),
     defaultValues: defaultValues || {
@@ -102,8 +104,33 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
 
   const selectedBirthDate = form.watch("date_naissance");
   const employmentType = form.watch("employment_type");
+  const selectedUnitId = form.watch("unit_id");
   const age = selectedBirthDate ? calculateAge(selectedBirthDate) : null;
   const isProfessor = employmentType === "professeur";
+
+  // Filtrer les directions (direction_generale, direction_technique)
+  const directions = units.filter(unit => 
+    unit.type === "direction_generale" || unit.type === "direction_technique"
+  );
+
+  // Filtrer les services selon la direction sélectionnée
+  const services = units.filter(unit => 
+    unit.type === "service" && unit.parent_id === selectedDirectionId
+  );
+
+  // Initialiser selectedDirectionId si defaultValues a un unit_id
+  useEffect(() => {
+    if (defaultValues?.unit_id && units.length > 0) {
+      const selectedUnit = units.find(u => u.id === defaultValues.unit_id);
+      if (selectedUnit) {
+        if (selectedUnit.type === "service" && selectedUnit.parent_id) {
+          setSelectedDirectionId(selectedUnit.parent_id);
+        } else if (selectedUnit.type === "direction_generale" || selectedUnit.type === "direction_technique") {
+          setSelectedDirectionId(selectedUnit.id);
+        }
+      }
+    }
+  }, [defaultValues?.unit_id, units]);
 
   const GRADE_LABELS: Record<string, string> = {
     assistant: "Assistant",
@@ -652,17 +679,24 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
               name="unit_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Direction/Service *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <FormLabel>Direction *</FormLabel>
+                  <Select 
+                    onValueChange={(value) => {
+                      setSelectedDirectionId(value);
+                      // Si on change de direction, on met unit_id à la direction
+                      field.onChange(value);
+                    }} 
+                    value={selectedDirectionId}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner" />
+                        <SelectValue placeholder="Sélectionner une direction" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {units.map((unit) => (
-                        <SelectItem key={unit.id} value={unit.id}>
-                          {unit.name}
+                      {directions.map((direction) => (
+                        <SelectItem key={direction.id} value={direction.id}>
+                          {direction.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -671,6 +705,37 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
                 </FormItem>
               )}
             />
+
+            {selectedDirectionId && services.length > 0 && (
+              <FormField
+                control={form.control}
+                name="unit_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Services</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={services.find(s => s.id === field.value) ? field.value : ""}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner un service (optionnel)" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value={selectedDirectionId}>Aucun service (Direction uniquement)</SelectItem>
+                        {services.map((service) => (
+                          <SelectItem key={service.id} value={service.id}>
+                            {service.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}
