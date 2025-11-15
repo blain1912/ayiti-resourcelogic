@@ -17,6 +17,7 @@ import AdminOrganization from "./pages/AdminOrganization";
 import AdminUnits from "./pages/AdminUnits";
 import AdminUsers from "./pages/AdminUsers";
 import EmployeeProfile from "./pages/EmployeeProfile";
+import EmployeeWaiting from "./pages/EmployeeWaiting";
 import PendingApprovals from "./pages/PendingApprovals";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
@@ -34,6 +35,7 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/onboarding" element={<Onboarding />} />
+            <Route path="/employee-waiting" element={<EmployeeWaiting />} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/employees" element={<ProtectedRoute><Employees /></ProtectedRoute>} />
             <Route path="/leaves" element={<ProtectedRoute><Leaves /></ProtectedRoute>} />

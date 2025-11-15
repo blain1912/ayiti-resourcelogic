@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import type { Session } from "@supabase/supabase-js";
@@ -14,6 +15,7 @@ const signUpSchema = z.object({
   fullName: z.string().trim().min(2, "Le nom doit contenir au moins 2 caractères").max(100),
   email: z.string().trim().email("Email invalide").max(255),
   password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères").max(100),
+  userType: z.enum(["responsable", "employe"]),
 });
 
 const signInSchema = z.object({
@@ -31,6 +33,7 @@ const Auth = () => {
     fullName: "",
     email: "",
     password: "",
+    userType: "responsable" as "responsable" | "employe",
   });
 
   const [signInData, setSignInData] = useState({
@@ -54,8 +57,14 @@ const Auth = () => {
               .eq("user_id", session.user.id)
               .maybeSingle();
             
+            const userType = session.user.user_metadata?.user_type;
+            
             if (!profile?.organization_id) {
-              navigate("/onboarding");
+              if (userType === "employe") {
+                navigate("/employee-waiting");
+              } else {
+                navigate("/onboarding");
+              }
             } else {
               navigate("/");
             }
@@ -75,8 +84,14 @@ const Auth = () => {
           .eq("user_id", session.user.id)
           .maybeSingle();
         
+        const userType = session.user.user_metadata?.user_type;
+        
         if (!profile?.organization_id) {
-          navigate("/onboarding");
+          if (userType === "employe") {
+            navigate("/employee-waiting");
+          } else {
+            navigate("/onboarding");
+          }
         } else {
           navigate("/");
         }
@@ -102,6 +117,7 @@ const Auth = () => {
           emailRedirectTo: redirectUrl,
           data: {
             full_name: validatedData.fullName,
+            user_type: validatedData.userType,
           },
         },
       });
@@ -239,6 +255,28 @@ const Auth = () => {
                     onChange={(e) => setSignUpData({ ...signUpData, fullName: e.target.value })}
                     required
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-type">Type d'utilisateur</Label>
+                  <Select
+                    value={signUpData.userType}
+                    onValueChange={(value: "responsable" | "employe") => 
+                      setSignUpData({ ...signUpData, userType: value })
+                    }
+                  >
+                    <SelectTrigger id="signup-type">
+                      <SelectValue placeholder="Sélectionnez votre type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="responsable">Responsable d'organisation</SelectItem>
+                      <SelectItem value="employe">Employé</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {signUpData.userType === "responsable" 
+                      ? "Vous pourrez créer et gérer votre organisation" 
+                      : "Vous devrez être ajouté à une organisation par un administrateur"}
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
