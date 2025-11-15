@@ -15,6 +15,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { EmployeeForm } from "@/components/employees/EmployeeForm";
+import { toast } from "@/hooks/use-toast";
 
 interface Employee {
   id: string;
@@ -30,10 +33,15 @@ export default function Employees() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [units, setUnits] = useState<Array<{ id: string; name: string }>>([]);
+  const [positions, setPositions] = useState<Array<{ id: string; name: string; salary: number }>>([]);
 
   useEffect(() => {
     if (organization?.id) {
       fetchEmployees();
+      fetchUnits();
+      fetchPositions();
     }
   }, [organization]);
 
@@ -68,6 +76,63 @@ export default function Employees() {
     }
   };
 
+  const fetchUnits = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("organizational_units")
+        .select("id, name")
+        .eq("organization_id", organization!.id)
+        .order("name");
+
+      if (error) throw error;
+      setUnits(data || []);
+    } catch (error) {
+      console.error("Error fetching units:", error);
+    }
+  };
+
+  const fetchPositions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("positions")
+        .select("id, name, salary")
+        .eq("organization_id", organization!.id)
+        .order("name");
+
+      if (error) throw error;
+      setPositions(data || []);
+    } catch (error) {
+      console.error("Error fetching positions:", error);
+    }
+  };
+
+  const handleCreateEmployee = async (formData: any) => {
+    try {
+      const { error } = await supabase.from("profiles").insert({
+        ...formData,
+        organization_id: organization!.id,
+        full_name: `${formData.prenom} ${formData.nom}`,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Employé créé",
+        description: "L'employé a été créé avec succès",
+      });
+
+      setIsDialogOpen(false);
+      fetchEmployees();
+    } catch (error: any) {
+      console.error("Error creating employee:", error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue",
+        variant: "destructive",
+      });
+    }
+  };
+
   const filteredEmployees = employees.filter((employee) =>
     employee.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     employee.position_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -90,10 +155,24 @@ export default function Employees() {
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <CardTitle className="text-2xl">{t("employeeList")}</CardTitle>
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              {t("addEmployee")}
-            </Button>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  {t("addEmployee")}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Ajouter un employé</DialogTitle>
+                </DialogHeader>
+                <EmployeeForm
+                  onSubmit={handleCreateEmployee}
+                  units={units}
+                  positions={positions}
+                />
+              </DialogContent>
+            </Dialog>
           </div>
           
           <div className="flex flex-col md:flex-row gap-4 mt-4">
