@@ -6,6 +6,7 @@ import { EmployeeForm } from "@/components/employees/EmployeeForm";
 import { toast } from "@/hooks/use-toast";
 import { AlertCircle, CheckCircle, Clock } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useProfessorGrades } from "@/hooks/useProfessorGrades";
 
 export default function EmployeeProfile() {
   const [profile, setProfile] = useState<any>(null);
@@ -13,6 +14,7 @@ export default function EmployeeProfile() {
   const [showForm, setShowForm] = useState(false);
   const [units, setUnits] = useState<Array<{ id: string; name: string }>>([]);
   const [positions, setPositions] = useState<Array<{ id: string; name: string; salary: number }>>([]);
+  const { grades: professorGrades } = useProfessorGrades(profile?.organization_id);
 
   useEffect(() => {
     fetchProfile();
@@ -187,6 +189,7 @@ export default function EmployeeProfile() {
                 onSubmit={handleSubmit}
                 units={units}
                 positions={positions}
+                professorGrades={professorGrades}
                 defaultValues={profile}
               />
             </CardContent>

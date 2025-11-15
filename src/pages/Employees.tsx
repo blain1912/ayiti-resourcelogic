@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { EmployeeForm } from "@/components/employees/EmployeeForm";
 import { toast } from "@/hooks/use-toast";
+import { useProfessorGrades } from "@/hooks/useProfessorGrades";
 
 interface Employee {
   id: string;
@@ -36,6 +37,7 @@ export default function Employees() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [units, setUnits] = useState<Array<{ id: string; name: string }>>([]);
   const [positions, setPositions] = useState<Array<{ id: string; name: string; salary: number }>>([]);
+  const { grades: professorGrades } = useProfessorGrades(organization?.id);
 
   useEffect(() => {
     if (organization?.id) {
@@ -170,6 +172,7 @@ export default function Employees() {
                   onSubmit={handleCreateEmployee}
                   units={units}
                   positions={positions}
+                  professorGrades={professorGrades}
                 />
               </DialogContent>
             </Dialog>

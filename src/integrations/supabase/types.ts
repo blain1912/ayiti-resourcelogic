@@ -178,6 +178,44 @@ export type Database = {
           },
         ]
       }
+      professor_grades: {
+        Row: {
+          created_at: string
+          description: string | null
+          grade: Database["public"]["Enums"]["professor_grade"]
+          id: string
+          organization_id: string
+          salary: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          grade: Database["public"]["Enums"]["professor_grade"]
+          id?: string
+          organization_id: string
+          salary: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          grade?: Database["public"]["Enums"]["professor_grade"]
+          id?: string
+          organization_id?: string
+          salary?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professor_grades_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           adresse_departement: string | null
@@ -209,6 +247,7 @@ export type Database = {
           photo_url: string | null
           position_id: string | null
           prenom: string | null
+          professor_grade: Database["public"]["Enums"]["professor_grade"] | null
           profile_completed: boolean | null
           religion: string | null
           sexe: string | null
@@ -253,6 +292,9 @@ export type Database = {
           photo_url?: string | null
           position_id?: string | null
           prenom?: string | null
+          professor_grade?:
+            | Database["public"]["Enums"]["professor_grade"]
+            | null
           profile_completed?: boolean | null
           religion?: string | null
           sexe?: string | null
@@ -297,6 +339,9 @@ export type Database = {
           photo_url?: string | null
           position_id?: string | null
           prenom?: string | null
+          professor_grade?:
+            | Database["public"]["Enums"]["professor_grade"]
+            | null
           profile_completed?: boolean | null
           religion?: string | null
           sexe?: string | null
@@ -401,12 +446,18 @@ export type Database = {
         | "transfere"
         | "renvoye"
         | "decede"
-      employment_type: "permanent" | "contractuel" | "journalier"
+      employment_type: "permanent" | "contractuel" | "journalier" | "professeur"
       organization_type:
         | "ministere"
         | "direction_generale"
         | "organisme_autonome"
         | "organisme_deconcentre"
+      professor_grade:
+        | "assistant"
+        | "adjoint"
+        | "associe"
+        | "titulaire"
+        | "emerite"
       subscription_tier: "free" | "pro" | "enterprise"
       unit_type:
         | "direction_generale"
@@ -560,12 +611,19 @@ export const Constants = {
         "renvoye",
         "decede",
       ],
-      employment_type: ["permanent", "contractuel", "journalier"],
+      employment_type: ["permanent", "contractuel", "journalier", "professeur"],
       organization_type: [
         "ministere",
         "direction_generale",
         "organisme_autonome",
         "organisme_deconcentre",
+      ],
+      professor_grade: [
+        "assistant",
+        "adjoint",
+        "associe",
+        "titulaire",
+        "emerite",
       ],
       subscription_tier: ["free", "pro", "enterprise"],
       unit_type: [
