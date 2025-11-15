@@ -21,6 +21,7 @@ const OrganizationalUnits = ({ organizationId }: OrganizationalUnitsProps) => {
   const { language } = useLanguage();
 
   useEffect(() => {
+    if (!organizationId) return;
     loadUnits();
   }, [organizationId]);
 
@@ -70,7 +71,7 @@ const OrganizationalUnits = ({ organizationId }: OrganizationalUnitsProps) => {
           </div>
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button type="button">
                 <Plus className="h-4 w-4 mr-2" />
                 {language === "fr" ? "Ajouter une structure" : "Add Unit"}
               </Button>

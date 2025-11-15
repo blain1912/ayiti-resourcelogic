@@ -89,7 +89,7 @@ export default function SalaryScale() {
         <div className="flex gap-2 mt-4">
           <Dialog open={categoryDialogOpen} onOpenChange={setCategoryDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
+              <Button type="button" className="gap-2">
                 <Plus className="h-4 w-4" />
                 Nouvelle Catégorie
               </Button>
@@ -120,7 +120,7 @@ export default function SalaryScale() {
 
           <Dialog open={positionDialogOpen} onOpenChange={setPositionDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="gap-2">
+              <Button type="button" variant="outline" className="gap-2">
                 <Plus className="h-4 w-4" />
                 Nouveau Poste
               </Button>
