@@ -10,6 +10,7 @@ import OrganizationInfo from "@/components/settings/OrganizationInfo";
 import OrganizationalUnits from "@/components/settings/OrganizationalUnits";
 import { SubscriptionInfo } from "@/components/settings/SubscriptionInfo";
 import SalaryScale from "@/components/settings/SalaryScale";
+import { ProfessorGrades } from "@/components/settings/ProfessorGrades";
 
 const Settings = () => {
   const [loading, setLoading] = useState(true);
@@ -143,6 +144,7 @@ const Settings = () => {
           <TabsContent value="organization" className="space-y-6">
             <OrganizationInfo organization={organization} onUpdate={refetchOrganization} />
             <SalaryScale />
+            <ProfessorGrades />
             <SubscriptionInfo organization={organization} onUpdate={refetchOrganization} />
           </TabsContent>
 

@@ -13,6 +13,8 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { useState } from "react";
+import type { ProfessorGradeData } from "@/hooks/useProfessorGrades";
 
 const employeeFormSchema = z.object({
   code_budgetaire: z.string().min(1, "Code budgétaire requis"),
@@ -42,10 +44,22 @@ const employeeFormSchema = z.object({
   contact_urgence_tel: z.string().min(8, "Téléphone du contact requis"),
   contact_urgence_whatsapp: z.string().optional(),
   unit_id: z.string().min(1, "Direction/Service requis"),
-  position_id: z.string().min(1, "Poste requis"),
-  employment_type: z.enum(["permanent", "contractuel", "temporaire", "stagiaire"]),
+  position_id: z.string().optional(),
+  employment_type: z.enum(["permanent", "contractuel", "temporaire", "stagiaire", "professeur"]),
   employee_status: z.enum(["actif", "inactif", "en_conge", "suspendu"]),
-});
+  professor_grade: z.enum(["assistant", "adjoint", "associe", "titulaire", "emerite"]).optional(),
+}).refine(
+  (data) => {
+    if (data.employment_type === "professeur") {
+      return !!data.professor_grade;
+    }
+    return !!data.position_id;
+  },
+  {
+    message: "Grade de professeur requis pour les professeurs, Poste requis pour les autres",
+    path: ["position_id"],
+  }
+);
 
 type EmployeeFormData = z.infer<typeof employeeFormSchema>;
 
@@ -54,10 +68,11 @@ interface EmployeeFormProps {
   defaultValues?: Partial<EmployeeFormData>;
   units: Array<{ id: string; name: string }>;
   positions: Array<{ id: string; name: string; salary: number }>;
+  professorGrades?: ProfessorGradeData[];
   isLoading?: boolean;
 }
 
-export function EmployeeForm({ onSubmit, defaultValues, units, positions, isLoading }: EmployeeFormProps) {
+export function EmployeeForm({ onSubmit, defaultValues, units, positions, professorGrades = [], isLoading }: EmployeeFormProps) {
   const form = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeFormSchema),
     defaultValues: defaultValues || {
@@ -79,7 +94,17 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, isLoad
   };
 
   const selectedBirthDate = form.watch("date_naissance");
+  const employmentType = form.watch("employment_type");
   const age = selectedBirthDate ? calculateAge(selectedBirthDate) : null;
+  const isProfessor = employmentType === "professeur";
+
+  const GRADE_LABELS: Record<string, string> = {
+    assistant: "Assistant",
+    adjoint: "Adjoint",
+    associe: "Associé",
+    titulaire: "Titulaire",
+    emerite: "Émérite",
+  };
 
   return (
     <Form {...form}>
@@ -595,8 +620,8 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, isLoad
               name="position_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Poste/Catégorie *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <FormLabel>Poste/Catégorie {!isProfessor && "*"}</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value} disabled={isProfessor}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionner" />
@@ -610,6 +635,11 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, isLoad
                       ))}
                     </SelectContent>
                   </Select>
+                  {isProfessor && (
+                    <p className="text-sm text-muted-foreground">
+                      Non applicable pour les professeurs
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}
@@ -632,12 +662,40 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, isLoad
                       <SelectItem value="contractuel">Contractuel</SelectItem>
                       <SelectItem value="temporaire">Temporaire</SelectItem>
                       <SelectItem value="stagiaire">Stagiaire</SelectItem>
+                      <SelectItem value="professeur">Professeur</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            {isProfessor && (
+              <FormField
+                control={form.control}
+                name="professor_grade"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Grade de professeur *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner un grade" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {professorGrades.map((grade) => (
+                          <SelectItem key={grade.id} value={grade.grade}>
+                            {GRADE_LABELS[grade.grade]} - {grade.salary.toLocaleString()} HTG
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}
