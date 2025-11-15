@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,38 +21,27 @@ export default function Navbar() {
   const { user, signOut } = useAuth();
   const { organization } = useOrganization();
   const [isRH, setIsRH] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   useEffect(() => {
-    const checkRHRole = async () => {
+    const checkRoles = async () => {
       if (!user || !organization) return;
       
       const { data } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id)
-        .eq("organization_id", organization.id)
-        .in("role", ["admin", "directeur_rh"])
         .maybeSingle();
       
-      setIsRH(!!data);
+      if (data) {
+        setIsRH(["admin", "directeur_rh"].includes(data.role));
+        setIsSuperAdmin(data.role === "admin");
+      }
     };
 
-    checkRHRole();
+    checkRoles();
   }, [user, organization]);
 
-  const navItems = [
-    { path: "/", icon: LayoutDashboard, label: t("dashboard") },
-    { path: "/employees", icon: Users, label: t("employees") },
-    { path: "/units", icon: Building2, label: "Unités" },
-    { path: "/leaves", icon: Calendar, label: t("leaves") },
-    { path: "/documents", icon: FileText, label: t("documents") },
-  ];
-
-  if (isRH) {
-    navItems.push({ path: "/approvals", icon: ClipboardCheck, label: "Approbations" });
-    navItems.push({ path: "/badges", icon: CreditCard, label: "Badges" });
-    navItems.push({ path: "/attendance", icon: CheckSquare, label: "Présence" });
-  }
 
   return (
     <nav className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
@@ -79,22 +68,123 @@ export default function Navbar() {
             </Link>
             
             <div className="hidden md:flex items-center gap-1">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = location.pathname === item.path;
-                return (
-                  <Link key={item.path} to={item.path}>
-                    <Button
-                      variant={isActive ? "secondary" : "ghost"}
-                      size="sm"
-                      className="gap-2"
-                    >
-                      <Icon className="h-4 w-4" />
-                      {item.label}
+              {/* Tableau de bord */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-1">
+                    <LayoutDashboard className="h-4 w-4" />
+                    Tableau de bord
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="bg-background z-50">
+                  <DropdownMenuItem asChild>
+                    <Link to="/" className="flex items-center cursor-pointer">
+                      <LayoutDashboard className="h-4 w-4 mr-2" />
+                      Dashboard principal
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/units" className="flex items-center cursor-pointer">
+                      <Building2 className="h-4 w-4 mr-2" />
+                      Unités
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Employés */}
+              <Link to="/employees">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <Users className="h-4 w-4" />
+                  Employés
+                </Button>
+              </Link>
+
+              {/* RH Menu - Only for RH roles */}
+              {isRH && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="gap-1">
+                      <ClipboardCheck className="h-4 w-4" />
+                      RH
+                      <ChevronDown className="h-3 w-3" />
                     </Button>
-                  </Link>
-                );
-              })}
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="bg-background z-50">
+                    <DropdownMenuItem asChild>
+                      <Link to="/approvals" className="flex items-center cursor-pointer">
+                        <ClipboardCheck className="h-4 w-4 mr-2" />
+                        Approbations
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/badges" className="flex items-center cursor-pointer">
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        Badges employés
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/attendance" className="flex items-center cursor-pointer">
+                        <CheckSquare className="h-4 w-4 mr-2" />
+                        Présence
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+
+              {/* Documents & Congés */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-1">
+                    <FileText className="h-4 w-4" />
+                    Documents
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="bg-background z-50">
+                  <DropdownMenuItem asChild>
+                    <Link to="/leaves" className="flex items-center cursor-pointer">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Congés
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/documents" className="flex items-center cursor-pointer">
+                      <FileText className="h-4 w-4 mr-2" />
+                      Documents
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Administration - Only for admins */}
+              {isSuperAdmin && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="gap-1">
+                      <Settings className="h-4 w-4" />
+                      Admin
+                      <ChevronDown className="h-3 w-3" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="bg-background z-50">
+                    <DropdownMenuItem asChild>
+                      <Link to="/settings" className="flex items-center cursor-pointer">
+                        <Settings className="h-4 w-4 mr-2" />
+                        Paramètres
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/super-admin" className="flex items-center cursor-pointer">
+                        <Shield className="h-4 w-4 mr-2" />
+                        Super Admin
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
 
@@ -106,14 +196,14 @@ export default function Navbar() {
                   {language === 'fr' ? 'Français' : 'Kreyòl'}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setLanguage('fr')}>
-                  Français
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLanguage('ht')}>
-                  Kreyòl Ayisyen
-                </DropdownMenuItem>
-              </DropdownMenuContent>
+                <DropdownMenuContent align="end" className="bg-background z-50">
+                  <DropdownMenuItem onClick={() => setLanguage('fr')}>
+                    Français
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLanguage('ht')}>
+                    Kreyòl Ayisyen
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
             </DropdownMenu>
 
             {user ? (
@@ -124,15 +214,15 @@ export default function Navbar() {
                     <span className="hidden md:inline">{user.email}</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="bg-background z-50">
                   <DropdownMenuItem asChild>
-                    <Link to="/employee-profile" className="flex items-center">
+                    <Link to="/employee-profile" className="flex items-center cursor-pointer">
                       <UserCircle className="h-4 w-4 mr-2" />
                       Mon profil
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/my-qr-code" className="flex items-center">
+                    <Link to="/my-qr-code" className="flex items-center cursor-pointer">
                       <QrCode className="h-4 w-4 mr-2" />
                       Mon QR Code
                     </Link>
@@ -152,12 +242,6 @@ export default function Navbar() {
                 </Button>
               </Link>
             )}
-
-            <Link to="/settings">
-              <Button variant="ghost" size="icon">
-                <Settings className="h-5 w-5" />
-              </Button>
-            </Link>
           </div>
         </div>
       </div>
