@@ -233,6 +233,7 @@ export type Database = {
           created_at: string
           date_naissance: string | null
           email: string | null
+          employee_category: string | null
           employee_status: Database["public"]["Enums"]["employee_status"] | null
           employment_type: Database["public"]["Enums"]["employment_type"] | null
           etat_civil: string | null
@@ -274,6 +275,7 @@ export type Database = {
           created_at?: string
           date_naissance?: string | null
           email?: string | null
+          employee_category?: string | null
           employee_status?:
             | Database["public"]["Enums"]["employee_status"]
             | null
@@ -321,6 +323,7 @@ export type Database = {
           created_at?: string
           date_naissance?: string | null
           email?: string | null
+          employee_category?: string | null
           employee_status?:
             | Database["public"]["Enums"]["employee_status"]
             | null
