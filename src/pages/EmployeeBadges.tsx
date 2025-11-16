@@ -16,12 +16,17 @@ interface Profile {
   nom: string | null;
   prenom: string | null;
   code_budgetaire: string | null;
+  nif: string | null;
+  groupe_sanguin: string | null;
   email: string | null;
   photo_url: string | null;
   organization_id: string | null;
   position_id: string | null;
   profile_completed: boolean | null;
   employee_status: string | null;
+  positions?: {
+    name: string;
+  } | null;
 }
 
 export default function EmployeeBadges() {
@@ -56,7 +61,7 @@ export default function EmployeeBadges() {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, nom, prenom, code_budgetaire, email, photo_url, organization_id, position_id, profile_completed, employee_status")
+        .select("id, nom, prenom, code_budgetaire, nif, groupe_sanguin, email, photo_url, organization_id, position_id, profile_completed, employee_status, positions(name)")
         .eq("organization_id", organization.id)
         .eq("profile_completed", true)
         .order("nom");
@@ -261,7 +266,8 @@ export default function EmployeeBadges() {
           <div id="print-badge" className="flex items-center justify-center min-h-screen">
             <EmployeeBadge 
               profile={selectedProfile} 
-              organizationName={organization?.name}
+              organization={organization}
+              positionName={selectedProfile.positions?.name}
               hideActions={true}
             />
           </div>
@@ -275,7 +281,8 @@ export default function EmployeeBadges() {
               >
                 <EmployeeBadge 
                   profile={profile} 
-                  organizationName={organization?.name}
+                  organization={organization}
+                  positionName={profile.positions?.name}
                   hideActions={true}
                 />
               </div>

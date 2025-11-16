@@ -9,16 +9,27 @@ interface EmployeeBadgeProps {
     nom: string | null;
     prenom: string | null;
     code_budgetaire: string | null;
+    nif: string | null;
+    groupe_sanguin: string | null;
     email: string | null;
     photo_url: string | null;
     organization_id: string | null;
     position_id: string | null;
   };
-  organizationName?: string;
+  organization?: {
+    name: string;
+    logo_url?: string | null;
+    primary_color?: string | null;
+    secondary_color?: string | null;
+    accent_color?: string | null;
+  } | null;
+  positionName?: string | null;
   hideActions?: boolean;
 }
 
-export function EmployeeBadge({ profile, organizationName, hideActions = false }: EmployeeBadgeProps) {
+export function EmployeeBadge({ profile, organization, positionName, hideActions = false }: EmployeeBadgeProps) {
+  const primaryColor = organization?.primary_color || '#0EA5E9';
+  const secondaryColor = organization?.secondary_color || '#8B5CF6';
   const handlePrint = () => {
     window.print();
   };
@@ -56,11 +67,25 @@ export function EmployeeBadge({ profile, organizationName, hideActions = false }
         </div>
       )}
 
-      <Card id="employee-badge" className="w-[350px] mx-auto bg-gradient-to-br from-primary/5 to-primary/10">
+      <Card 
+        id="employee-badge" 
+        className="w-[350px] mx-auto"
+        style={{ 
+          background: `linear-gradient(135deg, ${primaryColor}10, ${secondaryColor}10)` 
+        }}
+      >
         <CardContent className="p-6 space-y-4">
           {/* En-tête */}
           <div className="text-center border-b pb-3">
-            <h3 className="font-bold text-lg">{organizationName || "Organisation"}</h3>
+            {organization?.logo_url ? (
+              <img 
+                src={organization.logo_url} 
+                alt="Logo" 
+                className="h-12 mx-auto mb-2 object-contain"
+              />
+            ) : (
+              <h3 className="font-bold text-lg">{organization?.name || "Organisation"}</h3>
+            )}
             <p className="text-sm text-muted-foreground">Badge d'identification</p>
           </div>
 
@@ -86,11 +111,30 @@ export function EmployeeBadge({ profile, organizationName, hideActions = false }
             <h4 className="font-bold text-xl">
               {profile.prenom} {profile.nom}
             </h4>
-            {profile.code_budgetaire && (
-              <p className="text-sm font-mono bg-white px-3 py-1 rounded inline-block">
-                {profile.code_budgetaire}
-              </p>
-            )}
+            
+            <div className="space-y-1">
+              {profile.nif && (
+                <p className="text-sm">
+                  <span className="font-semibold">NIF:</span>{" "}
+                  <span className="font-mono bg-white px-2 py-0.5 rounded">{profile.nif}</span>
+                </p>
+              )}
+              
+              {positionName && (
+                <p className="text-sm">
+                  <span className="font-semibold">Poste:</span> {positionName}
+                </p>
+              )}
+              
+              {profile.groupe_sanguin && (
+                <p className="text-sm">
+                  <span className="font-semibold">Groupe sanguin:</span>{" "}
+                  <span className="font-mono bg-white px-2 py-0.5 rounded text-red-600 font-bold">
+                    {profile.groupe_sanguin}
+                  </span>
+                </p>
+              )}
+            </div>
           </div>
 
           {/* QR Code */}
