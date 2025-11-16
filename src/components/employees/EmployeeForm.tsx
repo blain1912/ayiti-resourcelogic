@@ -27,14 +27,14 @@ const employeeFormSchema = z.object({
   lieu_naissance: z.string().min(2, "Lieu de naissance requis"),
   sexe: z.enum(["M", "F"], { required_error: "Sexe requis" }),
   nationalite: z.string().min(2, "Nationalité requise"),
-  etat_civil: z.enum(["Célibataire", "Marié(e)", "Divorcé(e)", "Veuf(ve)", "Union libre"]),
+  etat_civil: z.enum(["Célibataire", "Marié(e)", "Divorcé(e)", "Veuf(ve)", "Union libre"], { required_error: "État civil requis" }),
   groupe_sanguin: z.enum(["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]).optional(),
   religion: z.enum(["Vodouisant", "Catholique", "Protestant", "Autre"]).optional(),
   nif: z.string().optional(),
   cin: z.string().optional(),
   adresse_rue: z.string().min(3, "Adresse requise"),
   adresse_ville: z.string().min(2, "Ville requise"),
-  adresse_departement: z.enum(["Artibonite", "Centre", "Grand'Anse", "Nippes", "Nord", "Nord-Est", "Nord-Ouest", "Ouest", "Sud", "Sud-Est"]),
+  adresse_departement: z.enum(["Artibonite", "Centre", "Grand'Anse", "Nippes", "Nord", "Nord-Est", "Nord-Ouest", "Ouest", "Sud", "Sud-Est"], { required_error: "Département requis" }),
   code_postal: z.string().optional(),
   tel_1: z.string().min(8, "Téléphone requis"),
   tel_2: z.string().optional(),
@@ -46,7 +46,7 @@ const employeeFormSchema = z.object({
   contact_urgence_tel: z.string().min(8, "Téléphone du contact requis"),
   contact_urgence_whatsapp: z.string().optional(),
   date_entree_fonction: z.date().optional(),
-  unit_id: z.string().min(1, "Direction requise"),
+  unit_id: z.string().min(1, "Direction/Service requis"),
   employee_category: z.enum([
     "Personnel de décision",
     "Personnel d'encadrement",
@@ -55,21 +55,25 @@ const employeeFormSchema = z.object({
     "Personnel de soutien"
   ]).optional(),
   position_id: z.string().optional(),
-  employment_type: z.enum(["permanent", "contractuel", "journalier", "professeur"]),
-  employee_status: z.enum(["actif", "conge_annuel", "conge_maladie", "conge_maternite", "conge_etudes", "mis_a_disposition", "transfere", "renvoye", "decede"]),
+  employment_type: z.enum(["permanent", "contractuel", "journalier", "professeur"], { required_error: "Type d'employé requis" }),
+  employee_status: z.enum(["actif", "conge_annuel", "conge_maladie", "conge_maternite", "conge_etudes", "mis_a_disposition", "transfere", "renvoye", "decede"], { required_error: "Statut requis" }),
   professor_grade: z.enum(["assistant", "adjoint", "associe", "titulaire", "emerite"]).optional(),
-}).refine(
-  (data) => {
-    if (data.employment_type === "professeur") {
-      return !!data.professor_grade;
-    }
-    return !!data.position_id;
-  },
-  {
-    message: "Grade de professeur requis pour les professeurs, Poste requis pour les autres",
-    path: ["position_id"],
+}).superRefine((data, ctx) => {
+  if (data.employment_type === "professeur" && !data.professor_grade) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Veuillez sélectionner un grade de professeur",
+      path: ["professor_grade"],
+    });
   }
-);
+  if (data.employment_type !== "professeur" && !data.position_id) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Veuillez sélectionner un poste",
+      path: ["position_id"],
+    });
+  }
+});
 
 type EmployeeFormData = z.infer<typeof employeeFormSchema>;
 
