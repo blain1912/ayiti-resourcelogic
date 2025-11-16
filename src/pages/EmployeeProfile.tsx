@@ -398,7 +398,11 @@ export default function EmployeeProfile() {
             </TabsContent>
 
             <TabsContent value="badge">
-              <EmployeeBadge profile={profile} organizationName={organization?.name} />
+              <EmployeeBadge 
+                profile={profile} 
+                organization={organization}
+                positionName={positions.find(p => p.id === profile.position_id)?.name}
+              />
             </TabsContent>
           </Tabs>
         )}
