@@ -28,6 +28,7 @@ import SuperAdmin from "./pages/SuperAdmin";
 import RoleManagement from "./pages/RoleManagement";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
+import InitialSetup from "./pages/InitialSetup";
 
 const queryClient = new QueryClient();
 
