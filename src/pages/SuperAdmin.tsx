@@ -56,7 +56,7 @@ const SuperAdmin = () => {
         return;
       }
 
-      // Check if user has admin role (super admin)
+      // Check if user has admin role (super admin) - sans organization_id spécifique
       const { data: userRole } = await supabase
         .from("user_roles")
         .select("role")
@@ -65,6 +65,18 @@ const SuperAdmin = () => {
         .maybeSingle();
 
       if (!userRole) {
+        // Check if no super admin exists at all
+        const { data: anySuperAdmin } = await supabase
+          .from("user_roles")
+          .select("id")
+          .eq("role", "admin")
+          .maybeSingle();
+        
+        if (!anySuperAdmin) {
+          navigate("/initial-setup");
+          return;
+        }
+        
         navigate("/");
         return;
       }
