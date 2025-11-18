@@ -27,6 +27,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
 
   const [signUpData, setSignUpData] = useState({
@@ -196,6 +197,47 @@ const Auth = () => {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!signInData.email) {
+      toast({
+        variant: "destructive",
+        title: "Email requis",
+        description: "Veuillez entrer votre email pour réinitialiser le mot de passe",
+      });
+      return;
+    }
+
+    try {
+      setResetLoading(true);
+      const { error } = await supabase.auth.resetPasswordForEmail(signInData.email, {
+        redirectTo: `${window.location.origin}/auth`,
+      });
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: error.message,
+        });
+        return;
+      }
+
+      toast({
+        title: "Email envoyé",
+        description: "Vérifiez votre boîte de réception pour réinitialiser votre mot de passe",
+      });
+    } catch (error) {
+      console.error("Password reset error:", error);
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur s'est produite lors de l'envoi de l'email",
+      });
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   // Don't render the form if user is already authenticated
   if (session) {
     return null;
@@ -243,6 +285,15 @@ const Auth = () => {
                 </div>
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? "Connexion..." : "Se connecter"}
+                </Button>
+                <Button 
+                  type="button" 
+                  variant="link" 
+                  className="w-full text-sm" 
+                  onClick={handleForgotPassword}
+                  disabled={resetLoading}
+                >
+                  {resetLoading ? "Envoi..." : "Mot de passe oublié ?"}
                 </Button>
               </form>
             </TabsContent>
