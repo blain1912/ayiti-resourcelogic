@@ -25,22 +25,46 @@ export default function Navbar() {
 
   useEffect(() => {
     const checkRoles = async () => {
-      if (!user || !organization) return;
+      if (!user) return;
       
+      // Get user's profile to find organization_id
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("organization_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!profile?.organization_id) {
+        // Check if super admin (no organization)
+        const { data: superAdminRole } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .eq("role", "admin")
+          .maybeSingle();
+        
+        if (superAdminRole) {
+          setIsSuperAdmin(true);
+        }
+        return;
+      }
+      
+      // Get role for user's organization
       const { data } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id)
+        .eq("organization_id", profile.organization_id)
         .maybeSingle();
       
       if (data) {
-        setIsRH(["admin", "directeur_rh"].includes(data.role));
+        setIsRH(["admin", "directeur_rh", "directeur_general", "directeur_administratif"].includes(data.role));
         setIsSuperAdmin(data.role === "admin");
       }
     };
 
     checkRoles();
-  }, [user, organization]);
+  }, [user]);
 
 
   return (
