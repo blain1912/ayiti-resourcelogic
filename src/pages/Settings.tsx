@@ -52,7 +52,7 @@ const Settings = () => {
         .select("role")
         .eq("user_id", user.id)
         .eq("organization_id", profile.organization_id)
-        .single();
+        .maybeSingle();
 
       const adminRoles = ['admin', 'directeur_general', 'directeur_administratif', 'directeur_rh'];
       setIsAdmin(adminRoles.includes(userRole?.role || ''));
