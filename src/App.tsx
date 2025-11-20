@@ -26,6 +26,7 @@ import UnitDashboard from "./pages/UnitDashboard";
 import UnitsList from "./pages/UnitsList";
 import SuperAdmin from "./pages/SuperAdmin";
 import RoleManagement from "./pages/RoleManagement";
+import OrganizationApprovals from "./pages/OrganizationApprovals";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import InitialSetup from "./pages/InitialSetup";
@@ -65,6 +66,7 @@ const App = () => (
             <Route path="/admin/users" element={<ProtectedRoute><AdminUsers /></ProtectedRoute>} />
             <Route path="/role-management" element={<ProtectedRoute><RoleManagement /></ProtectedRoute>} />
             <Route path="/super-admin" element={<ProtectedRoute><SuperAdmin /></ProtectedRoute>} />
+            <Route path="/organization-approvals" element={<ProtectedRoute><OrganizationApprovals /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

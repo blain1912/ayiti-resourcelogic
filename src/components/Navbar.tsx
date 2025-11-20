@@ -212,6 +212,12 @@ export default function Navbar() {
                         Super Admin
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/organization-approvals" className="flex items-center cursor-pointer">
+                        <Building2 className="h-4 w-4 mr-2" />
+                        Approbation Organisations
+                      </Link>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}

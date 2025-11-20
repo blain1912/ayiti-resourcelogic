@@ -80,10 +80,13 @@ const OrganizationSetup = () => {
 
       toast({
         title: language === "fr" ? "Succès" : "Success",
-        description: language === "fr" ? "Organisation créée avec succès" : "Organization created successfully",
+        description: language === "fr" 
+          ? "Votre organisation a été créée et est en attente d'approbation par l'administrateur système" 
+          : "Your organization has been created and is pending approval by the system administrator",
       });
 
-      navigate("/settings");
+      // Redirect to waiting page or home
+      navigate("/");
     } catch (error: any) {
       toast({
         variant: "destructive",
