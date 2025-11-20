@@ -198,6 +198,7 @@ export type Database = {
       organizations: {
         Row: {
           accent_color: string | null
+          approval_status: string
           created_at: string
           custom_domain: string | null
           id: string
@@ -215,6 +216,7 @@ export type Database = {
         }
         Insert: {
           accent_color?: string | null
+          approval_status?: string
           created_at?: string
           custom_domain?: string | null
           id?: string
@@ -232,6 +234,7 @@ export type Database = {
         }
         Update: {
           accent_color?: string | null
+          approval_status?: string
           created_at?: string
           custom_domain?: string | null
           id?: string
