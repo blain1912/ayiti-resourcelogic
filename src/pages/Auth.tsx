@@ -39,6 +39,7 @@ const Auth = () => {
   });
 
   const [organizations, setOrganizations] = useState<Array<{ id: string; name: string }>>([]);
+  const [detectedOrganization, setDetectedOrganization] = useState<{ id: string; name: string } | null>(null);
 
   const [signInData, setSignInData] = useState({
     email: "",
@@ -46,20 +47,36 @@ const Auth = () => {
   });
 
   useEffect(() => {
-    // Fetch approved organizations for employee signup
-    const fetchOrganizations = async () => {
-      const { data } = await supabase
+    // Detect organization from custom domain
+    const detectOrganization = async () => {
+      const currentDomain = window.location.hostname;
+      
+      // Check if this domain corresponds to an organization
+      const { data: orgByDomain } = await supabase
         .from("organizations")
         .select("id, name")
+        .eq("custom_domain", currentDomain)
         .eq("approval_status", "approved")
-        .order("name");
+        .maybeSingle();
       
-      if (data) {
-        setOrganizations(data);
+      if (orgByDomain) {
+        setDetectedOrganization(orgByDomain);
+        setSignUpData(prev => ({ ...prev, organizationId: orgByDomain.id }));
+      } else {
+        // If no custom domain detected, fetch all approved organizations for dropdown
+        const { data } = await supabase
+          .from("organizations")
+          .select("id, name")
+          .eq("approval_status", "approved")
+          .order("name");
+        
+        if (data) {
+          setOrganizations(data);
+        }
       }
     };
 
-    fetchOrganizations();
+    detectOrganization();
 
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -365,27 +382,41 @@ const Auth = () => {
                 </div>
                 {signUpData.userType === "employe" && (
                   <div className="space-y-2">
-                    <Label htmlFor="signup-organization">Organisation *</Label>
-                    <Select
-                      value={signUpData.organizationId}
-                      onValueChange={(value) => 
-                        setSignUpData({ ...signUpData, organizationId: value })
-                      }
-                    >
-                      <SelectTrigger id="signup-organization">
-                        <SelectValue placeholder="Sélectionnez votre organisation" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {organizations.map((org) => (
-                          <SelectItem key={org.id} value={org.id}>
-                            {org.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">
-                      Votre demande sera soumise à l'approbation de l'administrateur
-                    </p>
+                    {detectedOrganization ? (
+                      <>
+                        <Label>Organisation</Label>
+                        <div className="rounded-md border border-input bg-muted px-3 py-2">
+                          <p className="text-sm font-medium">{detectedOrganization.name}</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Vous rejoignez automatiquement cette organisation
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <Label htmlFor="signup-organization">Organisation *</Label>
+                        <Select
+                          value={signUpData.organizationId}
+                          onValueChange={(value) => 
+                            setSignUpData({ ...signUpData, organizationId: value })
+                          }
+                        >
+                          <SelectTrigger id="signup-organization">
+                            <SelectValue placeholder="Sélectionnez votre organisation" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {organizations.map((org) => (
+                              <SelectItem key={org.id} value={org.id}>
+                                {org.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          Votre demande sera soumise à l'approbation de l'administrateur
+                        </p>
+                      </>
+                    )}
                   </div>
                 )}
                 <div className="space-y-2">
