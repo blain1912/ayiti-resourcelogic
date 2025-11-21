@@ -35,7 +35,10 @@ const Auth = () => {
     email: "",
     password: "",
     userType: "responsable" as "responsable" | "employe",
+    organizationId: "",
   });
+
+  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string }>>([]);
 
   const [signInData, setSignInData] = useState({
     email: "",
@@ -43,6 +46,21 @@ const Auth = () => {
   });
 
   useEffect(() => {
+    // Fetch approved organizations for employee signup
+    const fetchOrganizations = async () => {
+      const { data } = await supabase
+        .from("organizations")
+        .select("id, name")
+        .eq("approval_status", "approved")
+        .order("name");
+      
+      if (data) {
+        setOrganizations(data);
+      }
+    };
+
+    fetchOrganizations();
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -111,6 +129,17 @@ const Auth = () => {
     
     try {
       const validatedData = signUpSchema.parse(signUpData);
+      
+      // Validate organization selection for employees
+      if (validatedData.userType === "employe" && !signUpData.organizationId) {
+        toast({
+          title: "Erreur",
+          description: "Veuillez sélectionner une organisation",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setLoading(true);
 
       const redirectUrl = `${window.location.origin}/`;
@@ -123,6 +152,7 @@ const Auth = () => {
           data: {
             full_name: validatedData.fullName,
             user_type: validatedData.userType,
+            organization_id: validatedData.userType === "employe" ? signUpData.organizationId : null,
           },
         },
       });
@@ -316,7 +346,7 @@ const Auth = () => {
                   <Select
                     value={signUpData.userType}
                     onValueChange={(value: "responsable" | "employe") => 
-                      setSignUpData({ ...signUpData, userType: value })
+                      setSignUpData({ ...signUpData, userType: value, organizationId: "" })
                     }
                   >
                     <SelectTrigger id="signup-type">
@@ -330,9 +360,34 @@ const Auth = () => {
                   <p className="text-xs text-muted-foreground">
                     {signUpData.userType === "responsable" 
                       ? "Vous pourrez créer et gérer votre organisation" 
-                      : "Vous devrez être ajouté à une organisation par un administrateur"}
+                      : "Rejoignez une organisation existante"}
                   </p>
                 </div>
+                {signUpData.userType === "employe" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-organization">Organisation *</Label>
+                    <Select
+                      value={signUpData.organizationId}
+                      onValueChange={(value) => 
+                        setSignUpData({ ...signUpData, organizationId: value })
+                      }
+                    >
+                      <SelectTrigger id="signup-organization">
+                        <SelectValue placeholder="Sélectionnez votre organisation" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {organizations.map((org) => (
+                          <SelectItem key={org.id} value={org.id}>
+                            {org.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Votre demande sera soumise à l'approbation de l'administrateur
+                    </p>
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="signup-email">Email</Label>
                   <Input
