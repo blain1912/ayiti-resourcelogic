@@ -27,45 +27,78 @@ const Settings = () => {
 
   const checkUserAndOrganization = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      console.log("⚙️ Settings: Checking user and organization...");
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error("❌ Settings: Error getting user", userError);
+        throw userError;
+      }
       
       if (!user) {
+        console.log("❌ Settings: No user, redirecting to auth");
         navigate("/auth");
         return;
       }
 
+      console.log("✅ Settings: User found:", user.id);
+
       // Get user profile and organization
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("organization_id")
         .eq("user_id", user.id)
         .single();
 
+      if (profileError) {
+        console.error("❌ Settings: Error getting profile", profileError);
+        throw profileError;
+      }
+
+      console.log("✅ Settings: Profile found, org_id:", profile?.organization_id);
+
       if (!profile?.organization_id) {
+        console.log("❌ Settings: No organization, redirecting to setup");
         navigate("/organization-setup");
         return;
       }
 
       // Check if user has admin role
-      const { data: userRole } = await supabase
+      const { data: userRole, error: roleError } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", user.id)
         .eq("organization_id", profile.organization_id)
         .maybeSingle();
 
+      if (roleError) {
+        console.error("❌ Settings: Error getting role", roleError);
+        throw roleError;
+      }
+
+      console.log("✅ Settings: User role:", userRole?.role);
+
       const adminRoles = ['admin', 'directeur_general', 'directeur_administratif', 'directeur_rh'];
-      setIsAdmin(adminRoles.includes(userRole?.role || ''));
+      const hasAdminRole = adminRoles.includes(userRole?.role || '');
+      console.log("✅ Settings: Is admin?", hasAdminRole);
+      setIsAdmin(hasAdminRole);
 
       // Get organization details
-      const { data: org } = await supabase
+      const { data: org, error: orgError } = await supabase
         .from("organizations")
         .select("*")
         .eq("id", profile.organization_id)
         .single();
 
+      if (orgError) {
+        console.error("❌ Settings: Error getting organization", orgError);
+        throw orgError;
+      }
+
+      console.log("✅ Settings: Organization loaded:", org?.name);
       setOrganization(org);
     } catch (error: any) {
+      console.error("❌ Settings: Fatal error", error);
       toast({
         variant: "destructive",
         title: language === "fr" ? "Erreur" : "Error",
