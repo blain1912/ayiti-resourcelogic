@@ -214,17 +214,17 @@ export const SubscriptionInfo = ({ organization, onUpdate }: SubscriptionInfoPro
           </div>
           <CardDescription>
             {canUseDomain 
-              ? "Configurez votre propre domaine pour accéder à l'application"
+              ? "Configurez votre propre domaine pour que vos employés puissent s'inscrire directement"
               : "Disponible avec les plans Pro et Enterprise"}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="domain">Domaine</Label>
+              <Label htmlFor="domain">Votre domaine</Label>
               <Input
                 id="domain"
-                placeholder="exemple.com"
+                placeholder="rh.votreorganisation.com"
                 value={customDomain}
                 onChange={(e) => setCustomDomain(e.target.value)}
                 disabled={!canUseDomain || isUpdating}
@@ -235,10 +235,92 @@ export const SubscriptionInfo = ({ organization, onUpdate }: SubscriptionInfoPro
                 </p>
               )}
             </div>
+
+            {canUseDomain && customDomain && (
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
+                <div>
+                  <h4 className="font-semibold text-sm mb-2">📋 Instructions de configuration DNS</h4>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Ajoutez ces enregistrements DNS chez votre registrar (GoDaddy, Namecheap, etc.) :
+                  </p>
+                  <div className="space-y-3 bg-background p-3 rounded border">
+                    <div className="space-y-1">
+                      <p className="text-xs font-mono font-semibold">Enregistrement A</p>
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div>
+                          <span className="text-muted-foreground">Type:</span> <code className="bg-muted px-1 py-0.5 rounded">A</code>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Nom:</span> <code className="bg-muted px-1 py-0.5 rounded">{customDomain.replace(/^https?:\/\//, '')}</code>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Valeur:</span> <code className="bg-muted px-1 py-0.5 rounded">[IP de l'application]</code>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-sm">✨ Comment ça fonctionne</h4>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary">1.</span>
+                      <span>Vos employés visitent <strong className="text-foreground">{customDomain}</strong></span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary">2.</span>
+                      <span>Le système détecte automatiquement votre organisation</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary">3.</span>
+                      <span>L'inscription est pré-remplie avec {organization.name}</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary">4.</span>
+                      <span>La page affiche votre logo et vos couleurs personnalisées</span>
+                    </li>
+                  </ul>
+                </div>
+
+                {organization.logo_url && (
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm">🎨 Aperçu de votre page d'inscription</h4>
+                    <div className="border rounded-lg p-4 bg-background">
+                      <div className="flex flex-col items-center gap-3">
+                        {organization.logo_url && (
+                          <img 
+                            src={organization.logo_url} 
+                            alt={organization.name}
+                            className="h-12 object-contain"
+                          />
+                        )}
+                        <div className="text-center">
+                          <h3 className="font-bold text-lg">{organization.name}</h3>
+                          <p className="text-sm text-muted-foreground">Portail d'inscription</p>
+                        </div>
+                        <div className="w-full max-w-xs space-y-2">
+                          <div className="h-8 bg-muted rounded animate-pulse" />
+                          <div className="h-8 bg-muted rounded animate-pulse" />
+                          <div 
+                            className="h-10 rounded text-white text-sm font-medium flex items-center justify-center"
+                            style={{ backgroundColor: organization.primary_color || '#0EA5E9' }}
+                          >
+                            S'inscrire
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {canUseDomain && (
               <Button
                 onClick={handleDomainUpdate}
                 disabled={isUpdating}
+                className="w-full"
               >
                 {isUpdating ? "Mise à jour..." : "Enregistrer le domaine"}
               </Button>
