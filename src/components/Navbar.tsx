@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield, Menu } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +22,7 @@ export default function Navbar() {
   const { organization } = useOrganization();
   const [isRH, setIsRH] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const checkRoles = async () => {
@@ -91,7 +92,8 @@ export default function Navbar() {
               </div>
             </Link>
             
-            <div className="hidden md:flex items-center gap-1">
+            {/* Desktop Menu */}
+            <div className="hidden lg:flex items-center gap-1">
               {/* Tableau de bord */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -117,15 +119,7 @@ export default function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Employés */}
-              <Link to="/employees">
-                <Button variant="ghost" size="sm" className="gap-2">
-                  <Users className="h-4 w-4" />
-                  Employés
-                </Button>
-              </Link>
-
-              {/* RH Menu - Only for RH roles */}
+              {/* RH Menu - Includes Employés and Documents */}
               {isRH && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -135,7 +129,14 @@ export default function Navbar() {
                       <ChevronDown className="h-3 w-3" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="bg-background z-50">
+                  <DropdownMenuContent align="start" className="bg-background z-50 w-56">
+                    <DropdownMenuItem asChild>
+                      <Link to="/employees" className="flex items-center cursor-pointer">
+                        <Users className="h-4 w-4 mr-2" />
+                        Employés
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link to="/approvals" className="flex items-center cursor-pointer">
                         <ClipboardCheck className="h-4 w-4 mr-2" />
@@ -154,34 +155,22 @@ export default function Navbar() {
                         Présence
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/leaves" className="flex items-center cursor-pointer">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Congés
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/documents" className="flex items-center cursor-pointer">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Documents
+                      </Link>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
-
-              {/* Documents & Congés */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="gap-1">
-                    <FileText className="h-4 w-4" />
-                    Documents
-                    <ChevronDown className="h-3 w-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="bg-background z-50">
-                  <DropdownMenuItem asChild>
-                    <Link to="/leaves" className="flex items-center cursor-pointer">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      Congés
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/documents" className="flex items-center cursor-pointer">
-                      <FileText className="h-4 w-4 mr-2" />
-                      Documents
-                    </Link>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
 
               {/* Administration - For organization admins */}
               {(isRH && !isSuperAdmin) && (
@@ -249,6 +238,16 @@ export default function Navbar() {
                 </DropdownMenu>
               )}
             </div>
+
+            {/* Mobile Menu Button */}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="lg:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
           </div>
 
           <div className="flex items-center gap-2">
@@ -307,6 +306,129 @@ export default function Navbar() {
             )}
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden border-t bg-card py-4 px-2 space-y-2">
+            {/* Tableau de bord */}
+            <div className="space-y-1">
+              <div className="px-3 py-2 text-sm font-semibold text-muted-foreground">
+                Tableau de bord
+              </div>
+              <Link to="/" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                  <LayoutDashboard className="h-4 w-4" />
+                  Dashboard principal
+                </Button>
+              </Link>
+              <Link to="/units" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                  <Building2 className="h-4 w-4" />
+                  Unités
+                </Button>
+              </Link>
+            </div>
+
+            {/* RH Section */}
+            {isRH && (
+              <div className="space-y-1 pt-2 border-t">
+                <div className="px-3 py-2 text-sm font-semibold text-muted-foreground">
+                  RH
+                </div>
+                <Link to="/employees" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <Users className="h-4 w-4" />
+                    Employés
+                  </Button>
+                </Link>
+                <Link to="/approvals" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <ClipboardCheck className="h-4 w-4" />
+                    Approbations
+                  </Button>
+                </Link>
+                <Link to="/badges" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    Badges employés
+                  </Button>
+                </Link>
+                <Link to="/attendance" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <CheckSquare className="h-4 w-4" />
+                    Présence
+                  </Button>
+                </Link>
+                <Link to="/leaves" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Congés
+                  </Button>
+                </Link>
+                <Link to="/documents" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <FileText className="h-4 w-4" />
+                    Documents
+                  </Button>
+                </Link>
+              </div>
+            )}
+
+            {/* Admin Section */}
+            {(isRH && !isSuperAdmin) && (
+              <div className="space-y-1 pt-2 border-t">
+                <div className="px-3 py-2 text-sm font-semibold text-muted-foreground">
+                  Admin
+                </div>
+                <Link to="/settings" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <Settings className="h-4 w-4" />
+                    Paramètres
+                  </Button>
+                </Link>
+                <Link to="/role-management" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <Shield className="h-4 w-4" />
+                    Gestion des Rôles
+                  </Button>
+                </Link>
+              </div>
+            )}
+
+            {/* Super Admin Section */}
+            {isSuperAdmin && (
+              <div className="space-y-1 pt-2 border-t">
+                <div className="px-3 py-2 text-sm font-semibold text-muted-foreground">
+                  Super Admin
+                </div>
+                <Link to="/settings" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <Settings className="h-4 w-4" />
+                    Paramètres
+                  </Button>
+                </Link>
+                <Link to="/role-management" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <Shield className="h-4 w-4" />
+                    Gestion des Rôles
+                  </Button>
+                </Link>
+                <Link to="/super-admin" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <Shield className="h-4 w-4" />
+                    Super Admin
+                  </Button>
+                </Link>
+                <Link to="/organization-approvals" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <Building2 className="h-4 w-4" />
+                    Approbation Organisations
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </nav>
   );
