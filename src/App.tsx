@@ -10,6 +10,7 @@ import Employees from "./pages/Employees";
 import Leaves from "./pages/Leaves";
 import Documents from "./pages/Documents";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import Onboarding from "./pages/Onboarding";
 import OrganizationSetup from "./pages/OrganizationSetup";
 import Settings from "./pages/Settings";
@@ -43,6 +44,7 @@ const App = () => (
           <Navbar />
           <Routes>
             <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/initial-setup" element={<InitialSetup />} />
             <Route path="/employee-waiting" element={<EmployeeWaiting />} />
