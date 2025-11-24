@@ -363,7 +363,12 @@ const Auth = () => {
                   <Select
                     value={signUpData.userType}
                     onValueChange={(value: "responsable" | "employe") => 
-                      setSignUpData({ ...signUpData, userType: value, organizationId: "" })
+                      setSignUpData({ 
+                        ...signUpData, 
+                        userType: value, 
+                        // Preserve detected organization ID, only clear if no detection
+                        organizationId: detectedOrganization ? detectedOrganization.id : "" 
+                      })
                     }
                   >
                     <SelectTrigger id="signup-type">
