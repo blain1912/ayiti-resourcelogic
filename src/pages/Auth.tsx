@@ -49,20 +49,31 @@ const Auth = () => {
   useEffect(() => {
     // Detect organization from custom domain
     const detectOrganization = async () => {
-      const currentDomain = window.location.hostname;
+      let currentDomain = window.location.hostname;
+      
+      // Remove www. prefix if present
+      currentDomain = currentDomain.replace(/^www\./, '');
+      
+      console.log("Detecting organization for domain:", currentDomain);
       
       // Check if this domain corresponds to an organization
-      const { data: orgByDomain } = await supabase
+      const { data: orgByDomain, error } = await supabase
         .from("organizations")
         .select("id, name")
         .eq("custom_domain", currentDomain)
         .eq("approval_status", "approved")
         .maybeSingle();
       
+      if (error) {
+        console.error("Error detecting organization:", error);
+      }
+      
       if (orgByDomain) {
+        console.log("Organization detected:", orgByDomain);
         setDetectedOrganization(orgByDomain);
         setSignUpData(prev => ({ ...prev, organizationId: orgByDomain.id }));
       } else {
+        console.log("No organization detected, loading all organizations");
         // If no custom domain detected, fetch all approved organizations for dropdown
         const { data } = await supabase
           .from("organizations")
