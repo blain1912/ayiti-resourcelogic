@@ -94,7 +94,7 @@ export default function Navbar() {
             
             {/* Desktop Menu */}
             <div className="hidden lg:flex items-center gap-1">
-              {/* Tableau de bord */}
+            {/* Tableau de bord */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="gap-1">
@@ -119,7 +119,23 @@ export default function Navbar() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* RH Menu - Includes Employés and Documents */}
+              {/* Employés - Accessible à tous */}
+              <Link to="/employees">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <Users className="h-4 w-4" />
+                  Employés
+                </Button>
+              </Link>
+
+              {/* Documents - Accessible à tous */}
+              <Link to="/documents">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <FileText className="h-4 w-4" />
+                  Documents
+                </Button>
+              </Link>
+
+              {/* RH Menu - Fonctions RH uniquement */}
               {isRH && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -130,13 +146,6 @@ export default function Navbar() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="bg-background z-50 w-56">
-                    <DropdownMenuItem asChild>
-                      <Link to="/employees" className="flex items-center cursor-pointer">
-                        <Users className="h-4 w-4 mr-2" />
-                        Employés
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link to="/approvals" className="flex items-center cursor-pointer">
                         <ClipboardCheck className="h-4 w-4 mr-2" />
@@ -155,17 +164,10 @@ export default function Navbar() {
                         Présence
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
                       <Link to="/leaves" className="flex items-center cursor-pointer">
                         <Calendar className="h-4 w-4 mr-2" />
                         Congés
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link to="/documents" className="flex items-center cursor-pointer">
-                        <FileText className="h-4 w-4 mr-2" />
-                        Documents
                       </Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -329,18 +331,28 @@ export default function Navbar() {
               </Link>
             </div>
 
+            {/* Employés - Accessible à tous */}
+            <div className="space-y-1 pt-2 border-t">
+              <Link to="/employees" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                  <Users className="h-4 w-4" />
+                  Employés
+                </Button>
+              </Link>
+              <Link to="/documents" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                  <FileText className="h-4 w-4" />
+                  Documents
+                </Button>
+              </Link>
+            </div>
+
             {/* RH Section */}
             {isRH && (
               <div className="space-y-1 pt-2 border-t">
                 <div className="px-3 py-2 text-sm font-semibold text-muted-foreground">
                   RH
                 </div>
-                <Link to="/employees" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
-                    <Users className="h-4 w-4" />
-                    Employés
-                  </Button>
-                </Link>
                 <Link to="/approvals" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                     <ClipboardCheck className="h-4 w-4" />
@@ -363,12 +375,6 @@ export default function Navbar() {
                   <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                     <Calendar className="h-4 w-4" />
                     Congés
-                  </Button>
-                </Link>
-                <Link to="/documents" onClick={() => setMobileMenuOpen(false)}>
-                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
-                    <FileText className="h-4 w-4" />
-                    Documents
                   </Button>
                 </Link>
               </div>
