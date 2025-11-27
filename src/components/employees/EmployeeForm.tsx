@@ -17,6 +17,8 @@ import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import type { FieldErrors } from "react-hook-form";
 import type { ProfessorGradeData } from "@/hooks/useProfessorGrades";
+import { PhotoUpload } from "@/components/ui/photo-upload";
+import { useAuth } from "@/hooks/useAuth";
 
 const employeeFormSchema = z.object({
   code_budgetaire: z.string().min(1, "Code budgétaire requis"),
@@ -89,6 +91,7 @@ interface EmployeeFormProps {
 export function EmployeeForm({ onSubmit, defaultValues, units, positions, professorGrades = [], isLoading }: EmployeeFormProps) {
   const [selectedDirectionId, setSelectedDirectionId] = useState<string>("");
   const [anneesService, setAnneesService] = useState<number | null>(null);
+  const { user } = useAuth();
   
   const form = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeFormSchema),
@@ -203,20 +206,14 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
               name="photo_url"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>URL de la photo</FormLabel>
-                  <div className="flex gap-2">
-                    <FormControl>
-                      <Input {...field} placeholder="https://..." className="flex-1" />
-                    </FormControl>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => window.open('https://sanishtech.com/tools/image-to-link-converter/', '_blank')}
-                      className="shrink-0"
-                    >
-                      Convertir image
-                    </Button>
-                  </div>
+                  <FormLabel>Photo de profil</FormLabel>
+                  <FormControl>
+                    <PhotoUpload
+                      value={field.value}
+                      onChange={field.onChange}
+                      userId={user?.id || 'temp'}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
