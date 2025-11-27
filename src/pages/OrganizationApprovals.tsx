@@ -104,6 +104,38 @@ const OrganizationApprovals = () => {
 
   const handleApproval = async (orgId: string, status: "approved" | "rejected") => {
     try {
+      // Récupérer l'organisation et l'admin
+      const { data: org } = await supabase
+        .from("organizations")
+        .select("name")
+        .eq("id", orgId)
+        .single();
+
+      // Récupérer l'admin de l'organisation (premier user_role créé pour cette org)
+      const { data: adminRole } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("organization_id", orgId)
+        .eq("role", "admin")
+        .limit(1)
+        .single();
+
+      let adminEmail = null;
+      let adminName = "Administrateur";
+
+      if (adminRole) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("email, full_name")
+          .eq("user_id", adminRole.user_id)
+          .single();
+        
+        if (profile) {
+          adminEmail = profile.email;
+          adminName = profile.full_name || adminName;
+        }
+      }
+
       const updateData: any = { approval_status: status };
       
       // Si approuvé, définir la date de début d'abonnement
@@ -117,6 +149,23 @@ const OrganizationApprovals = () => {
         .eq("id", orgId);
 
       if (error) throw error;
+
+      // Envoyer un email de notification à l'admin
+      if (adminEmail && org) {
+        try {
+          await supabase.functions.invoke("send-approval-notification", {
+            body: {
+              type: status === "approved" ? "org_approved" : "org_rejected",
+              recipientEmail: adminEmail,
+              recipientName: adminName,
+              organizationName: org.name,
+            },
+          });
+        } catch (emailError) {
+          console.error("Error sending email:", emailError);
+          // Ne pas bloquer le processus si l'email échoue
+        }
+      }
 
       toast({
         title: language === "fr" ? "Succès" : "Success",

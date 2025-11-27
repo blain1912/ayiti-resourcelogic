@@ -93,6 +93,13 @@ export default function PendingApprovals() {
 
   const handleApproval = async (profileId: string, status: "approved" | "rejected") => {
     try {
+      // Récupérer les infos du profil avant mise à jour
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email, full_name")
+        .eq("id", profileId)
+        .single();
+
       const updateData: any = { approval_status: status };
       
       // Si approuvé, assigner l'organisation
@@ -106,6 +113,23 @@ export default function PendingApprovals() {
         .eq("id", profileId);
 
       if (error) throw error;
+
+      // Envoyer un email de notification
+      if (profile?.email) {
+        try {
+          await supabase.functions.invoke("send-approval-notification", {
+            body: {
+              type: status === "approved" ? "profile_approved" : "profile_rejected",
+              recipientEmail: profile.email,
+              recipientName: profile.full_name || "Utilisateur",
+              organizationName: organization?.name,
+            },
+          });
+        } catch (emailError) {
+          console.error("Error sending email:", emailError);
+          // Ne pas bloquer le processus si l'email échoue
+        }
+      }
 
       toast({
         title: "Succès",

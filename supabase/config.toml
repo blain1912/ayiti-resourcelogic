@@ -1,1 +1,4 @@
 project_id = "gvroklegcmxsqdcascvp"
+
+[functions.send-approval-notification]
+verify_jwt = false
