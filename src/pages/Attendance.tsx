@@ -10,13 +10,15 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
-import { CalendarIcon, Search, CheckCircle, XCircle, Clock, Loader2, QrCode } from "lucide-react";
+import { CalendarIcon, Search, CheckCircle, XCircle, Clock, Loader2, QrCode, Users, UserCheck, UserX } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { QRScanner } from "@/components/attendance/QRScanner";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 interface Employee {
   id: string;
@@ -31,6 +33,7 @@ interface AttendanceRecord {
   date: string;
   status: string;
   notes: string | null;
+  time: string | null;
   employee_name: string;
 }
 
@@ -44,6 +47,9 @@ const Attendance = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [markingAttendance, setMarkingAttendance] = useState(false);
   const [showQRScanner, setShowQRScanner] = useState(false);
+  const [showNotesDialog, setShowNotesDialog] = useState(false);
+  const [currentEmployee, setCurrentEmployee] = useState<{ id: string; name: string } | null>(null);
+  const [notes, setNotes] = useState("");
 
   useEffect(() => {
     if (organization) {
@@ -99,6 +105,7 @@ const Attendance = () => {
           date,
           status,
           notes,
+          time,
           profiles (full_name)
         `)
         .eq("organization_id", organization!.id)
@@ -112,6 +119,7 @@ const Attendance = () => {
         date: att.date,
         status: att.status,
         notes: att.notes,
+        time: att.time,
         employee_name: att.profiles?.full_name || "N/A",
       })) || [];
 
@@ -121,22 +129,28 @@ const Attendance = () => {
     }
   };
 
-  const markAttendance = async (profileId: string, status: string) => {
+  const markAttendance = async (profileId: string, status: string, attendanceNotes?: string) => {
     setMarkingAttendance(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Non authentifié");
 
       const dateStr = format(selectedDate, "yyyy-MM-dd");
+      const currentTime = format(new Date(), "HH:mm:ss");
 
       // Check if attendance already exists
       const existing = attendance.find(a => a.profile_id === profileId);
 
       if (existing) {
         // Update existing record
+        const updateData: any = { status, time: currentTime };
+        if (attendanceNotes !== undefined) {
+          updateData.notes = attendanceNotes;
+        }
+        
         const { error } = await supabase
           .from("attendance")
-          .update({ status })
+          .update(updateData)
           .eq("id", existing.id);
 
         if (error) throw error;
@@ -150,6 +164,8 @@ const Attendance = () => {
             date: dateStr,
             status,
             marked_by: user.id,
+            time: currentTime,
+            notes: attendanceNotes || null,
           });
 
         if (error) throw error;
@@ -171,6 +187,26 @@ const Attendance = () => {
     } finally {
       setMarkingAttendance(false);
     }
+  };
+
+  const openNotesDialog = (employeeId: string, employeeName: string) => {
+    setCurrentEmployee({ id: employeeId, name: employeeName });
+    const existingRecord = attendance.find(a => a.profile_id === employeeId);
+    setNotes(existingRecord?.notes || "");
+    setShowNotesDialog(true);
+  };
+
+  const saveWithNotes = async (status: string) => {
+    if (currentEmployee) {
+      await markAttendance(currentEmployee.id, status, notes);
+      setShowNotesDialog(false);
+      setNotes("");
+      setCurrentEmployee(null);
+    }
+  };
+
+  const quickMarkAttendance = async (profileId: string, status: string) => {
+    await markAttendance(profileId, status);
   };
 
   const handleQRScan = async (qrData: string) => {
@@ -242,6 +278,18 @@ const Attendance = () => {
     emp.unit_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Calculate statistics
+  const stats = {
+    total: employees.length,
+    present: attendance.filter(a => a.status === "present").length,
+    absent: attendance.filter(a => a.status === "absent").length,
+    late: attendance.filter(a => a.status === "retard").length,
+    leave: attendance.filter(a => ["conge", "maladie", "permission"].includes(a.status)).length,
+    notMarked: employees.length - attendance.length,
+  };
+
+  const attendanceRate = stats.total > 0 ? ((stats.present / stats.total) * 100).toFixed(1) : "0";
+
   if (orgLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -251,13 +299,76 @@ const Attendance = () => {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Gestion de la Présence</h1>
-        <Button onClick={() => setShowQRScanner(true)}>
+    <div className="container mx-auto p-4 md:p-6 space-y-4 md:space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <h1 className="text-2xl md:text-3xl font-bold">Gestion de la Présence</h1>
+        <Button onClick={() => setShowQRScanner(true)} className="w-full sm:w-auto">
           <QrCode className="mr-2 h-4 w-4" />
           Scanner QR Code
         </Button>
+      </div>
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+        <Card>
+          <CardContent className="p-4 md:p-6">
+            <div className="flex flex-col items-center text-center">
+              <Users className="h-6 w-6 md:h-8 md:w-8 text-muted-foreground mb-2" />
+              <div className="text-xl md:text-2xl font-bold">{stats.total}</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Total</div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4 md:p-6">
+            <div className="flex flex-col items-center text-center">
+              <UserCheck className="h-6 w-6 md:h-8 md:w-8 text-green-600 mb-2" />
+              <div className="text-xl md:text-2xl font-bold text-green-600">{stats.present}</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Présents</div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4 md:p-6">
+            <div className="flex flex-col items-center text-center">
+              <UserX className="h-6 w-6 md:h-8 md:w-8 text-red-600 mb-2" />
+              <div className="text-xl md:text-2xl font-bold text-red-600">{stats.absent}</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Absents</div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4 md:p-6">
+            <div className="flex flex-col items-center text-center">
+              <Clock className="h-6 w-6 md:h-8 md:w-8 text-orange-600 mb-2" />
+              <div className="text-xl md:text-2xl font-bold text-orange-600">{stats.late}</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Retards</div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4 md:p-6">
+            <div className="flex flex-col items-center text-center">
+              <CalendarIcon className="h-6 w-6 md:h-8 md:w-8 text-blue-600 mb-2" />
+              <div className="text-xl md:text-2xl font-bold text-blue-600">{stats.leave}</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Congés</div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4 md:p-6">
+            <div className="flex flex-col items-center text-center">
+              <CheckCircle className="h-6 w-6 md:h-8 md:w-8 text-primary mb-2" />
+              <div className="text-xl md:text-2xl font-bold text-primary">{attendanceRate}%</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Taux</div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Dialog open={showQRScanner} onOpenChange={setShowQRScanner}>
@@ -269,12 +380,60 @@ const Attendance = () => {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={showNotesDialog} onOpenChange={setShowNotesDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ajouter une note pour {currentEmployee?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes (optionnel)</Label>
+              <Textarea
+                id="notes"
+                placeholder="Raison du retard, maladie, etc."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={4}
+              />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button 
+                onClick={() => saveWithNotes("present")} 
+                className="flex-1"
+                disabled={markingAttendance}
+              >
+                <CheckCircle className="mr-2 h-4 w-4" />
+                Présent
+              </Button>
+              <Button 
+                onClick={() => saveWithNotes("retard")} 
+                variant="outline"
+                className="flex-1"
+                disabled={markingAttendance}
+              >
+                <Clock className="mr-2 h-4 w-4" />
+                Retard
+              </Button>
+              <Button 
+                onClick={() => saveWithNotes("absent")} 
+                variant="destructive"
+                className="flex-1"
+                disabled={markingAttendance}
+              >
+                <XCircle className="mr-2 h-4 w-4" />
+                Absent
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Card>
         <CardHeader>
-          <CardTitle>Pointage du {format(selectedDate, "EEEE d MMMM yyyy", { locale: fr })}</CardTitle>
+          <CardTitle className="text-lg md:text-xl">Pointage du {format(selectedDate, "EEEE d MMMM yyyy", { locale: fr })}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -287,7 +446,7 @@ const Attendance = () => {
             
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className={cn("justify-start text-left font-normal", !selectedDate && "text-muted-foreground")}>
+                <Button variant="outline" className={cn("w-full sm:w-auto justify-start text-left font-normal", !selectedDate && "text-muted-foreground")}>
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {selectedDate ? format(selectedDate, "PPP", { locale: fr }) : "Sélectionner une date"}
                 </Button>
@@ -304,67 +463,105 @@ const Attendance = () => {
             </Popover>
           </div>
 
-          <div className="border rounded-lg">
+          <div className="border rounded-lg overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Employé</TableHead>
-                  <TableHead>Poste</TableHead>
-                  <TableHead>Unité</TableHead>
+                  <TableHead className="min-w-[150px]">Employé</TableHead>
+                  <TableHead className="hidden md:table-cell">Poste</TableHead>
+                  <TableHead className="hidden lg:table-cell">Unité</TableHead>
                   <TableHead>Statut</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="hidden sm:table-cell">Heure</TableHead>
+                  <TableHead className="text-right min-w-[280px]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredEmployees.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                       Aucun employé trouvé
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredEmployees.map((employee) => {
                     const currentStatus = getAttendanceStatus(employee.id);
+                    const attendanceRecord = attendance.find(a => a.profile_id === employee.id);
                     return (
                       <TableRow key={employee.id}>
-                        <TableCell className="font-medium">{employee.full_name}</TableCell>
-                        <TableCell>{employee.position_name}</TableCell>
-                        <TableCell>{employee.unit_name}</TableCell>
+                        <TableCell className="font-medium">
+                          {employee.full_name}
+                          <div className="md:hidden text-xs text-muted-foreground mt-1">
+                            {employee.position_name}
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">{employee.position_name}</TableCell>
+                        <TableCell className="hidden lg:table-cell">{employee.unit_name}</TableCell>
                         <TableCell>
-                          {currentStatus ? getStatusBadge(currentStatus) : <span className="text-muted-foreground">Non pointé</span>}
+                          {currentStatus ? (
+                            <div className="space-y-1">
+                              {getStatusBadge(currentStatus)}
+                              {attendanceRecord?.notes && (
+                                <div className="text-xs text-muted-foreground line-clamp-2">
+                                  {attendanceRecord.notes}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">Non pointé</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          {attendanceRecord?.time ? (
+                            <span className="text-sm">{attendanceRecord.time.substring(0, 5)}</span>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">--:--</span>
+                          )}
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
+                          <div className="flex flex-wrap justify-end gap-1.5 md:gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => quickMarkAttendance(employee.id, "present")}
+                              disabled={markingAttendance}
+                              className="h-8 px-2 md:px-3"
+                            >
+                              <CheckCircle className="h-3.5 w-3.5 md:mr-1.5 text-green-600" />
+                              <span className="hidden md:inline">Présent</span>
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => quickMarkAttendance(employee.id, "absent")}
+                              disabled={markingAttendance}
+                              className="h-8 px-2 md:px-3"
+                            >
+                              <XCircle className="h-3.5 w-3.5 md:mr-1.5 text-red-600" />
+                              <span className="hidden md:inline">Absent</span>
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => openNotesDialog(employee.id, employee.full_name)}
+                              disabled={markingAttendance}
+                              className="h-8 px-2 md:px-3"
+                            >
+                              <Clock className="h-3.5 w-3.5 md:mr-1.5" />
+                              <span className="hidden md:inline">+ Note</span>
+                            </Button>
                             <Select
                               value={currentStatus}
                               onValueChange={(value) => markAttendance(employee.id, value)}
                               disabled={markingAttendance}
                             >
-                              <SelectTrigger className="w-[140px]">
-                                <SelectValue placeholder="Marquer" />
+                              <SelectTrigger className="w-[90px] md:w-[120px] h-8">
+                                <SelectValue placeholder="Autre" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="present">
-                                  <div className="flex items-center gap-2">
-                                    <CheckCircle className="h-4 w-4 text-green-600" />
-                                    Présent
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="absent">
-                                  <div className="flex items-center gap-2">
-                                    <XCircle className="h-4 w-4 text-red-600" />
-                                    Absent
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="retard">
-                                  <div className="flex items-center gap-2">
-                                    <Clock className="h-4 w-4 text-orange-600" />
-                                    Retard
-                                  </div>
-                                </SelectItem>
                                 <SelectItem value="conge">Congé</SelectItem>
                                 <SelectItem value="maladie">Maladie</SelectItem>
                                 <SelectItem value="permission">Permission</SelectItem>
+                                <SelectItem value="retard">Retard</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
