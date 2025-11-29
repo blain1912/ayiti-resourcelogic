@@ -71,7 +71,11 @@ const Auth = () => {
       if (orgByDomain) {
         console.log("Organization detected:", orgByDomain);
         setDetectedOrganization(orgByDomain);
-        setSignUpData(prev => ({ ...prev, organizationId: orgByDomain.id }));
+        setSignUpData(prev => ({ 
+          ...prev, 
+          organizationId: orgByDomain.id,
+          userType: "employe" // Auto-set to employee when domain is detected
+        }));
       } else {
         console.log("No organization detected, loading all organizations");
         // If no custom domain detected, fetch all approved organizations for dropdown
@@ -358,6 +362,14 @@ const Auth = () => {
             
             <TabsContent value="signup" className="space-y-4">
               <form onSubmit={handleSignUp} className="space-y-4">
+                {detectedOrganization && (
+                  <div className="rounded-lg bg-primary/10 border border-primary/20 p-3 mb-4">
+                    <p className="text-sm font-medium text-foreground">{detectedOrganization.name}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Vous vous inscrivez comme employé de cette organisation
+                    </p>
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="signup-name">Nom complet</Label>
                   <Input
@@ -369,70 +381,57 @@ const Auth = () => {
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-type">Type d'utilisateur</Label>
-                  <Select
-                    value={signUpData.userType}
-                    onValueChange={(value: "responsable" | "employe") => 
-                      setSignUpData({ 
-                        ...signUpData, 
-                        userType: value, 
-                        // Preserve detected organization ID, only clear if no detection
-                        organizationId: detectedOrganization ? detectedOrganization.id : "" 
-                      })
-                    }
-                  >
-                    <SelectTrigger id="signup-type">
-                      <SelectValue placeholder="Sélectionnez votre type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="responsable">Responsable d'organisation</SelectItem>
-                      <SelectItem value="employe">Employé</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    {signUpData.userType === "responsable" 
-                      ? "Vous pourrez créer et gérer votre organisation" 
-                      : "Rejoignez une organisation existante"}
-                  </p>
-                </div>
-                {signUpData.userType === "employe" && (
+                {!detectedOrganization && (
                   <div className="space-y-2">
-                    {detectedOrganization ? (
-                      <>
-                        <Label>Organisation</Label>
-                        <div className="rounded-md border border-input bg-muted px-3 py-2">
-                          <p className="text-sm font-medium">{detectedOrganization.name}</p>
-                        </div>
-                        <p className="text-xs text-muted-foreground">
-                          Vous rejoignez automatiquement cette organisation
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <Label htmlFor="signup-organization">Organisation *</Label>
-                        <Select
-                          value={signUpData.organizationId}
-                          onValueChange={(value) => 
-                            setSignUpData({ ...signUpData, organizationId: value })
-                          }
-                        >
-                          <SelectTrigger id="signup-organization">
-                            <SelectValue placeholder="Sélectionnez votre organisation" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {organizations.map((org) => (
-                              <SelectItem key={org.id} value={org.id}>
-                                {org.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <p className="text-xs text-muted-foreground">
-                          Votre demande sera soumise à l'approbation de l'administrateur
-                        </p>
-                      </>
-                    )}
+                    <Label htmlFor="signup-type">Type d'utilisateur</Label>
+                    <Select
+                      value={signUpData.userType}
+                      onValueChange={(value: "responsable" | "employe") => 
+                        setSignUpData({ 
+                          ...signUpData, 
+                          userType: value,
+                          organizationId: ""
+                        })
+                      }
+                    >
+                      <SelectTrigger id="signup-type">
+                        <SelectValue placeholder="Sélectionnez votre type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="responsable">Responsable d'organisation</SelectItem>
+                        <SelectItem value="employe">Employé</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      {signUpData.userType === "responsable" 
+                        ? "Vous pourrez créer et gérer votre organisation" 
+                        : "Rejoignez une organisation existante"}
+                    </p>
+                  </div>
+                )}
+                {!detectedOrganization && signUpData.userType === "employe" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-organization">Organisation *</Label>
+                    <Select
+                      value={signUpData.organizationId}
+                      onValueChange={(value) => 
+                        setSignUpData({ ...signUpData, organizationId: value })
+                      }
+                    >
+                      <SelectTrigger id="signup-organization">
+                        <SelectValue placeholder="Sélectionnez votre organisation" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {organizations.map((org) => (
+                          <SelectItem key={org.id} value={org.id}>
+                            {org.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Votre demande sera soumise à l'approbation de l'administrateur
+                    </p>
                   </div>
                 )}
                 <div className="space-y-2">
