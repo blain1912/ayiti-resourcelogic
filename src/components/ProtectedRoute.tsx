@@ -38,7 +38,11 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       console.log("📋 Profile data:", profile);
       console.log("❗ Profile error:", error);
 
-      if (!profile?.organization_id) {
+      // Check if user is super admin (has admin role with null organization_id)
+      const { data: isSuperAdmin } = await supabase.rpc('is_super_admin', { _user_id: user.id });
+      console.log("👑 Is super admin:", isSuperAdmin);
+
+      if (!profile?.organization_id && !isSuperAdmin) {
         const userType = user.user_metadata?.user_type;
         console.log("🏢 No organization, user type:", userType);
         if (userType === "employe") {
