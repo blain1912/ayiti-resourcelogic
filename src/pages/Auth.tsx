@@ -119,7 +119,7 @@ const Auth = () => {
             } else if (userType === "employe" && !profile.profile_completed) {
               navigate("/employee-profile");
             } else {
-              navigate("/");
+              navigate("/dashboard");
             }
           }, 0);
         }
@@ -148,7 +148,7 @@ const Auth = () => {
         } else if (userType === "employe" && !profile.profile_completed) {
           navigate("/employee-profile");
         } else {
-          navigate("/");
+          navigate("/dashboard");
         }
       }
     });

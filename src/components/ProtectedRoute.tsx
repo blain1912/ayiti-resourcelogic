@@ -47,9 +47,9 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         const currentPath = window.location.pathname;
         const superAdminPaths = ["/super-admin", "/organization-approvals", "/initial-setup"];
         
-        // Redirect from home page to super-admin dashboard
-        if (currentPath === "/") {
-          console.log("➡️ Redirecting super admin from home to super-admin page");
+        // Redirect from dashboard page to super-admin dashboard
+        if (currentPath === "/dashboard") {
+          console.log("➡️ Redirecting super admin from dashboard to super-admin page");
           navigate("/super-admin");
           return;
         }
