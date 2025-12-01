@@ -50,6 +50,14 @@ const EmployeeWaiting = () => {
 
       setUserName(user.user_metadata?.full_name || user.email || "");
 
+      // Check if user is super admin
+      const { data: isSuperAdmin } = await supabase.rpc('is_super_admin', { _user_id: user.id });
+      
+      if (isSuperAdmin) {
+        navigate("/super-admin");
+        return;
+      }
+
       // Check if user has been added to an organization
       const { data: profile } = await supabase
         .from("profiles")
