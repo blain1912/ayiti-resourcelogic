@@ -142,7 +142,7 @@ const Settings = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => navigate("/")} className="w-full">
+            <Button onClick={() => navigate("/dashboard")} className="w-full">
               {language === "fr" ? "Retour au tableau de bord" : "Back to Dashboard"}
             </Button>
           </CardContent>

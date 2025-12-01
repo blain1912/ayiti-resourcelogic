@@ -73,7 +73,7 @@ export default function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link to="/" className="flex items-center gap-2">
+            <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
                 <Building2 className="h-5 w-5 text-primary-foreground" />
               </div>
@@ -105,7 +105,7 @@ export default function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="bg-background z-50">
                   <DropdownMenuItem asChild>
-                    <Link to="/" className="flex items-center cursor-pointer">
+                    <Link to="/dashboard" className="flex items-center cursor-pointer">
                       <LayoutDashboard className="h-4 w-4 mr-2" />
                       Dashboard principal
                     </Link>
@@ -317,7 +317,7 @@ export default function Navbar() {
               <div className="px-3 py-2 text-sm font-semibold text-muted-foreground">
                 Tableau de bord
               </div>
-              <Link to="/" onClick={() => setMobileMenuOpen(false)}>
+              <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
                 <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                   <LayoutDashboard className="h-4 w-4" />
                   Dashboard principal

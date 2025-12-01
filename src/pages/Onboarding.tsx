@@ -64,7 +64,7 @@ const Onboarding = () => {
 
       if (profile?.organization_id) {
         // User already has an organization, redirect to dashboard
-        navigate("/");
+        navigate("/dashboard");
       }
     } catch (error) {
       console.error("Error checking user status:", error);
@@ -115,7 +115,7 @@ const Onboarding = () => {
 
       // Redirect to dashboard after a short delay
       setTimeout(() => {
-        navigate("/");
+        navigate("/dashboard");
       }, 2000);
     } catch (error: any) {
       console.error("Error during onboarding:", error);
