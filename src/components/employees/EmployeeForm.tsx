@@ -853,23 +853,32 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Poste {!isProfessor && "*"}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={isProfessor}>
+                  <Select onValueChange={field.onChange} value={field.value} disabled={isProfessor || positions.length === 0}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner" />
+                        <SelectValue placeholder={positions.length === 0 ? "Aucun poste disponible" : "Sélectionner"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {positions.map((position) => (
-                        <SelectItem key={position.id} value={position.id}>
-                          {position.name} - {position.salary.toLocaleString()} HTG
-                        </SelectItem>
-                      ))}
+                      {positions.length === 0 ? (
+                        <SelectItem value="none" disabled>Aucun poste configuré</SelectItem>
+                      ) : (
+                        positions.map((position) => (
+                          <SelectItem key={position.id} value={position.id}>
+                            {position.name} - {position.salary.toLocaleString()} HTG
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   {isProfessor && (
                     <p className="text-sm text-muted-foreground">
                       Non applicable pour les professeurs
+                    </p>
+                  )}
+                  {!isProfessor && positions.length === 0 && (
+                    <p className="text-sm text-amber-600">
+                      Veuillez d'abord créer des postes dans Paramètres → Grille Salariale
                     </p>
                   )}
                   <FormMessage />
