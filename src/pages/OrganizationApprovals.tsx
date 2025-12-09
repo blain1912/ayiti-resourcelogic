@@ -102,6 +102,97 @@ const OrganizationApprovals = () => {
     }
   };
 
+  const copyDefaultSalaryScale = async (newOrgId: string) => {
+    try {
+      // Définir les catégories par défaut avec leurs postes
+      const defaultCategories = [
+        {
+          name: "Personnel de Décision",
+          positions: [
+            { name: "Directeur Général", salary: 150000 },
+            { name: "Directeur Général Adjoint", salary: 125000 },
+            { name: "Directeur", salary: 100000 },
+            { name: "Directeur Adjoint", salary: 85000 },
+          ]
+        },
+        {
+          name: "Personnel d'encadrement",
+          positions: [
+            { name: "Chef de Service", salary: 75000 },
+            { name: "Chef de Service Adjoint", salary: 65000 },
+            { name: "Responsable de Section", salary: 55000 },
+          ]
+        },
+        {
+          name: "Personnel professionnel diplômé ou certifié",
+          positions: [
+            { name: "Analyste Principal", salary: 65000 },
+            { name: "Analyste", salary: 55000 },
+            { name: "Technicien Principal", salary: 50000 },
+            { name: "Technicien", salary: 45000 },
+            { name: "Comptable", salary: 50000 },
+            { name: "Informaticien", salary: 55000 },
+          ]
+        },
+        {
+          name: "Personnel administratif",
+          positions: [
+            { name: "Assistant Administratif Principal", salary: 40000 },
+            { name: "Assistant Administratif", salary: 35000 },
+            { name: "Secrétaire", salary: 30000 },
+            { name: "Réceptionniste", salary: 25000 },
+            { name: "Archiviste", salary: 30000 },
+          ]
+        },
+        {
+          name: "Personnel de soutien",
+          positions: [
+            { name: "Chauffeur", salary: 25000 },
+            { name: "Agent de Sécurité", salary: 22000 },
+            { name: "Agent d'Entretien", salary: 20000 },
+            { name: "Plombier", salary: 25000 },
+            { name: "Électricien", salary: 25000 },
+            { name: "Jardinier", salary: 20000 },
+          ]
+        },
+      ];
+
+      // Créer les catégories et postes pour la nouvelle organisation
+      for (const category of defaultCategories) {
+        const { data: newCategory, error: categoryError } = await supabase
+          .from("employee_categories")
+          .insert({ name: category.name, organization_id: newOrgId })
+          .select()
+          .single();
+
+        if (categoryError) {
+          console.error("Error creating category:", categoryError);
+          continue;
+        }
+
+        // Créer les postes pour cette catégorie
+        const positionsToInsert = category.positions.map(pos => ({
+          name: pos.name,
+          salary: pos.salary,
+          category_id: newCategory.id,
+          organization_id: newOrgId,
+        }));
+
+        const { error: positionsError } = await supabase
+          .from("positions")
+          .insert(positionsToInsert);
+
+        if (positionsError) {
+          console.error("Error creating positions:", positionsError);
+        }
+      }
+
+      console.log("Default salary scale copied for organization:", newOrgId);
+    } catch (error) {
+      console.error("Error copying salary scale:", error);
+    }
+  };
+
   const handleApproval = async (orgId: string, status: "approved" | "rejected") => {
     try {
       // Récupérer l'organisation et l'admin
@@ -150,6 +241,11 @@ const OrganizationApprovals = () => {
 
       if (error) throw error;
 
+      // Si approuvé, copier la grille salariale par défaut
+      if (status === "approved") {
+        await copyDefaultSalaryScale(orgId);
+      }
+
       // Envoyer un email de notification à l'admin
       if (adminEmail && org) {
         try {
@@ -170,7 +266,7 @@ const OrganizationApprovals = () => {
       toast({
         title: language === "fr" ? "Succès" : "Success",
         description: status === "approved"
-          ? (language === "fr" ? "Organisation approuvée" : "Organization approved")
+          ? (language === "fr" ? "Organisation approuvée avec grille salariale" : "Organization approved with salary scale")
           : (language === "fr" ? "Organisation rejetée" : "Organization rejected"),
       });
 
