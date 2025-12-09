@@ -72,22 +72,25 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_template: boolean | null
           name: string
-          organization_id: string
+          organization_id: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
+          is_template?: boolean | null
           name: string
-          organization_id: string
+          organization_id?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
+          is_template?: boolean | null
           name?: string
-          organization_id?: string
+          organization_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -260,8 +263,9 @@ export type Database = {
           category_id: string
           created_at: string
           id: string
+          is_template: boolean | null
           name: string
-          organization_id: string
+          organization_id: string | null
           salary: number
           updated_at: string
         }
@@ -269,8 +273,9 @@ export type Database = {
           category_id: string
           created_at?: string
           id?: string
+          is_template?: boolean | null
           name: string
-          organization_id: string
+          organization_id?: string | null
           salary: number
           updated_at?: string
         }
@@ -278,8 +283,9 @@ export type Database = {
           category_id?: string
           created_at?: string
           id?: string
+          is_template?: boolean | null
           name?: string
-          organization_id?: string
+          organization_id?: string | null
           salary?: number
           updated_at?: string
         }
