@@ -7,48 +7,51 @@ export interface Position {
   name: string;
   category_id: string;
   salary: number;
-  organization_id: string;
+  organization_id: string | null;
+  is_template?: boolean;
 }
 
 export interface EmployeeCategory {
   id: string;
   name: string;
-  organization_id: string;
+  organization_id: string | null;
+  is_template?: boolean;
   positions?: Position[];
 }
 
-export const useSalaryScale = (organizationId?: string) => {
+export const useSalaryScale = (organizationId?: string | null, isTemplate: boolean = false) => {
   const [categories, setCategories] = useState<EmployeeCategory[]>([]);
   const [positions, setPositions] = useState<Position[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (organizationId) {
+    if (isTemplate || organizationId) {
       fetchSalaryScale();
     }
-  }, [organizationId]);
+  }, [organizationId, isTemplate]);
 
   const fetchSalaryScale = async () => {
     try {
       setLoading(true);
 
-      // Fetch categories
-      const { data: categoriesData, error: categoriesError } = await supabase
-        .from("employee_categories")
-        .select("*")
-        .eq("organization_id", organizationId!)
-        .order("name");
+      let categoriesQuery = supabase.from("employee_categories").select("*");
+      let positionsQuery = supabase.from("positions").select("*");
 
+      if (isTemplate) {
+        // Fetch template categories and positions (organization_id IS NULL)
+        categoriesQuery = categoriesQuery.is("organization_id", null).eq("is_template", true);
+        positionsQuery = positionsQuery.is("organization_id", null).eq("is_template", true);
+      } else {
+        // Fetch organization-specific categories and positions
+        categoriesQuery = categoriesQuery.eq("organization_id", organizationId!);
+        positionsQuery = positionsQuery.eq("organization_id", organizationId!);
+      }
+
+      const { data: categoriesData, error: categoriesError } = await categoriesQuery.order("name");
       if (categoriesError) throw categoriesError;
 
-      // Fetch positions
-      const { data: positionsData, error: positionsError } = await supabase
-        .from("positions")
-        .select("*")
-        .eq("organization_id", organizationId!)
-        .order("name");
-
+      const { data: positionsData, error: positionsError } = await positionsQuery.order("name");
       if (positionsError) throw positionsError;
 
       setCategories(categoriesData || []);
@@ -66,9 +69,18 @@ export const useSalaryScale = (organizationId?: string) => {
 
   const createCategory = async (name: string) => {
     try {
+      const insertData: any = { name };
+      if (isTemplate) {
+        insertData.organization_id = null;
+        insertData.is_template = true;
+      } else {
+        insertData.organization_id = organizationId!;
+        insertData.is_template = false;
+      }
+
       const { data, error } = await supabase
         .from("employee_categories")
-        .insert({ name, organization_id: organizationId! })
+        .insert(insertData)
         .select()
         .single();
 
@@ -96,14 +108,22 @@ export const useSalaryScale = (organizationId?: string) => {
     salary: number
   ) => {
     try {
+      const insertData: any = {
+        name,
+        category_id: categoryId,
+        salary,
+      };
+      if (isTemplate) {
+        insertData.organization_id = null;
+        insertData.is_template = true;
+      } else {
+        insertData.organization_id = organizationId!;
+        insertData.is_template = false;
+      }
+
       const { data, error } = await supabase
         .from("positions")
-        .insert({
-          name,
-          category_id: categoryId,
-          salary,
-          organization_id: organizationId!,
-        })
+        .insert(insertData)
         .select()
         .single();
 

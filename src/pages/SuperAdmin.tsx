@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, Users, Calendar, DollarSign, Plus } from "lucide-react";
+import { Building2, Users, Calendar, DollarSign, Plus, FileSpreadsheet } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -233,6 +233,10 @@ const SuperAdmin = () => {
               Gestion de toutes les organisations abonnées
             </p>
           </div>
+          <Button onClick={() => navigate("/salary-scale-template")} className="gap-2">
+            <FileSpreadsheet className="h-4 w-4" />
+            Grille Salariale Template
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
