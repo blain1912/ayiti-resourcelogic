@@ -42,24 +42,22 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
       const { data: isSuperAdmin } = await supabase.rpc('is_super_admin', { _user_id: user.id });
       console.log("👑 Is super admin:", isSuperAdmin);
 
-      // Super admin: redirect to super-admin page from home
+      // Super admin: always allow access and redirect to super-admin page if needed
       if (isSuperAdmin) {
         const currentPath = window.location.pathname;
-        const superAdminPaths = ["/super-admin", "/organization-approvals", "/initial-setup"];
+        const superAdminPaths = ["/super-admin", "/organization-approvals", "/initial-setup", "/salary-scale-template"];
         
-        // Redirect from dashboard page to super-admin dashboard
-        if (currentPath === "/dashboard") {
-          console.log("➡️ Redirecting super admin from dashboard to super-admin page");
+        // Redirect from dashboard or onboarding to super-admin dashboard
+        if (currentPath === "/dashboard" || currentPath === "/onboarding" || currentPath === "/organization-setup") {
+          console.log("➡️ Redirecting super admin to super-admin page");
           navigate("/super-admin");
           return;
         }
         
-        // Allow access to super admin pages
-        if (superAdminPaths.includes(currentPath)) {
-          console.log("✅ Super admin accessing allowed page");
-          setHasOrganization(true);
-          return;
-        }
+        // Allow access to any page for super admin
+        console.log("✅ Super admin - allowing access");
+        setHasOrganization(true);
+        return;
       }
 
       if (!profile?.organization_id) {
