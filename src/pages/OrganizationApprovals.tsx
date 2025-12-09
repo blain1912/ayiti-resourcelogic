@@ -104,64 +104,32 @@ const OrganizationApprovals = () => {
 
   const copyDefaultSalaryScale = async (newOrgId: string) => {
     try {
-      // Définir les catégories par défaut avec leurs postes
-      const defaultCategories = [
-        {
-          name: "Personnel de Décision",
-          positions: [
-            { name: "Directeur Général", salary: 150000 },
-            { name: "Directeur Général Adjoint", salary: 125000 },
-            { name: "Directeur", salary: 100000 },
-            { name: "Directeur Adjoint", salary: 85000 },
-          ]
-        },
-        {
-          name: "Personnel d'encadrement",
-          positions: [
-            { name: "Chef de Service", salary: 75000 },
-            { name: "Chef de Service Adjoint", salary: 65000 },
-            { name: "Responsable de Section", salary: 55000 },
-          ]
-        },
-        {
-          name: "Personnel professionnel diplômé ou certifié",
-          positions: [
-            { name: "Analyste Principal", salary: 65000 },
-            { name: "Analyste", salary: 55000 },
-            { name: "Technicien Principal", salary: 50000 },
-            { name: "Technicien", salary: 45000 },
-            { name: "Comptable", salary: 50000 },
-            { name: "Informaticien", salary: 55000 },
-          ]
-        },
-        {
-          name: "Personnel administratif",
-          positions: [
-            { name: "Assistant Administratif Principal", salary: 40000 },
-            { name: "Assistant Administratif", salary: 35000 },
-            { name: "Secrétaire", salary: 30000 },
-            { name: "Réceptionniste", salary: 25000 },
-            { name: "Archiviste", salary: 30000 },
-          ]
-        },
-        {
-          name: "Personnel de soutien",
-          positions: [
-            { name: "Chauffeur", salary: 25000 },
-            { name: "Agent de Sécurité", salary: 22000 },
-            { name: "Agent d'Entretien", salary: 20000 },
-            { name: "Plombier", salary: 25000 },
-            { name: "Électricien", salary: 25000 },
-            { name: "Jardinier", salary: 20000 },
-          ]
-        },
-      ];
+      // Récupérer les catégories template (organization_id = NULL, is_template = true)
+      const { data: templateCategories, error: catError } = await supabase
+        .from("employee_categories")
+        .select("*")
+        .is("organization_id", null)
+        .eq("is_template", true);
 
-      // Créer les catégories et postes pour la nouvelle organisation
-      for (const category of defaultCategories) {
+      if (catError) {
+        console.error("Error fetching template categories:", catError);
+        return;
+      }
+
+      if (!templateCategories || templateCategories.length === 0) {
+        console.log("No template categories found");
+        return;
+      }
+
+      // Pour chaque catégorie template, créer une copie pour la nouvelle organisation
+      for (const templateCat of templateCategories) {
         const { data: newCategory, error: categoryError } = await supabase
           .from("employee_categories")
-          .insert({ name: category.name, organization_id: newOrgId })
+          .insert({ 
+            name: templateCat.name, 
+            organization_id: newOrgId,
+            is_template: false 
+          })
           .select()
           .single();
 
@@ -170,24 +138,39 @@ const OrganizationApprovals = () => {
           continue;
         }
 
-        // Créer les postes pour cette catégorie
-        const positionsToInsert = category.positions.map(pos => ({
+        // Récupérer les postes template pour cette catégorie
+        const { data: templatePositions, error: posError } = await supabase
+          .from("positions")
+          .select("*")
+          .eq("category_id", templateCat.id)
+          .eq("is_template", true);
+
+        if (posError || !templatePositions) {
+          console.error("Error fetching template positions:", posError);
+          continue;
+        }
+
+        // Créer les postes pour la nouvelle organisation
+        const positionsToInsert = templatePositions.map(pos => ({
           name: pos.name,
           salary: pos.salary,
           category_id: newCategory.id,
           organization_id: newOrgId,
+          is_template: false,
         }));
 
-        const { error: positionsError } = await supabase
-          .from("positions")
-          .insert(positionsToInsert);
+        if (positionsToInsert.length > 0) {
+          const { error: positionsError } = await supabase
+            .from("positions")
+            .insert(positionsToInsert);
 
-        if (positionsError) {
-          console.error("Error creating positions:", positionsError);
+          if (positionsError) {
+            console.error("Error creating positions:", positionsError);
+          }
         }
       }
 
-      console.log("Default salary scale copied for organization:", newOrgId);
+      console.log("Default salary scale copied from template for organization:", newOrgId);
     } catch (error) {
       console.error("Error copying salary scale:", error);
     }
