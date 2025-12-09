@@ -101,6 +101,14 @@ const Auth = () => {
         // Redirect to dashboard if authenticated
         if (session) {
           setTimeout(async () => {
+            // Check if super admin first
+            const { data: isSuperAdmin } = await supabase.rpc('is_super_admin', { _user_id: session.user.id });
+            
+            if (isSuperAdmin) {
+              navigate("/super-admin");
+              return;
+            }
+            
             // Check if user has an organization
             const { data: profile } = await supabase
               .from("profiles")
@@ -130,6 +138,14 @@ const Auth = () => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       if (session) {
+        // Check if super admin first
+        const { data: isSuperAdmin } = await supabase.rpc('is_super_admin', { _user_id: session.user.id });
+        
+        if (isSuperAdmin) {
+          navigate("/super-admin");
+          return;
+        }
+        
         // Check if user has an organization
         const { data: profile } = await supabase
           .from("profiles")
