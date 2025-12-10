@@ -2,6 +2,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Printer } from "lucide-react";
+import mupanahBackground from "@/assets/mupanah-background.jpg";
 
 interface EmployeeBadgeProps {
   profile: {
@@ -69,12 +70,24 @@ export function EmployeeBadge({ profile, organization, positionName, hideActions
 
       <Card 
         id="employee-badge" 
-        className="w-[320px] mx-auto overflow-hidden"
-        style={{ 
-          background: `linear-gradient(180deg, ${primaryColor}, ${secondaryColor})` 
-        }}
+        className="w-[320px] mx-auto overflow-hidden relative"
       >
-        <CardContent className="p-0">
+        {/* Background image with overlay */}
+        <div 
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `url(${mupanahBackground})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        />
+        <div 
+          className="absolute inset-0 z-0"
+          style={{ 
+            background: `linear-gradient(180deg, ${primaryColor}CC, ${secondaryColor}DD)` 
+          }}
+        />
+        <CardContent className="p-0 relative z-10">
           {/* Header avec logo et nom organisation */}
           <div className="bg-white/95 px-4 py-3 text-center border-b">
             {organization?.logo_url ? (
