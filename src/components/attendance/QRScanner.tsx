@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,23 +13,31 @@ interface QRScannerProps {
 export const QRScanner = ({ onScanSuccess, onClose }: QRScannerProps) => {
   const [isScanning, setIsScanning] = useState(false);
   const scannerRef = useRef<Html5Qrcode | null>(null);
-  const [cameras, setCameras] = useState<any[]>([]);
+  const hasScannedRef = useRef(false);
+
+  const stopScanning = useCallback(async () => {
+    if (scannerRef.current) {
+      try {
+        await scannerRef.current.stop();
+        scannerRef.current.clear();
+      } catch (err) {
+        // Scanner might already be stopped
+      } finally {
+        scannerRef.current = null;
+        setIsScanning(false);
+      }
+    }
+  }, []);
 
   useEffect(() => {
-    Html5Qrcode.getCameras().then(devices => {
-      if (devices && devices.length) {
-        setCameras(devices);
-      }
-    }).catch(err => {
-      console.error("Error getting cameras:", err);
-    });
-
     return () => {
       stopScanning();
     };
-  }, []);
+  }, [stopScanning]);
 
   const startScanning = async () => {
+    hasScannedRef.current = false;
+    
     try {
       const qrCodeScanner = new Html5Qrcode("qr-reader");
       scannerRef.current = qrCodeScanner;
@@ -41,10 +49,14 @@ export const QRScanner = ({ onScanSuccess, onClose }: QRScannerProps) => {
           qrbox: { width: 250, height: 250 }
         },
         (decodedText) => {
-          onScanSuccess(decodedText);
+          // Prevent multiple callbacks for the same scan
+          if (hasScannedRef.current) return;
+          hasScannedRef.current = true;
+          
           stopScanning();
+          onScanSuccess(decodedText);
         },
-        (errorMessage) => {
+        () => {
           // Silent error handling for continuous scanning
         }
       );
@@ -57,19 +69,6 @@ export const QRScanner = ({ onScanSuccess, onClose }: QRScannerProps) => {
         description: "Impossible de démarrer la caméra",
         variant: "destructive",
       });
-    }
-  };
-
-  const stopScanning = async () => {
-    if (scannerRef.current && isScanning) {
-      try {
-        await scannerRef.current.stop();
-        scannerRef.current.clear();
-        scannerRef.current = null;
-        setIsScanning(false);
-      } catch (err) {
-        console.error("Error stopping scanner:", err);
-      }
     }
   };
 
