@@ -69,108 +69,100 @@ export function EmployeeBadge({ profile, organization, positionName, hideActions
 
       <Card 
         id="employee-badge" 
-        className="w-[500px] mx-auto overflow-hidden"
+        className="w-[320px] mx-auto overflow-hidden"
         style={{ 
-          background: `linear-gradient(135deg, ${primaryColor}, ${secondaryColor})` 
+          background: `linear-gradient(180deg, ${primaryColor}, ${secondaryColor})` 
         }}
       >
         <CardContent className="p-0">
           {/* Header avec logo et nom organisation */}
-          <div className="bg-white/95 px-4 py-2 flex items-center justify-between border-b">
+          <div className="bg-white/95 px-4 py-3 text-center border-b">
             {organization?.logo_url ? (
               <img 
                 src={organization.logo_url} 
                 alt="Logo" 
-                className="h-8 object-contain"
+                className="h-10 mx-auto object-contain"
               />
             ) : (
-              <span className="font-bold text-sm" style={{ color: primaryColor }}>
+              <span className="font-bold text-base" style={{ color: primaryColor }}>
                 {organization?.name || "Organisation"}
               </span>
             )}
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mt-1">
               Carte d'identité
-            </span>
+            </p>
           </div>
 
-          {/* Corps principal - format horizontal */}
-          <div className="flex p-4 gap-4">
-            {/* Photo à gauche */}
+          {/* Corps principal - format vertical */}
+          <div className="p-4 flex flex-col items-center gap-4">
+            {/* Photo */}
             <div className="flex-shrink-0">
               {profile.photo_url ? (
                 <img 
                   src={profile.photo_url} 
                   alt="Photo de profil"
-                  className="w-28 h-36 rounded-md object-cover border-2 border-white shadow-lg"
+                  className="w-32 h-40 rounded-md object-cover border-3 border-white shadow-lg"
                 />
               ) : (
-                <div className="w-28 h-36 rounded-md bg-white/80 flex items-center justify-center border-2 border-white shadow-lg">
-                  <span className="text-3xl font-bold text-muted-foreground">
+                <div className="w-32 h-40 rounded-md bg-white/80 flex items-center justify-center border-3 border-white shadow-lg">
+                  <span className="text-4xl font-bold text-muted-foreground">
                     {profile.prenom?.[0]}{profile.nom?.[0]}
                   </span>
                 </div>
               )}
             </div>
 
-            {/* Informations à droite */}
-            <div className="flex-1 flex flex-col justify-between text-white">
-              <div className="space-y-1">
-                <h4 className="font-bold text-xl leading-tight drop-shadow-sm">
-                  {profile.prenom} {profile.nom}
-                </h4>
-                
-                {positionName && (
-                  <p className="text-sm opacity-90 font-medium">
-                    {positionName}
-                  </p>
-                )}
-              </div>
+            {/* Informations */}
+            <div className="text-center text-white space-y-2">
+              <h4 className="font-bold text-xl leading-tight drop-shadow-sm">
+                {profile.prenom} {profile.nom}
+              </h4>
+              
+              {positionName && (
+                <p className="text-sm opacity-90 font-medium">
+                  {positionName}
+                </p>
+              )}
 
-              <div className="space-y-1.5 text-sm">
+              <div className="flex flex-wrap justify-center gap-2 pt-1">
                 {profile.nif && (
-                  <div className="flex items-center gap-2">
-                    <span className="opacity-75 text-xs">NIF:</span>
-                    <span className="font-mono bg-white/20 px-2 py-0.5 rounded text-xs font-semibold">
-                      {profile.nif}
-                    </span>
+                  <div className="bg-white/20 px-3 py-1 rounded">
+                    <span className="text-[10px] opacity-75 block">NIF</span>
+                    <span className="font-mono text-xs font-semibold">{profile.nif}</span>
                   </div>
                 )}
                 
                 {profile.groupe_sanguin && (
-                  <div className="flex items-center gap-2">
-                    <span className="opacity-75 text-xs">Groupe:</span>
-                    <span className="font-mono bg-red-500 px-2 py-0.5 rounded text-xs font-bold">
-                      {profile.groupe_sanguin}
-                    </span>
+                  <div className="bg-red-500 px-3 py-1 rounded">
+                    <span className="text-[10px] opacity-90 block">Groupe</span>
+                    <span className="font-mono text-xs font-bold">{profile.groupe_sanguin}</span>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* QR Code à droite */}
-            <div className="flex-shrink-0 flex flex-col items-center justify-center">
-              <div className="bg-white p-2 rounded-lg shadow-inner">
-                <QRCodeSVG
-                  value={JSON.stringify({
-                    id: profile.id,
-                    nom: profile.nom,
-                    prenom: profile.prenom,
-                    code_budgetaire: profile.code_budgetaire,
-                    email: profile.email,
-                    organization_id: profile.organization_id
-                  })}
-                  size={80}
-                  level="H"
-                  includeMargin={false}
-                />
-              </div>
+            {/* QR Code */}
+            <div className="bg-white p-2 rounded-lg shadow-inner">
+              <QRCodeSVG
+                value={JSON.stringify({
+                  id: profile.id,
+                  nom: profile.nom,
+                  prenom: profile.prenom,
+                  code_budgetaire: profile.code_budgetaire,
+                  email: profile.email,
+                  organization_id: profile.organization_id
+                })}
+                size={90}
+                level="H"
+                includeMargin={false}
+              />
             </div>
           </div>
 
           {/* Footer */}
-          <div className="bg-white/95 px-4 py-1.5 text-center">
+          <div className="bg-white/95 px-4 py-2 text-center">
             <p className="text-[10px] text-muted-foreground">
-              En cas de perte, veuillez contacter les Ressources Humaines
+              En cas de perte, veuillez contacter les RH
             </p>
           </div>
         </CardContent>
