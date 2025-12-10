@@ -709,42 +709,79 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
             <FormField
               control={form.control}
               name="date_entree_fonction"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Date d'entrée en fonction</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
+              render={({ field }) => {
+                const dateValue = field.value;
+                const day = dateValue ? dateValue.getDate().toString().padStart(2, '0') : '';
+                const month = dateValue ? (dateValue.getMonth() + 1).toString().padStart(2, '0') : '';
+                const year = dateValue ? dateValue.getFullYear().toString() : '';
+
+                const handleDatePartChange = (part: 'day' | 'month' | 'year', value: string) => {
+                  const currentDate = field.value || new Date();
+                  let newDay = currentDate.getDate();
+                  let newMonth = currentDate.getMonth();
+                  let newYear = currentDate.getFullYear();
+
+                  if (part === 'day') {
+                    const parsed = parseInt(value, 10);
+                    if (!isNaN(parsed) && parsed >= 1 && parsed <= 31) newDay = parsed;
+                    else if (value === '') newDay = 1;
+                  } else if (part === 'month') {
+                    const parsed = parseInt(value, 10);
+                    if (!isNaN(parsed) && parsed >= 1 && parsed <= 12) newMonth = parsed - 1;
+                    else if (value === '') newMonth = 0;
+                  } else if (part === 'year') {
+                    const parsed = parseInt(value, 10);
+                    if (!isNaN(parsed) && parsed >= 1960 && parsed <= new Date().getFullYear()) newYear = parsed;
+                    else if (value === '') return;
+                  }
+
+                  const newDate = new Date(newYear, newMonth, newDay);
+                  if (newDate <= new Date() && newDate >= new Date("1960-01-01")) {
+                    field.onChange(newDate);
+                  }
+                };
+
+                return (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Date d'entrée en fonction</FormLabel>
+                    <div className="flex gap-2">
                       <FormControl>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Sélectionner une date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
+                        <Input
+                          type="text"
+                          placeholder="JJ"
+                          maxLength={2}
+                          className="w-16 text-center"
+                          value={day}
+                          onChange={(e) => handleDatePartChange('day', e.target.value)}
+                        />
                       </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) => date > new Date() || date < new Date("1960-01-01")}
-                        initialFocus
-                        className={cn("p-3 pointer-events-auto")}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
+                      <span className="flex items-center text-muted-foreground">/</span>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          placeholder="MM"
+                          maxLength={2}
+                          className="w-16 text-center"
+                          value={month}
+                          onChange={(e) => handleDatePartChange('month', e.target.value)}
+                        />
+                      </FormControl>
+                      <span className="flex items-center text-muted-foreground">/</span>
+                      <FormControl>
+                        <Input
+                          type="text"
+                          placeholder="AAAA"
+                          maxLength={4}
+                          className="w-20 text-center"
+                          value={year}
+                          onChange={(e) => handleDatePartChange('year', e.target.value)}
+                        />
+                      </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
 
             <FormItem>
