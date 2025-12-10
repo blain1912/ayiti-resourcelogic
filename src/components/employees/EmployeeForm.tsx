@@ -79,6 +79,97 @@ const employeeFormSchema = z.object({
 
 type EmployeeFormData = z.infer<typeof employeeFormSchema>;
 
+// Composant séparé pour gérer la date d'entrée en fonction avec état local
+function DateEntreeFonctionField({ form }: { form: ReturnType<typeof useForm<EmployeeFormData>> }) {
+  const dateValue = form.watch("date_entree_fonction");
+  
+  const [dayInput, setDayInput] = useState(dateValue ? dateValue.getDate().toString().padStart(2, '0') : '');
+  const [monthInput, setMonthInput] = useState(dateValue ? (dateValue.getMonth() + 1).toString().padStart(2, '0') : '');
+  const [yearInput, setYearInput] = useState(dateValue ? dateValue.getFullYear().toString() : '');
+
+  // Sync inputs when dateValue changes externally
+  useEffect(() => {
+    if (dateValue) {
+      setDayInput(dateValue.getDate().toString().padStart(2, '0'));
+      setMonthInput((dateValue.getMonth() + 1).toString().padStart(2, '0'));
+      setYearInput(dateValue.getFullYear().toString());
+    }
+  }, [dateValue]);
+
+  const tryUpdateDate = (day: string, month: string, year: string) => {
+    const d = parseInt(day, 10);
+    const m = parseInt(month, 10);
+    const y = parseInt(year, 10);
+
+    if (!isNaN(d) && !isNaN(m) && !isNaN(y) && d >= 1 && d <= 31 && m >= 1 && m <= 12 && y >= 1960 && y <= new Date().getFullYear()) {
+      const newDate = new Date(y, m - 1, d);
+      // Validate that the date is valid (e.g., not Feb 31)
+      if (newDate.getDate() === d && newDate.getMonth() === m - 1 && newDate <= new Date()) {
+        form.setValue("date_entree_fonction", newDate);
+      }
+    }
+  };
+
+  return (
+    <FormField
+      control={form.control}
+      name="date_entree_fonction"
+      render={() => (
+        <FormItem className="flex flex-col">
+          <FormLabel>Date d'entrée en fonction</FormLabel>
+          <div className="flex gap-2">
+            <FormControl>
+              <Input
+                type="text"
+                placeholder="JJ"
+                maxLength={2}
+                className="w-16 text-center"
+                value={dayInput}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '');
+                  setDayInput(value);
+                  tryUpdateDate(value, monthInput, yearInput);
+                }}
+              />
+            </FormControl>
+            <span className="flex items-center text-muted-foreground">/</span>
+            <FormControl>
+              <Input
+                type="text"
+                placeholder="MM"
+                maxLength={2}
+                className="w-16 text-center"
+                value={monthInput}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '');
+                  setMonthInput(value);
+                  tryUpdateDate(dayInput, value, yearInput);
+                }}
+              />
+            </FormControl>
+            <span className="flex items-center text-muted-foreground">/</span>
+            <FormControl>
+              <Input
+                type="text"
+                placeholder="AAAA"
+                maxLength={4}
+                className="w-20 text-center"
+                value={yearInput}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '');
+                  setYearInput(value);
+                  tryUpdateDate(dayInput, monthInput, value);
+                }}
+              />
+            </FormControl>
+          </div>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
 interface EmployeeFormProps {
   onSubmit: (data: EmployeeFormData) => Promise<void>;
   defaultValues?: Partial<EmployeeFormData>;
@@ -706,83 +797,7 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
             <CardTitle>Informations professionnelles</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="date_entree_fonction"
-              render={({ field }) => {
-                const dateValue = field.value;
-                const day = dateValue ? dateValue.getDate().toString().padStart(2, '0') : '';
-                const month = dateValue ? (dateValue.getMonth() + 1).toString().padStart(2, '0') : '';
-                const year = dateValue ? dateValue.getFullYear().toString() : '';
-
-                const handleDatePartChange = (part: 'day' | 'month' | 'year', value: string) => {
-                  const currentDate = field.value || new Date();
-                  let newDay = currentDate.getDate();
-                  let newMonth = currentDate.getMonth();
-                  let newYear = currentDate.getFullYear();
-
-                  if (part === 'day') {
-                    const parsed = parseInt(value, 10);
-                    if (!isNaN(parsed) && parsed >= 1 && parsed <= 31) newDay = parsed;
-                    else if (value === '') newDay = 1;
-                  } else if (part === 'month') {
-                    const parsed = parseInt(value, 10);
-                    if (!isNaN(parsed) && parsed >= 1 && parsed <= 12) newMonth = parsed - 1;
-                    else if (value === '') newMonth = 0;
-                  } else if (part === 'year') {
-                    const parsed = parseInt(value, 10);
-                    if (!isNaN(parsed) && parsed >= 1960 && parsed <= new Date().getFullYear()) newYear = parsed;
-                    else if (value === '') return;
-                  }
-
-                  const newDate = new Date(newYear, newMonth, newDay);
-                  if (newDate <= new Date() && newDate >= new Date("1960-01-01")) {
-                    field.onChange(newDate);
-                  }
-                };
-
-                return (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Date d'entrée en fonction</FormLabel>
-                    <div className="flex gap-2">
-                      <FormControl>
-                        <Input
-                          type="text"
-                          placeholder="JJ"
-                          maxLength={2}
-                          className="w-16 text-center"
-                          value={day}
-                          onChange={(e) => handleDatePartChange('day', e.target.value)}
-                        />
-                      </FormControl>
-                      <span className="flex items-center text-muted-foreground">/</span>
-                      <FormControl>
-                        <Input
-                          type="text"
-                          placeholder="MM"
-                          maxLength={2}
-                          className="w-16 text-center"
-                          value={month}
-                          onChange={(e) => handleDatePartChange('month', e.target.value)}
-                        />
-                      </FormControl>
-                      <span className="flex items-center text-muted-foreground">/</span>
-                      <FormControl>
-                        <Input
-                          type="text"
-                          placeholder="AAAA"
-                          maxLength={4}
-                          className="w-20 text-center"
-                          value={year}
-                          onChange={(e) => handleDatePartChange('year', e.target.value)}
-                        />
-                      </FormControl>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
+            <DateEntreeFonctionField form={form} />
 
             <FormItem>
               <FormLabel>Nombre d'années de service</FormLabel>
