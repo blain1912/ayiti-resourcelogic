@@ -171,11 +171,7 @@ const Attendance = () => {
         if (error) throw error;
       }
 
-      toast({
-        title: "Présence enregistrée",
-        description: "La présence a été mise à jour avec succès",
-      });
-
+      // Toast will be shown by the caller for specific messages
       fetchAttendance();
     } catch (error) {
       console.error("Error marking attendance:", error);
@@ -199,6 +195,10 @@ const Attendance = () => {
   const saveWithNotes = async (status: string) => {
     if (currentEmployee) {
       await markAttendance(currentEmployee.id, status, notes);
+      toast({
+        title: "Présence enregistrée",
+        description: `Présence mise à jour pour ${currentEmployee.name}`,
+      });
       setShowNotesDialog(false);
       setNotes("");
       setCurrentEmployee(null);
@@ -206,10 +206,18 @@ const Attendance = () => {
   };
 
   const quickMarkAttendance = async (profileId: string, status: string) => {
+    const employee = employees.find(e => e.id === profileId);
     await markAttendance(profileId, status);
+    toast({
+      title: "Présence enregistrée",
+      description: `Présence mise à jour pour ${employee?.full_name || 'l\'employé'}`,
+    });
   };
 
   const handleQRScan = async (qrData: string) => {
+    // Close scanner immediately to prevent multiple scans
+    setShowQRScanner(false);
+    
     try {
       const data = JSON.parse(qrData);
       const { employeeId } = data;
@@ -234,11 +242,10 @@ const Attendance = () => {
         return;
       }
 
-      // Mark attendance as present
+      // Mark attendance as present (markAttendance already shows a toast)
       await markAttendance(employeeId, "present");
       
-      setShowQRScanner(false);
-      
+      // Only show the personalized toast, markAttendance's generic toast is shown inside
       toast({
         title: "Pointage réussi",
         description: `Présence enregistrée pour ${employee.full_name}`,
