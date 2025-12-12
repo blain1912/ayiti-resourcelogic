@@ -250,43 +250,86 @@ export const SubscriptionInfo = ({ organization, onUpdate }: SubscriptionInfoPro
                 <div>
                   <h4 className="font-semibold text-sm mb-2">📋 Instructions de configuration DNS</h4>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Ajoutez ces enregistrements DNS chez votre registrar (GoDaddy, Namecheap, etc.) :
+                    Ajoutez ces enregistrements DNS chez votre registrar (GoDaddy, Namecheap, Cloudflare, etc.) :
                   </p>
-                  <div className="space-y-3 bg-background p-3 rounded border">
-                    <div className="space-y-1">
-                      <p className="text-xs font-mono font-semibold">Enregistrement A</p>
-                      <div className="grid grid-cols-3 gap-2 text-xs">
+                  <div className="space-y-4 bg-background p-4 rounded border">
+                    {/* A Record for root domain */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-semibold text-primary">1. Enregistrement A (domaine racine)</p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm bg-muted/50 p-2 rounded">
                         <div>
-                          <span className="text-muted-foreground">Type:</span> <code className="bg-muted px-1 py-0.5 rounded">A</code>
+                          <span className="text-muted-foreground">Type:</span> <code className="bg-muted px-2 py-1 rounded font-mono">A</code>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Nom:</span> <code className="bg-muted px-1 py-0.5 rounded">{customDomain.replace(/^https?:\/\//, '')}</code>
+                          <span className="text-muted-foreground">Nom:</span> <code className="bg-muted px-2 py-1 rounded font-mono">@</code>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Valeur:</span> <code className="bg-muted px-1 py-0.5 rounded">[IP de l'application]</code>
+                          <span className="text-muted-foreground">Valeur:</span> <code className="bg-primary/10 text-primary px-2 py-1 rounded font-mono font-bold">185.158.133.1</code>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* A Record for www subdomain */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-semibold text-primary">2. Enregistrement A (sous-domaine www)</p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm bg-muted/50 p-2 rounded">
+                        <div>
+                          <span className="text-muted-foreground">Type:</span> <code className="bg-muted px-2 py-1 rounded font-mono">A</code>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Nom:</span> <code className="bg-muted px-2 py-1 rounded font-mono">www</code>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Valeur:</span> <code className="bg-primary/10 text-primary px-2 py-1 rounded font-mono font-bold">185.158.133.1</code>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* TXT Record for verification */}
+                    <div className="space-y-2">
+                      <p className="text-sm font-semibold text-primary">3. Enregistrement TXT (vérification)</p>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm bg-muted/50 p-2 rounded">
+                        <div>
+                          <span className="text-muted-foreground">Type:</span> <code className="bg-muted px-2 py-1 rounded font-mono">TXT</code>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Nom:</span> <code className="bg-muted px-2 py-1 rounded font-mono">_lovable</code>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Valeur:</span> <code className="bg-muted px-2 py-1 rounded font-mono text-xs">lovable_verify={organization.id.substring(0, 8)}</code>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
+                {/* Important notes */}
+                <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                  <h4 className="font-semibold text-sm mb-2 text-amber-700 dark:text-amber-400">⚠️ Notes importantes</h4>
+                  <ul className="space-y-1 text-sm text-muted-foreground">
+                    <li>• La propagation DNS peut prendre jusqu'à 72 heures</li>
+                    <li>• Le certificat SSL sera généré automatiquement</li>
+                    <li>• Utilisez <a href="https://dnschecker.org" target="_blank" rel="noopener noreferrer" className="text-primary underline">dnschecker.org</a> pour vérifier vos enregistrements</li>
+                  </ul>
+                </div>
+
                 <div className="space-y-2">
                   <h4 className="font-semibold text-sm">✨ Comment ça fonctionne</h4>
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     <li className="flex items-start gap-2">
-                      <span className="text-primary">1.</span>
+                      <span className="text-primary font-bold">1.</span>
                       <span>Vos employés visitent <strong className="text-foreground">{customDomain}</strong></span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-primary">2.</span>
+                      <span className="text-primary font-bold">2.</span>
                       <span>Le système détecte automatiquement votre organisation</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-primary">3.</span>
+                      <span className="text-primary font-bold">3.</span>
                       <span>L'inscription est pré-remplie avec {organization.name}</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-primary">4.</span>
+                      <span className="text-primary font-bold">4.</span>
                       <span>La page affiche votre logo et vos couleurs personnalisées</span>
                     </li>
                   </ul>
@@ -297,13 +340,11 @@ export const SubscriptionInfo = ({ organization, onUpdate }: SubscriptionInfoPro
                     <h4 className="font-semibold text-sm">🎨 Aperçu de votre page d'inscription</h4>
                     <div className="border rounded-lg p-4 bg-background">
                       <div className="flex flex-col items-center gap-3">
-                        {organization.logo_url && (
-                          <img 
-                            src={organization.logo_url} 
-                            alt={organization.name}
-                            className="h-12 object-contain"
-                          />
-                        )}
+                        <img 
+                          src={organization.logo_url} 
+                          alt={organization.name}
+                          className="h-12 object-contain"
+                        />
                         <div className="text-center">
                           <h3 className="font-bold text-lg">{organization.name}</h3>
                           <p className="text-sm text-muted-foreground">Portail d'inscription</p>
