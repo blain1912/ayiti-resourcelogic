@@ -81,20 +81,29 @@ export const SubscriptionInfo = ({ organization, onUpdate }: SubscriptionInfoPro
   };
 
   const handleDomainUpdate = async () => {
-    if (!customDomain && !organization.custom_domain) return;
+    const trimmedDomain = customDomain.trim();
+    
+    // If no change, show info toast
+    if (trimmedDomain === (organization.custom_domain || "")) {
+      toast({
+        title: "Aucun changement",
+        description: "Le domaine n'a pas été modifié",
+      });
+      return;
+    }
     
     setIsUpdating(true);
     try {
       const { error } = await supabase
         .from("organizations")
-        .update({ custom_domain: customDomain || null })
+        .update({ custom_domain: trimmedDomain || null })
         .eq("id", organization.id);
 
       if (error) throw error;
 
       toast({
         title: "Domaine mis à jour",
-        description: customDomain ? `Domaine configuré: ${customDomain}` : "Domaine supprimé",
+        description: trimmedDomain ? `Domaine configuré: ${trimmedDomain}` : "Domaine supprimé",
       });
       onUpdate();
     } catch (error: any) {
