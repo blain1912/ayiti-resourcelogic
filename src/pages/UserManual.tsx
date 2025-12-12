@@ -411,6 +411,47 @@ const UserManual = () => {
                       </ul>
                     </AccordionContent>
                   </AccordionItem>
+                  <AccordionItem value="domaine-personnalise">
+                    <AccordionTrigger>Comment configurer un domaine personnalisé ?</AccordionTrigger>
+                    <AccordionContent>
+                      <p className="mb-3">Un domaine personnalisé permet à vos employés de s'inscrire via une URL dédiée (ex: <code className="bg-muted px-1 rounded">votre-organisation.exemple.com</code>).</p>
+                      <p className="font-medium mb-2">Étapes de configuration :</p>
+                      <ol className="list-decimal list-inside space-y-2">
+                        <li>Accédez à <strong>Admin</strong> → <strong>Paramètres</strong> → <strong>Abonnement</strong></li>
+                        <li>Dans la section "Domaine personnalisé", entrez votre nom de domaine</li>
+                        <li>Cliquez sur "Mettre à jour le domaine"</li>
+                      </ol>
+                      <div className="mt-4 p-4 bg-muted rounded-lg">
+                        <p className="font-medium mb-2">Configuration DNS requise :</p>
+                        <p className="text-sm mb-2">Ajoutez les enregistrements DNS suivants chez votre registrar :</p>
+                        <div className="bg-background p-3 rounded border text-sm font-mono space-y-2">
+                          <div>
+                            <span className="text-muted-foreground">Type:</span> <span className="font-semibold">A</span><br/>
+                            <span className="text-muted-foreground">Nom:</span> @ (domaine racine)<br/>
+                            <span className="text-muted-foreground">Valeur:</span> 185.158.133.1
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Type:</span> <span className="font-semibold">A</span><br/>
+                            <span className="text-muted-foreground">Nom:</span> www<br/>
+                            <span className="text-muted-foreground">Valeur:</span> 185.158.133.1
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground">Type:</span> <span className="font-semibold">TXT</span><br/>
+                            <span className="text-muted-foreground">Nom:</span> _lovable<br/>
+                            <span className="text-muted-foreground">Valeur:</span> lovable_verify=[votre code]
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                        <p className="font-medium text-yellow-800 dark:text-yellow-200 mb-1">⚠️ Important :</p>
+                        <ul className="list-disc list-inside text-sm text-yellow-700 dark:text-yellow-300 space-y-1">
+                          <li>La propagation DNS peut prendre jusqu'à 72 heures</li>
+                          <li>Le certificat SSL sera automatiquement provisionné</li>
+                          <li>Disponible uniquement avec les abonnements Pro et Enterprise</li>
+                        </ul>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
                   <AccordionItem value="personnalisation">
                     <AccordionTrigger>Personnalisation</AccordionTrigger>
                     <AccordionContent>
