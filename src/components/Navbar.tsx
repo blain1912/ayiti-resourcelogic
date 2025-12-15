@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield, Menu } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield, Menu, ScanLine } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -165,6 +165,12 @@ export default function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to="/central-qr" className="flex items-center cursor-pointer">
+                        <QrCode className="h-4 w-4 mr-2" />
+                        QR Code Central
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/leaves" className="flex items-center cursor-pointer">
                         <Calendar className="h-4 w-4 mr-2" />
                         Congés
@@ -291,6 +297,12 @@ export default function Navbar() {
                       Mon QR Code
                     </Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/scan-attendance" className="flex items-center cursor-pointer">
+                      <ScanLine className="h-4 w-4 mr-2" />
+                      Pointer ma présence
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => signOut()}>
                     <LogOut className="h-4 w-4 mr-2" />
@@ -345,6 +357,12 @@ export default function Navbar() {
                   Documents
                 </Button>
               </Link>
+              <Link to="/scan-attendance" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                  <ScanLine className="h-4 w-4" />
+                  Pointer ma présence
+                </Button>
+              </Link>
             </div>
 
             {/* RH Section */}
@@ -369,6 +387,12 @@ export default function Navbar() {
                   <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                     <CheckSquare className="h-4 w-4" />
                     Présence
+                  </Button>
+                </Link>
+                <Link to="/central-qr" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <QrCode className="h-4 w-4" />
+                    QR Code Central
                   </Button>
                 </Link>
                 <Link to="/leaves" onClick={() => setMobileMenuOpen(false)}>
