@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield, Menu, ScanLine, Activity } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield, Menu, ScanLine, Activity, FileBarChart } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -174,6 +174,12 @@ export default function Navbar() {
                       <Link to="/realtime-attendance" className="flex items-center cursor-pointer">
                         <Activity className="h-4 w-4 mr-2" />
                         Temps Réel
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/monthly-report" className="flex items-center cursor-pointer">
+                        <FileBarChart className="h-4 w-4 mr-2" />
+                        Rapport Mensuel
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
@@ -405,6 +411,12 @@ export default function Navbar() {
                   <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                     <Activity className="h-4 w-4" />
                     Temps Réel
+                  </Button>
+                </Link>
+                <Link to="/monthly-report" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <FileBarChart className="h-4 w-4" />
+                    Rapport Mensuel
                   </Button>
                 </Link>
                 <Link to="/leaves" onClick={() => setMobileMenuOpen(false)}>

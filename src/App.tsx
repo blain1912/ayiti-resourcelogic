@@ -27,6 +27,7 @@ import MyQRCode from "./pages/MyQRCode";
 import ScanAttendance from "./pages/ScanAttendance";
 import CentralQRDisplay from "./pages/CentralQRDisplay";
 import RealtimeAttendance from "./pages/RealtimeAttendance";
+import MonthlyReport from "./pages/MonthlyReport";
 import UnitDashboard from "./pages/UnitDashboard";
 import UnitsList from "./pages/UnitsList";
 import SuperAdmin from "./pages/SuperAdmin";
@@ -71,6 +72,7 @@ const App = () => (
             <Route path="/scan-attendance" element={<ProtectedRoute><ScanAttendance /></ProtectedRoute>} />
             <Route path="/central-qr" element={<ProtectedRoute><CentralQRDisplay /></ProtectedRoute>} />
             <Route path="/realtime-attendance" element={<ProtectedRoute><RealtimeAttendance /></ProtectedRoute>} />
+            <Route path="/monthly-report" element={<ProtectedRoute><MonthlyReport /></ProtectedRoute>} />
             <Route path="/units" element={<ProtectedRoute><UnitsList /></ProtectedRoute>} />
             <Route path="/units" element={<ProtectedRoute><UnitsList /></ProtectedRoute>} />
             <Route path="/unit/:unitId/dashboard" element={<ProtectedRoute><UnitDashboard /></ProtectedRoute>} />
