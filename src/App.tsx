@@ -24,6 +24,8 @@ import PendingApprovals from "./pages/PendingApprovals";
 import EmployeeBadges from "./pages/EmployeeBadges";
 import Attendance from "./pages/Attendance";
 import MyQRCode from "./pages/MyQRCode";
+import ScanAttendance from "./pages/ScanAttendance";
+import CentralQRDisplay from "./pages/CentralQRDisplay";
 import UnitDashboard from "./pages/UnitDashboard";
 import UnitsList from "./pages/UnitsList";
 import SuperAdmin from "./pages/SuperAdmin";
@@ -65,6 +67,9 @@ const App = () => (
             <Route path="/badges" element={<ProtectedRoute><EmployeeBadges /></ProtectedRoute>} />
             <Route path="/attendance" element={<ProtectedRoute><Attendance /></ProtectedRoute>} />
             <Route path="/my-qr-code" element={<ProtectedRoute><MyQRCode /></ProtectedRoute>} />
+            <Route path="/scan-attendance" element={<ProtectedRoute><ScanAttendance /></ProtectedRoute>} />
+            <Route path="/central-qr" element={<ProtectedRoute><CentralQRDisplay /></ProtectedRoute>} />
+            <Route path="/units" element={<ProtectedRoute><UnitsList /></ProtectedRoute>} />
             <Route path="/units" element={<ProtectedRoute><UnitsList /></ProtectedRoute>} />
             <Route path="/unit/:unitId/dashboard" element={<ProtectedRoute><UnitDashboard /></ProtectedRoute>} />
             <Route path="/admin/organization" element={<ProtectedRoute><AdminOrganization /></ProtectedRoute>} />
