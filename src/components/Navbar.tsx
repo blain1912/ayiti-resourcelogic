@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield, Menu, ScanLine } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield, Menu, ScanLine, Activity } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -168,6 +168,12 @@ export default function Navbar() {
                       <Link to="/central-qr" className="flex items-center cursor-pointer">
                         <QrCode className="h-4 w-4 mr-2" />
                         QR Code Central
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/realtime-attendance" className="flex items-center cursor-pointer">
+                        <Activity className="h-4 w-4 mr-2" />
+                        Temps Réel
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
@@ -393,6 +399,12 @@ export default function Navbar() {
                   <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                     <QrCode className="h-4 w-4" />
                     QR Code Central
+                  </Button>
+                </Link>
+                <Link to="/realtime-attendance" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <Activity className="h-4 w-4" />
+                    Temps Réel
                   </Button>
                 </Link>
                 <Link to="/leaves" onClick={() => setMobileMenuOpen(false)}>
