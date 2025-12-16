@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Plus, Briefcase, Users, Eye, Edit, Trash2, UserPlus } from "lucide-react";
+import { Plus, Briefcase, Users, Eye, Edit, Trash2, UserPlus, FileText, Download, Phone, Mail, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -42,11 +42,12 @@ type JobApplication = {
   applicant_name: string | null;
   applicant_email: string | null;
   applicant_phone: string | null;
+  applicant_cv_url: string | null;
   cover_letter: string | null;
   status: string;
   created_at: string;
-  profile?: { full_name: string; email: string } | null;
-  job_posting?: { title: string } | null;
+  profile?: { full_name: string; email: string; tel_1?: string } | null;
+  job_posting?: { title: string; recruitment_type: string } | null;
 };
 
 const statusColors: Record<string, string> = {
@@ -94,7 +95,9 @@ const Recruitment = () => {
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedPosting, setSelectedPosting] = useState<JobPosting | null>(null);
+  const [selectedApplication, setSelectedApplication] = useState<JobApplication | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isAppDetailDialogOpen, setIsAppDetailDialogOpen] = useState(false);
   
   const [formData, setFormData] = useState({
     title: "",
@@ -152,8 +155,8 @@ const Recruitment = () => {
         .from("job_applications")
         .select(`
           *,
-          profile:profiles(full_name, email),
-          job_posting:job_postings(title)
+          profile:profiles(full_name, email, tel_1),
+          job_posting:job_postings(title, recruitment_type)
         `)
         .eq("organization_id", organization.id)
         .order("created_at", { ascending: false });
@@ -673,6 +676,8 @@ const Recruitment = () => {
                       <TableRow>
                         <TableHead>Candidat</TableHead>
                         <TableHead>Poste</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>CV</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead>Statut</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
@@ -681,7 +686,7 @@ const Recruitment = () => {
                     <TableBody>
                       {applications.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                             Aucune candidature
                           </TableCell>
                         </TableRow>
@@ -699,6 +704,26 @@ const Recruitment = () => {
                               </div>
                             </TableCell>
                             <TableCell>{app.job_posting?.title || "N/A"}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="text-xs">
+                                {app.job_posting?.recruitment_type === "internal" ? "Interne" : "Externe"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              {app.applicant_cv_url ? (
+                                <a
+                                  href={app.applicant_cv_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-primary hover:underline"
+                                >
+                                  <FileText className="h-4 w-4" />
+                                  <span className="text-sm">Voir CV</span>
+                                </a>
+                              ) : (
+                                <span className="text-sm text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
                             <TableCell>
                               {format(new Date(app.created_at), "dd MMM yyyy", { locale: fr })}
                             </TableCell>
@@ -724,7 +749,14 @@ const Recruitment = () => {
                               </Select>
                             </TableCell>
                             <TableCell className="text-right">
-                              <Button variant="ghost" size="icon">
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => {
+                                  setSelectedApplication(app);
+                                  setIsAppDetailDialogOpen(true);
+                                }}
+                              >
                                 <Eye className="h-4 w-4" />
                               </Button>
                             </TableCell>
@@ -790,6 +822,125 @@ const Recruitment = () => {
                 </TableBody>
               </Table>
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Application Detail Dialog */}
+        <Dialog open={isAppDetailDialogOpen} onOpenChange={setIsAppDetailDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                Détails de la candidature
+                {selectedApplication && (
+                  <Badge variant="outline" className="ml-2">
+                    {selectedApplication.job_posting?.recruitment_type === "internal" ? "Interne" : "Externe"}
+                  </Badge>
+                )}
+              </DialogTitle>
+            </DialogHeader>
+            {selectedApplication && (
+              <div className="space-y-6">
+                {/* Candidate Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm text-muted-foreground">INFORMATIONS DU CANDIDAT</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium">
+                          {selectedApplication.profile?.full_name || selectedApplication.applicant_name || "N/A"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        <a 
+                          href={`mailto:${selectedApplication.profile?.email || selectedApplication.applicant_email}`}
+                          className="text-primary hover:underline"
+                        >
+                          {selectedApplication.profile?.email || selectedApplication.applicant_email || "N/A"}
+                        </a>
+                      </div>
+                      {(selectedApplication.profile?.tel_1 || selectedApplication.applicant_phone) && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 text-muted-foreground" />
+                          <span>{selectedApplication.profile?.tel_1 || selectedApplication.applicant_phone}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm text-muted-foreground">POSTE</h4>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Briefcase className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium">{selectedApplication.job_posting?.title || "N/A"}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">
+                          Soumis le {format(new Date(selectedApplication.created_at), "d MMMM yyyy à HH:mm", { locale: fr })}
+                        </span>
+                      </div>
+                      <Badge className={applicationStatusColors[selectedApplication.status]}>
+                        {applicationStatusLabels[selectedApplication.status] || selectedApplication.status}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+
+                {/* CV */}
+                {selectedApplication.applicant_cv_url && (
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm text-muted-foreground">CURRICULUM VITAE</h4>
+                    <a
+                      href={selectedApplication.applicant_cv_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-colors"
+                    >
+                      <FileText className="h-5 w-5" />
+                      <span>Télécharger le CV</span>
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  </div>
+                )}
+
+                {/* Cover Letter */}
+                {selectedApplication.cover_letter && (
+                  <div className="space-y-2">
+                    <h4 className="font-semibold text-sm text-muted-foreground">LETTRE DE MOTIVATION</h4>
+                    <div className="p-4 bg-muted rounded-lg">
+                      <p className="text-sm whitespace-pre-wrap">{selectedApplication.cover_letter}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Status Update */}
+                <div className="pt-4 border-t">
+                  <h4 className="font-semibold text-sm text-muted-foreground mb-3">MODIFIER LE STATUT</h4>
+                  <Select
+                    value={selectedApplication.status}
+                    onValueChange={(value: "pending" | "reviewing" | "shortlisted" | "interview" | "offered" | "accepted" | "rejected") => {
+                      handleUpdateApplicationStatus(selectedApplication.id, value);
+                      setSelectedApplication({ ...selectedApplication, status: value });
+                    }}
+                  >
+                    <SelectTrigger className="w-full md:w-64">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">En attente</SelectItem>
+                      <SelectItem value="reviewing">En cours d'examen</SelectItem>
+                      <SelectItem value="shortlisted">Présélectionné</SelectItem>
+                      <SelectItem value="interview">Entretien</SelectItem>
+                      <SelectItem value="offered">Offre envoyée</SelectItem>
+                      <SelectItem value="accepted">Accepté</SelectItem>
+                      <SelectItem value="rejected">Rejeté</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
           </DialogContent>
         </Dialog>
       </div>
