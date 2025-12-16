@@ -35,6 +35,7 @@ import RoleManagement from "./pages/RoleManagement";
 import OrganizationApprovals from "./pages/OrganizationApprovals";
 import SalaryScaleTemplate from "./pages/SalaryScaleTemplate";
 import UserManual from "./pages/UserManual";
+import Recruitment from "./pages/Recruitment";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import InitialSetup from "./pages/InitialSetup";
@@ -83,6 +84,7 @@ const App = () => (
             <Route path="/super-admin" element={<ProtectedRoute><SuperAdmin /></ProtectedRoute>} />
             <Route path="/organization-approvals" element={<ProtectedRoute><OrganizationApprovals /></ProtectedRoute>} />
             <Route path="/salary-scale-template" element={<ProtectedRoute><SalaryScaleTemplate /></ProtectedRoute>} />
+            <Route path="/recruitment" element={<ProtectedRoute><Recruitment /></ProtectedRoute>} />
             <Route path="/user-manual" element={<UserManual />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

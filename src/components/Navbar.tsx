@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield, Menu, ScanLine, Activity, FileBarChart } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield, Menu, ScanLine, Activity, FileBarChart, Briefcase } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -186,6 +186,12 @@ export default function Navbar() {
                       <Link to="/leaves" className="flex items-center cursor-pointer">
                         <Calendar className="h-4 w-4 mr-2" />
                         Congés
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/recruitment" className="flex items-center cursor-pointer">
+                        <Briefcase className="h-4 w-4 mr-2" />
+                        Recrutement
                       </Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -429,6 +435,12 @@ export default function Navbar() {
                   <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                     <Calendar className="h-4 w-4" />
                     Congés
+                  </Button>
+                </Link>
+                <Link to="/recruitment" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <Briefcase className="h-4 w-4" />
+                    Recrutement
                   </Button>
                 </Link>
               </div>

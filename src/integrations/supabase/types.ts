@@ -103,6 +103,161 @@ export type Database = {
           },
         ]
       }
+      job_applications: {
+        Row: {
+          applicant_cv_url: string | null
+          applicant_email: string | null
+          applicant_name: string | null
+          applicant_phone: string | null
+          cover_letter: string | null
+          created_at: string
+          id: string
+          job_posting_id: string
+          notes: string | null
+          organization_id: string
+          profile_id: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["application_status"]
+          updated_at: string
+        }
+        Insert: {
+          applicant_cv_url?: string | null
+          applicant_email?: string | null
+          applicant_name?: string | null
+          applicant_phone?: string | null
+          cover_letter?: string | null
+          created_at?: string
+          id?: string
+          job_posting_id: string
+          notes?: string | null
+          organization_id: string
+          profile_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
+          updated_at?: string
+        }
+        Update: {
+          applicant_cv_url?: string | null
+          applicant_email?: string | null
+          applicant_name?: string | null
+          applicant_phone?: string | null
+          cover_letter?: string | null
+          created_at?: string
+          id?: string
+          job_posting_id?: string
+          notes?: string | null
+          organization_id?: string
+          profile_id?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["application_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_applications_job_posting_id_fkey"
+            columns: ["job_posting_id"]
+            isOneToOne: false
+            referencedRelation: "job_postings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_applications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_applications_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      job_postings: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          deadline: string | null
+          description: string | null
+          id: string
+          number_of_positions: number
+          organization_id: string
+          position_id: string | null
+          recruitment_type: Database["public"]["Enums"]["recruitment_type"]
+          requirements: string | null
+          salary_max: number | null
+          salary_min: number | null
+          status: Database["public"]["Enums"]["job_posting_status"]
+          title: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          number_of_positions?: number
+          organization_id: string
+          position_id?: string | null
+          recruitment_type?: Database["public"]["Enums"]["recruitment_type"]
+          requirements?: string | null
+          salary_max?: number | null
+          salary_min?: number | null
+          status?: Database["public"]["Enums"]["job_posting_status"]
+          title: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          deadline?: string | null
+          description?: string | null
+          id?: string
+          number_of_positions?: number
+          organization_id?: string
+          position_id?: string | null
+          recruitment_type?: Database["public"]["Enums"]["recruitment_type"]
+          requirements?: string | null
+          salary_max?: number | null
+          salary_min?: number | null
+          status?: Database["public"]["Enums"]["job_posting_status"]
+          title?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_postings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_postings_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "positions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_postings_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "organizational_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       manual_payments: {
         Row: {
           amount: number
@@ -609,6 +764,14 @@ export type Database = {
         | "directeur_administratif"
         | "directeur_rh"
         | "employe"
+      application_status:
+        | "pending"
+        | "reviewing"
+        | "shortlisted"
+        | "interview"
+        | "offered"
+        | "accepted"
+        | "rejected"
       employee_status:
         | "actif"
         | "conge_annuel"
@@ -620,6 +783,7 @@ export type Database = {
         | "renvoye"
         | "decede"
       employment_type: "permanent" | "contractuel" | "journalier" | "professeur"
+      job_posting_status: "draft" | "open" | "closed" | "filled"
       organization_type:
         | "ministere"
         | "direction_generale"
@@ -631,6 +795,7 @@ export type Database = {
         | "associe"
         | "titulaire"
         | "emerite"
+      recruitment_type: "internal" | "external"
       subscription_tier: "free" | "pro" | "enterprise"
       unit_type:
         | "direction_generale"
@@ -773,6 +938,15 @@ export const Constants = {
         "directeur_rh",
         "employe",
       ],
+      application_status: [
+        "pending",
+        "reviewing",
+        "shortlisted",
+        "interview",
+        "offered",
+        "accepted",
+        "rejected",
+      ],
       employee_status: [
         "actif",
         "conge_annuel",
@@ -785,6 +959,7 @@ export const Constants = {
         "decede",
       ],
       employment_type: ["permanent", "contractuel", "journalier", "professeur"],
+      job_posting_status: ["draft", "open", "closed", "filled"],
       organization_type: [
         "ministere",
         "direction_generale",
@@ -798,6 +973,7 @@ export const Constants = {
         "titulaire",
         "emerite",
       ],
+      recruitment_type: ["internal", "external"],
       subscription_tier: ["free", "pro", "enterprise"],
       unit_type: [
         "direction_generale",
