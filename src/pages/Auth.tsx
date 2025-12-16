@@ -60,40 +60,54 @@ const Auth = () => {
       // Remove www. prefix if present
       currentDomain = currentDomain.replace(/^www\./, '');
       
-      console.log("Detecting organization for domain:", currentDomain);
+      console.log("Auth: Current hostname:", window.location.hostname);
+      console.log("Auth: Cleaned domain:", currentDomain);
       
-      // Check if this domain corresponds to an organization
-      const { data: orgByDomain, error } = await supabase
-        .from("organizations")
-        .select("id, name, logo_url, primary_color, secondary_color")
-        .eq("custom_domain", currentDomain)
-        .eq("approval_status", "approved")
-        .maybeSingle();
+      // Skip detection for localhost and lovable preview domains
+      const isPreviewDomain = currentDomain.includes('lovable.app') || 
+                              currentDomain.includes('localhost') ||
+                              currentDomain.includes('127.0.0.1');
       
-      if (error) {
-        console.error("Error detecting organization:", error);
+      if (!isPreviewDomain) {
+        console.log("Auth: Attempting to detect organization for custom domain:", currentDomain);
+        
+        // Check if this domain corresponds to an organization
+        const { data: orgByDomain, error } = await supabase
+          .from("organizations")
+          .select("id, name, logo_url, primary_color, secondary_color")
+          .eq("custom_domain", currentDomain)
+          .eq("approval_status", "approved")
+          .maybeSingle();
+        
+        console.log("Auth: Query result:", { orgByDomain, error });
+        
+        if (error) {
+          console.error("Auth: Error detecting organization:", error);
+        }
+        
+        if (orgByDomain) {
+          console.log("Auth: Organization detected:", orgByDomain);
+          setDetectedOrganization(orgByDomain);
+          setSignUpData(prev => ({ 
+            ...prev, 
+            organizationId: orgByDomain.id,
+            userType: "employe"
+          }));
+          return;
+        } else {
+          console.log("Auth: No organization found for domain:", currentDomain);
+        }
       }
       
-      if (orgByDomain) {
-        console.log("Organization detected:", orgByDomain);
-        setDetectedOrganization(orgByDomain);
-        setSignUpData(prev => ({ 
-          ...prev, 
-          organizationId: orgByDomain.id,
-          userType: "employe" // Auto-set to employee when domain is detected
-        }));
-      } else {
-        console.log("No organization detected, loading all organizations");
-        // If no custom domain detected, fetch all approved organizations for dropdown
-        const { data } = await supabase
-          .from("organizations")
-          .select("id, name")
-          .eq("approval_status", "approved")
-          .order("name");
-        
-        if (data) {
-          setOrganizations(data);
-        }
+      console.log("Auth: Loading all approved organizations for dropdown");
+      const { data } = await supabase
+        .from("organizations")
+        .select("id, name")
+        .eq("approval_status", "approved")
+        .order("name");
+      
+      if (data) {
+        setOrganizations(data);
       }
     };
 
