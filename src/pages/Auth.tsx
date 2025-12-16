@@ -39,7 +39,13 @@ const Auth = () => {
   });
 
   const [organizations, setOrganizations] = useState<Array<{ id: string; name: string }>>([]);
-  const [detectedOrganization, setDetectedOrganization] = useState<{ id: string; name: string } | null>(null);
+  const [detectedOrganization, setDetectedOrganization] = useState<{ 
+    id: string; 
+    name: string; 
+    logo_url?: string | null;
+    primary_color?: string | null;
+    secondary_color?: string | null;
+  } | null>(null);
 
   const [signInData, setSignInData] = useState({
     email: "",
@@ -59,7 +65,7 @@ const Auth = () => {
       // Check if this domain corresponds to an organization
       const { data: orgByDomain, error } = await supabase
         .from("organizations")
-        .select("id, name")
+        .select("id, name, logo_url, primary_color, secondary_color")
         .eq("custom_domain", currentDomain)
         .eq("approval_status", "approved")
         .maybeSingle();
@@ -325,9 +331,20 @@ const Auth = () => {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-secondary/20 to-background px-4 py-12">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-2">
-          <CardTitle className="text-3xl font-bold text-center">Bienvenue</CardTitle>
+          {detectedOrganization?.logo_url && (
+            <img 
+              src={detectedOrganization.logo_url} 
+              alt={detectedOrganization.name}
+              className="h-20 w-auto mx-auto mb-2 object-contain"
+            />
+          )}
+          <CardTitle className="text-3xl font-bold text-center">
+            {detectedOrganization ? detectedOrganization.name : "Bienvenue"}
+          </CardTitle>
           <CardDescription className="text-center">
-            Connectez-vous ou créez un compte
+            {detectedOrganization 
+              ? "Connectez-vous ou inscrivez-vous" 
+              : "Connectez-vous ou créez un compte"}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -379,9 +396,14 @@ const Auth = () => {
             <TabsContent value="signup" className="space-y-4">
               <form onSubmit={handleSignUp} className="space-y-4">
                 {detectedOrganization && (
-                  <div className="rounded-lg bg-primary/10 border border-primary/20 p-3 mb-4">
-                    <p className="text-sm font-medium text-foreground">{detectedOrganization.name}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
+                  <div 
+                    className="rounded-lg border p-3 mb-4 text-center"
+                    style={{ 
+                      backgroundColor: detectedOrganization.primary_color ? `${detectedOrganization.primary_color}15` : undefined,
+                      borderColor: detectedOrganization.primary_color || undefined
+                    }}
+                  >
+                    <p className="text-xs text-muted-foreground">
                       Vous vous inscrivez comme employé de cette organisation
                     </p>
                   </div>
