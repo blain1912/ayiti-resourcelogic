@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2, Users, Shield, TrendingUp } from "lucide-react";
+import { Building2, Users, Shield, TrendingUp, Briefcase } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -67,7 +67,7 @@ const Index = () => {
           <p className="text-xl text-muted-foreground mb-8">
             Gérez efficacement les ressources humaines de votre administration avec une solution moderne et intuitive
           </p>
-          <div className="flex gap-4 justify-center">
+          <div className="flex flex-wrap gap-4 justify-center">
             <Link to="/auth">
               <Button size="lg" className="text-lg px-8">
                 Se connecter
@@ -76,6 +76,12 @@ const Index = () => {
             <Link to="/auth">
               <Button size="lg" variant="outline" className="text-lg px-8">
                 Créer un compte
+              </Button>
+            </Link>
+            <Link to="/careers">
+              <Button size="lg" variant="secondary" className="text-lg px-8">
+                <Briefcase className="h-5 w-5 mr-2" />
+                Offres d'emploi
               </Button>
             </Link>
           </div>
