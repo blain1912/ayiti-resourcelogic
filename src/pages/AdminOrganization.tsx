@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Building2, Plus, Trash2, Edit } from "lucide-react";
+import { Building2, Plus, Trash2, Edit, Globe } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
 
 type OrganizationType = "ministere" | "direction_generale" | "organisme_autonome" | "organisme_deconcentre";
@@ -16,6 +16,7 @@ interface Organization {
   id: string;
   name: string;
   type: OrganizationType;
+  custom_domain: string | null;
   created_at: string;
 }
 
@@ -30,6 +31,7 @@ const AdminOrganization = () => {
   const [formData, setFormData] = useState({
     name: "",
     type: "ministere" as OrganizationType,
+    custom_domain: "",
   });
 
   const organizationTypes = {
@@ -107,7 +109,7 @@ const AdminOrganization = () => {
         toast.success("Organisation créée avec succès");
       }
 
-      setFormData({ name: "", type: "ministere" });
+      setFormData({ name: "", type: "ministere", custom_domain: "" });
       setShowForm(false);
       setEditingOrg(null);
       loadOrganizations();
@@ -139,7 +141,7 @@ const AdminOrganization = () => {
 
   const handleEdit = (org: Organization) => {
     setEditingOrg(org);
-    setFormData({ name: org.name, type: org.type });
+    setFormData({ name: org.name, type: org.type, custom_domain: org.custom_domain || "" });
     setShowForm(true);
   };
 
@@ -163,7 +165,7 @@ const AdminOrganization = () => {
             onClick={() => {
               setShowForm(!showForm);
               setEditingOrg(null);
-              setFormData({ name: "", type: "ministere" });
+              setFormData({ name: "", type: "ministere", custom_domain: "" });
             }}
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -204,7 +206,22 @@ const AdminOrganization = () => {
                       </SelectItem>
                     ))}
                   </SelectContent>
-                </Select>
+              </Select>
+              </div>
+              <div>
+                <Label htmlFor="custom_domain">Domaine Personnalisé</Label>
+                <div className="flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="custom_domain"
+                    value={formData.custom_domain}
+                    onChange={(e) => setFormData({ ...formData, custom_domain: e.target.value })}
+                    placeholder="exemple.com ou sous-domaine.exemple.com"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Les employés pourront s'inscrire via ce domaine personnalisé
+                </p>
               </div>
               <div className="flex gap-2">
                 <Button type="submit">
@@ -216,7 +233,7 @@ const AdminOrganization = () => {
                   onClick={() => {
                     setShowForm(false);
                     setEditingOrg(null);
-                    setFormData({ name: "", type: "ministere" });
+                    setFormData({ name: "", type: "ministere", custom_domain: "" });
                   }}
                 >
                   Annuler
@@ -235,6 +252,12 @@ const AdminOrganization = () => {
                   <p className="text-muted-foreground">
                     {organizationTypes[org.type]}
                   </p>
+                  {org.custom_domain && (
+                    <p className="text-sm text-primary flex items-center gap-1 mt-1">
+                      <Globe className="h-3 w-3" />
+                      {org.custom_domain}
+                    </p>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <Button
