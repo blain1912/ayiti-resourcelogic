@@ -148,10 +148,17 @@ const InternalJobs = () => {
   };
 
   const handleApply = async () => {
-    if (!selectedJob || !profileId || !organization?.id) return;
+    if (!selectedJob || !profileId || !organization?.id || !user?.id) return;
 
     setSubmitting(true);
     try {
+      // Get user profile info for notification
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", profileId)
+        .maybeSingle();
+
       const { error } = await supabase.from("job_applications").insert({
         job_posting_id: selectedJob.id,
         organization_id: organization.id,
@@ -161,6 +168,17 @@ const InternalJobs = () => {
       });
 
       if (error) throw error;
+
+      // Send notification to HR (fire and forget)
+      supabase.functions.invoke("notify-job-application", {
+        body: {
+          jobTitle: selectedJob.title,
+          applicantName: profileData?.full_name || "Employé",
+          applicantEmail: profileData?.email || "",
+          organizationId: organization.id,
+          organizationName: organization.name,
+        },
+      }).catch(console.error);
 
       toast.success("Votre candidature a été soumise avec succès!");
       setIsApplyDialogOpen(false);
