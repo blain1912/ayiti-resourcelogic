@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useAuth } from "@/hooks/useAuth";
@@ -9,8 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Briefcase, MapPin, Calendar, DollarSign, Users, CheckCircle, Clock, Send } from "lucide-react";
+import { Briefcase, MapPin, Calendar, DollarSign, Users, CheckCircle, Clock, Send, FileText, Upload, X } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -66,8 +67,10 @@ const InternalJobs = () => {
   const [selectedJob, setSelectedJob] = useState<JobPosting | null>(null);
   const [isApplyDialogOpen, setIsApplyDialogOpen] = useState(false);
   const [coverLetter, setCoverLetter] = useState("");
+  const [cvFile, setCvFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [profileId, setProfileId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (organization?.id && user?.id) {
@@ -159,11 +162,37 @@ const InternalJobs = () => {
         .eq("id", profileId)
         .maybeSingle();
 
+      let cvUrl: string | null = null;
+
+      // Upload CV if provided
+      if (cvFile) {
+        const fileExt = cvFile.name.split('.').pop();
+        const fileName = `${user.id}/${selectedJob.id}-${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from("cv-documents")
+          .upload(fileName, cvFile);
+
+        if (uploadError) {
+          console.error("Error uploading CV:", uploadError);
+          toast.error("Erreur lors de l'upload du CV");
+          setSubmitting(false);
+          return;
+        }
+
+        const { data: urlData } = supabase.storage
+          .from("cv-documents")
+          .getPublicUrl(fileName);
+        
+        cvUrl = urlData.publicUrl;
+      }
+
       const { error } = await supabase.from("job_applications").insert({
         job_posting_id: selectedJob.id,
         organization_id: organization.id,
         profile_id: profileId,
         cover_letter: coverLetter || null,
+        applicant_cv_url: cvUrl,
         status: "pending",
       });
 
@@ -183,6 +212,7 @@ const InternalJobs = () => {
       toast.success("Votre candidature a été soumise avec succès!");
       setIsApplyDialogOpen(false);
       setCoverLetter("");
+      setCvFile(null);
       setSelectedJob(null);
       fetchData();
     } catch (error) {
@@ -193,9 +223,35 @@ const InternalJobs = () => {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error("Format de fichier non supporté. Veuillez utiliser PDF ou Word.");
+        return;
+      }
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Le fichier est trop volumineux. Maximum 5 MB.");
+        return;
+      }
+      setCvFile(file);
+    }
+  };
+
+  const removeFile = () => {
+    setCvFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   const openApplyDialog = (job: JobPosting) => {
     setSelectedJob(job);
     setCoverLetter("");
+    setCvFile(null);
     setIsApplyDialogOpen(true);
   };
 
@@ -360,6 +416,44 @@ const InternalJobs = () => {
                   <p className="text-sm mt-1">{selectedJob.requirements}</p>
                 </div>
               )}
+              <div className="space-y-2">
+                <Label htmlFor="cv">CV mis à jour (optionnel)</Label>
+                <div className="flex flex-col gap-2">
+                  <Input
+                    ref={fileInputRef}
+                    id="cv"
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                  {cvFile ? (
+                    <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+                      <FileText className="h-5 w-5 text-primary" />
+                      <span className="flex-1 text-sm truncate">{cvFile.name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={removeFile}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Télécharger un CV (PDF ou Word, max 5 MB)
+                    </Button>
+                  )}
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="coverLetter">Lettre de motivation (optionnel)</Label>
                 <Textarea
