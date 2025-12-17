@@ -99,6 +99,11 @@ const Recruitment = () => {
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isAppDetailDialogOpen, setIsAppDetailDialogOpen] = useState(false);
   
+  // Filtres des candidatures
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterType, setFilterType] = useState<string>("all");
+  const [filterPostingId, setFilterPostingId] = useState<string>("all");
+  
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -317,6 +322,14 @@ const Recruitment = () => {
   const postingApplications = selectedPosting 
     ? applications.filter(app => app.job_posting_id === selectedPosting.id)
     : [];
+
+  // Filtrer les candidatures
+  const filteredApplications = applications.filter(app => {
+    if (filterStatus !== "all" && app.status !== filterStatus) return false;
+    if (filterType !== "all" && app.job_posting?.recruitment_type !== filterType) return false;
+    if (filterPostingId !== "all" && app.job_posting_id !== filterPostingId) return false;
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -668,6 +681,57 @@ const Recruitment = () => {
           </TabsContent>
 
           <TabsContent value="applications">
+            {/* Filtres */}
+            <div className="flex flex-wrap gap-4 mb-4">
+              <div className="flex-1 min-w-[150px]">
+                <Label className="text-sm mb-1 block">Statut</Label>
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tous les statuts" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les statuts</SelectItem>
+                    <SelectItem value="pending">En attente</SelectItem>
+                    <SelectItem value="reviewing">En cours d'examen</SelectItem>
+                    <SelectItem value="shortlisted">Présélectionné</SelectItem>
+                    <SelectItem value="interview">Entretien</SelectItem>
+                    <SelectItem value="offered">Offre envoyée</SelectItem>
+                    <SelectItem value="accepted">Accepté</SelectItem>
+                    <SelectItem value="rejected">Rejeté</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1 min-w-[150px]">
+                <Label className="text-sm mb-1 block">Type</Label>
+                <Select value={filterType} onValueChange={setFilterType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tous les types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les types</SelectItem>
+                    <SelectItem value="internal">Interne</SelectItem>
+                    <SelectItem value="external">Externe</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1 min-w-[200px]">
+                <Label className="text-sm mb-1 block">Poste</Label>
+                <Select value={filterPostingId} onValueChange={setFilterPostingId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tous les postes" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les postes</SelectItem>
+                    {jobPostings.map((posting) => (
+                      <SelectItem key={posting.id} value={posting.id}>
+                        {posting.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <Card>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
@@ -684,14 +748,14 @@ const Recruitment = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {applications.length === 0 ? (
+                      {filteredApplications.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                             Aucune candidature
                           </TableCell>
                         </TableRow>
                       ) : (
-                        applications.map((app) => (
+                        filteredApplications.map((app) => (
                           <TableRow key={app.id}>
                             <TableCell>
                               <div>
