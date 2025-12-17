@@ -9,12 +9,15 @@ import { format, formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import heroImage from "@/assets/hero-admin.jpg";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { useOrganization } from "@/hooks/useOrganization";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import BirthdayWidget from "@/components/dashboard/BirthdayWidget";
 
 export default function Dashboard() {
   const { t } = useLanguage();
   const { stats, loading } = useDashboardStats();
+  const { organization } = useOrganization();
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
@@ -190,6 +193,11 @@ export default function Dashboard() {
               )}
             </CardContent>
           </Card>
+        </div>
+
+        {/* Birthday Widget */}
+        <div className="mb-8">
+          <BirthdayWidget organizationId={organization?.id || null} />
         </div>
       </div>
     </div>

@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.submit-external-application]
 verify_jwt = false
+
+[functions.send-birthday-notifications]
+verify_jwt = false

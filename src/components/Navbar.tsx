@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield, Menu, ScanLine, Activity, FileBarChart, Briefcase } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield, Menu, ScanLine, Activity, FileBarChart, Briefcase, Cake } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -211,6 +211,12 @@ export default function Navbar() {
                       <Link to="/recruitment" className="flex items-center cursor-pointer">
                         <Briefcase className="h-4 w-4 mr-2" />
                         Recrutement
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/birthdays" className="flex items-center cursor-pointer">
+                        <Cake className="h-4 w-4 mr-2" />
+                        Anniversaires
                       </Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -466,6 +472,12 @@ export default function Navbar() {
                   <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                     <Briefcase className="h-4 w-4" />
                     Recrutement
+                  </Button>
+                </Link>
+                <Link to="/birthdays" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <Cake className="h-4 w-4" />
+                    Anniversaires
                   </Button>
                 </Link>
               </div>
