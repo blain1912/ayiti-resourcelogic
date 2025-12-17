@@ -103,6 +103,182 @@ export type Database = {
           },
         ]
       }
+      evaluation_criteria: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          is_template: boolean | null
+          name: string
+          organization_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_template?: boolean | null
+          name: string
+          organization_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_template?: boolean | null
+          name?: string
+          organization_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluation_criteria_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evaluation_scores: {
+        Row: {
+          created_at: string
+          criteria_id: string
+          evaluation_id: string
+          id: string
+          recommendations: string | null
+          score: Database["public"]["Enums"]["evaluation_rating"] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          criteria_id: string
+          evaluation_id: string
+          id?: string
+          recommendations?: string | null
+          score?: Database["public"]["Enums"]["evaluation_rating"] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          criteria_id?: string
+          evaluation_id?: string
+          id?: string
+          recommendations?: string | null
+          score?: Database["public"]["Enums"]["evaluation_rating"] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluation_scores_criteria_id_fkey"
+            columns: ["criteria_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_criteria"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluation_scores_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "evaluations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      evaluations: {
+        Row: {
+          created_at: string
+          employee_comments: string | null
+          employee_id: string
+          evaluation_date: string | null
+          evaluation_year: number
+          evaluator_comments: string | null
+          evaluator_id: string
+          global_rating: Database["public"]["Enums"]["evaluation_rating"] | null
+          id: string
+          job_description: string | null
+          organization_id: string
+          status: Database["public"]["Enums"]["evaluation_status"]
+          supervisor_comments: string | null
+          supervisor_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          employee_comments?: string | null
+          employee_id: string
+          evaluation_date?: string | null
+          evaluation_year: number
+          evaluator_comments?: string | null
+          evaluator_id: string
+          global_rating?:
+            | Database["public"]["Enums"]["evaluation_rating"]
+            | null
+          id?: string
+          job_description?: string | null
+          organization_id: string
+          status?: Database["public"]["Enums"]["evaluation_status"]
+          supervisor_comments?: string | null
+          supervisor_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          employee_comments?: string | null
+          employee_id?: string
+          evaluation_date?: string | null
+          evaluation_year?: number
+          evaluator_comments?: string | null
+          evaluator_id?: string
+          global_rating?:
+            | Database["public"]["Enums"]["evaluation_rating"]
+            | null
+          id?: string
+          job_description?: string | null
+          organization_id?: string
+          status?: Database["public"]["Enums"]["evaluation_status"]
+          supervisor_comments?: string | null
+          supervisor_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluations_evaluator_id_fkey"
+            columns: ["evaluator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "evaluations_supervisor_id_fkey"
+            columns: ["supervisor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_applications: {
         Row: {
           applicant_cv_url: string | null
@@ -783,6 +959,8 @@ export type Database = {
         | "renvoye"
         | "decede"
       employment_type: "permanent" | "contractuel" | "journalier" | "professeur"
+      evaluation_rating: "1" | "2" | "3" | "4" | "5"
+      evaluation_status: "draft" | "submitted" | "reviewed" | "completed"
       job_posting_status: "draft" | "open" | "closed" | "filled"
       organization_type:
         | "ministere"
@@ -959,6 +1137,8 @@ export const Constants = {
         "decede",
       ],
       employment_type: ["permanent", "contractuel", "journalier", "professeur"],
+      evaluation_rating: ["1", "2", "3", "4", "5"],
+      evaluation_status: ["draft", "submitted", "reviewed", "completed"],
       job_posting_status: ["draft", "open", "closed", "filled"],
       organization_type: [
         "ministere",
