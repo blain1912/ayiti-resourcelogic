@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.send-birthday-notifications]
 verify_jwt = false
+
+[functions.send-greeting-card]
+verify_jwt = false

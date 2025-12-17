@@ -279,6 +279,202 @@ export type Database = {
           },
         ]
       }
+      greeting_card_requests: {
+        Row: {
+          created_at: string
+          custom_message: string | null
+          id: string
+          occasion: Database["public"]["Enums"]["greeting_card_occasion"]
+          organization_id: string
+          recipient_id: string
+          requester_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["greeting_card_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          custom_message?: string | null
+          id?: string
+          occasion: Database["public"]["Enums"]["greeting_card_occasion"]
+          organization_id: string
+          recipient_id: string
+          requester_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["greeting_card_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          custom_message?: string | null
+          id?: string
+          occasion?: Database["public"]["Enums"]["greeting_card_occasion"]
+          organization_id?: string
+          recipient_id?: string
+          requester_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["greeting_card_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "greeting_card_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "greeting_card_requests_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "greeting_card_requests_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "greeting_card_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      greeting_card_templates: {
+        Row: {
+          background_color: string | null
+          created_at: string
+          id: string
+          is_default: boolean | null
+          message_template: string
+          occasion: Database["public"]["Enums"]["greeting_card_occasion"]
+          organization_id: string | null
+          text_color: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          background_color?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          message_template: string
+          occasion: Database["public"]["Enums"]["greeting_card_occasion"]
+          organization_id?: string | null
+          text_color?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          background_color?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          message_template?: string
+          occasion?: Database["public"]["Enums"]["greeting_card_occasion"]
+          organization_id?: string | null
+          text_color?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "greeting_card_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      greeting_cards_sent: {
+        Row: {
+          created_at: string
+          custom_message: string | null
+          id: string
+          occasion: Database["public"]["Enums"]["greeting_card_occasion"]
+          organization_id: string
+          recipient_id: string
+          request_id: string | null
+          sent_at: string
+          sent_by: string
+          sent_via: string[]
+          template_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          custom_message?: string | null
+          id?: string
+          occasion: Database["public"]["Enums"]["greeting_card_occasion"]
+          organization_id: string
+          recipient_id: string
+          request_id?: string | null
+          sent_at?: string
+          sent_by: string
+          sent_via?: string[]
+          template_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          custom_message?: string | null
+          id?: string
+          occasion?: Database["public"]["Enums"]["greeting_card_occasion"]
+          organization_id?: string
+          recipient_id?: string
+          request_id?: string | null
+          sent_at?: string
+          sent_by?: string
+          sent_via?: string[]
+          template_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "greeting_cards_sent_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "greeting_cards_sent_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "greeting_cards_sent_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "greeting_card_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "greeting_cards_sent_sent_by_fkey"
+            columns: ["sent_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "greeting_cards_sent_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "greeting_card_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_applications: {
         Row: {
           applicant_cv_url: string | null
@@ -961,6 +1157,19 @@ export type Database = {
       employment_type: "permanent" | "contractuel" | "journalier" | "professeur"
       evaluation_rating: "1" | "2" | "3" | "4" | "5"
       evaluation_status: "draft" | "submitted" | "reviewed" | "completed"
+      greeting_card_occasion:
+        | "anniversaire"
+        | "deces_parent"
+        | "nouvel_an"
+        | "fete_meres"
+        | "fete_peres"
+        | "paques"
+        | "saint_valentin"
+        | "fete_drapeau"
+        | "prompt_retablissement"
+        | "accouchement"
+        | "mariage"
+      greeting_card_status: "pending" | "approved" | "rejected" | "sent"
       job_posting_status: "draft" | "open" | "closed" | "filled"
       organization_type:
         | "ministere"
@@ -1139,6 +1348,20 @@ export const Constants = {
       employment_type: ["permanent", "contractuel", "journalier", "professeur"],
       evaluation_rating: ["1", "2", "3", "4", "5"],
       evaluation_status: ["draft", "submitted", "reviewed", "completed"],
+      greeting_card_occasion: [
+        "anniversaire",
+        "deces_parent",
+        "nouvel_an",
+        "fete_meres",
+        "fete_peres",
+        "paques",
+        "saint_valentin",
+        "fete_drapeau",
+        "prompt_retablissement",
+        "accouchement",
+        "mariage",
+      ],
+      greeting_card_status: ["pending", "approved", "rejected", "sent"],
       job_posting_status: ["draft", "open", "closed", "filled"],
       organization_type: [
         "ministere",
