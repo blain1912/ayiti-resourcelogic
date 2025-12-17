@@ -214,6 +214,12 @@ export default function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to="/careers" className="flex items-center cursor-pointer">
+                        <Globe className="h-4 w-4 mr-2" />
+                        Offres externes
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/birthdays" className="flex items-center cursor-pointer">
                         <Cake className="h-4 w-4 mr-2" />
                         Anniversaires
@@ -472,6 +478,12 @@ export default function Navbar() {
                   <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                     <Briefcase className="h-4 w-4" />
                     Recrutement
+                  </Button>
+                </Link>
+                <Link to="/careers" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <Globe className="h-4 w-4" />
+                    Offres externes
                   </Button>
                 </Link>
                 <Link to="/birthdays" onClick={() => setMobileMenuOpen(false)}>
