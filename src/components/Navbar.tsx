@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useOrganizationTheme } from "@/contexts/OrganizationThemeContext";
 import { Link, useLocation } from "react-router-dom";
 import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield, Menu, ScanLine, Activity, FileBarChart, Briefcase, Cake } from "lucide-react";
 import {
@@ -20,9 +21,13 @@ export default function Navbar() {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { organization } = useOrganization();
+  const { organization: themeOrganization, isCustomDomain } = useOrganizationTheme();
   const [isRH, setIsRH] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Use theme organization (from custom domain) if available, otherwise use user's organization
+  const displayOrganization = isCustomDomain && themeOrganization ? themeOrganization : organization;
 
   useEffect(() => {
     const checkRoles = async () => {
@@ -74,10 +79,10 @@ export default function Navbar() {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
             <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2">
-              {organization?.logo_url ? (
+              {displayOrganization?.logo_url ? (
                 <img 
-                  src={organization.logo_url} 
-                  alt={organization.name || "Logo"}
+                  src={displayOrganization.logo_url} 
+                  alt={displayOrganization.name || "Logo"}
                   className="h-8 w-8 rounded-lg object-contain"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none';
@@ -85,12 +90,12 @@ export default function Navbar() {
                   }}
                 />
               ) : null}
-              <div className={`h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center ${organization?.logo_url ? 'hidden' : ''}`}>
+              <div className={`h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center ${displayOrganization?.logo_url ? 'hidden' : ''}`}>
                 <Building2 className="h-5 w-5 text-primary-foreground" />
               </div>
               <div className="hidden md:flex flex-col">
                 <span className="font-semibold text-sm leading-tight">
-                  {organization?.name || "GRH Haiti"}
+                  {displayOrganization?.name || "GRH Haiti"}
                 </span>
                 {organization && (
                   <span className="text-xs text-muted-foreground leading-tight">
