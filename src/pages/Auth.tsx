@@ -65,6 +65,7 @@ const Auth = () => {
       
       // Skip detection for localhost and lovable preview domains
       const isPreviewDomain = currentDomain.includes('lovable.app') || 
+                              currentDomain.includes('lovableproject.com') ||
                               currentDomain.includes('localhost') ||
                               currentDomain.includes('127.0.0.1');
       
