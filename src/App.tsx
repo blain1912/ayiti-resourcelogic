@@ -40,6 +40,8 @@ import Recruitment from "./pages/Recruitment";
 import InternalJobs from "./pages/InternalJobs";
 import Careers from "./pages/Careers";
 import Birthdays from "./pages/Birthdays";
+import GreetingCards from "./pages/GreetingCards";
+import EmployeeCardRequest from "./pages/EmployeeCardRequest";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import InitialSetup from "./pages/InitialSetup";
@@ -92,6 +94,8 @@ const App = () => (
             <Route path="/recruitment" element={<ProtectedRoute><Recruitment /></ProtectedRoute>} />
             <Route path="/internal-jobs" element={<ProtectedRoute><InternalJobs /></ProtectedRoute>} />
             <Route path="/birthdays" element={<ProtectedRoute><Birthdays /></ProtectedRoute>} />
+            <Route path="/greeting-cards" element={<ProtectedRoute><GreetingCards /></ProtectedRoute>} />
+            <Route path="/card-request" element={<ProtectedRoute><EmployeeCardRequest /></ProtectedRoute>} />
             <Route path="/user-manual" element={<UserManual />} />
             <Route path="/careers" element={<Careers />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useOrganizationTheme } from "@/contexts/OrganizationThemeContext";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield, Menu, ScanLine, Activity, FileBarChart, Briefcase, Cake } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield, Menu, ScanLine, Activity, FileBarChart, Briefcase, Cake, Gift, Heart } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -228,6 +228,12 @@ export default function Navbar() {
                         Anniversaires
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/greeting-cards" className="flex items-center cursor-pointer">
+                        <Gift className="h-4 w-4 mr-2" />
+                        Cartes de vœux
+                      </Link>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
@@ -359,6 +365,12 @@ export default function Navbar() {
                     <Link to="/scan-attendance" className="flex items-center cursor-pointer">
                       <ScanLine className="h-4 w-4 mr-2" />
                       Pointer ma présence
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/card-request" className="flex items-center cursor-pointer">
+                      <Heart className="h-4 w-4 mr-2" />
+                      Signaler un événement
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
