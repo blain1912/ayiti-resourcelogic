@@ -38,6 +38,7 @@ import UserManual from "./pages/UserManual";
 import Recruitment from "./pages/Recruitment";
 import InternalJobs from "./pages/InternalJobs";
 import Careers from "./pages/Careers";
+import Birthdays from "./pages/Birthdays";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import InitialSetup from "./pages/InitialSetup";
@@ -88,6 +89,7 @@ const App = () => (
             <Route path="/salary-scale-template" element={<ProtectedRoute><SalaryScaleTemplate /></ProtectedRoute>} />
             <Route path="/recruitment" element={<ProtectedRoute><Recruitment /></ProtectedRoute>} />
             <Route path="/internal-jobs" element={<ProtectedRoute><InternalJobs /></ProtectedRoute>} />
+            <Route path="/birthdays" element={<ProtectedRoute><Birthdays /></ProtectedRoute>} />
             <Route path="/user-manual" element={<UserManual />} />
             <Route path="/careers" element={<Careers />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
