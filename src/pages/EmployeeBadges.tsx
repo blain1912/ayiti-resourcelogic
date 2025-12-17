@@ -92,16 +92,24 @@ export default function EmployeeBadges() {
   const handleDownloadBadge = async (profile: Profile) => {
     setSelectedProfile(profile);
     
-    // Wait for the badge to render
+    // Wait for state update and render
     setTimeout(async () => {
-      const badge = document.getElementById('print-badge');
-      if (!badge) return;
+      const printArea = document.getElementById('download-area');
+      if (!printArea) return;
+
+      // Temporarily show the download area
+      printArea.style.display = 'block';
+      printArea.style.position = 'fixed';
+      printArea.style.left = '-9999px';
+      printArea.style.top = '0';
 
       try {
         const html2canvas = await import('html2canvas');
-        const canvas = await html2canvas.default(badge, {
+        const canvas = await html2canvas.default(printArea, {
           backgroundColor: '#ffffff',
-          scale: 2
+          scale: 2,
+          useCORS: true,
+          allowTaint: true
         });
         
         const link = document.createElement('a');
@@ -120,8 +128,11 @@ export default function EmployeeBadges() {
           description: "Impossible de télécharger le badge",
           variant: "destructive",
         });
+      } finally {
+        // Hide the download area again
+        printArea.style.display = 'none';
       }
-    }, 100);
+    }, 200);
   };
 
   const handlePrintAll = () => {
@@ -259,6 +270,18 @@ export default function EmployeeBadges() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Zone de téléchargement (invisible mais rendue) */}
+      {selectedProfile && (
+        <div id="download-area" style={{ display: 'none' }}>
+          <EmployeeBadge 
+            profile={selectedProfile} 
+            organization={organization}
+            positionName={selectedProfile.positions?.name}
+            hideActions={true}
+          />
+        </div>
+      )}
 
       {/* Zone d'impression cachée */}
       <div className="hidden print:block">
