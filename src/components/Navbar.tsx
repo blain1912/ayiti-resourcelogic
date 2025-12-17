@@ -74,7 +74,18 @@ export default function Navbar() {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
             <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+              {organization?.logo_url ? (
+                <img 
+                  src={organization.logo_url} 
+                  alt={organization.name || "Logo"}
+                  className="h-8 w-8 rounded-lg object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+              ) : null}
+              <div className={`h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center ${organization?.logo_url ? 'hidden' : ''}`}>
                 <Building2 className="h-5 w-5 text-primary-foreground" />
               </div>
               <div className="hidden md:flex flex-col">

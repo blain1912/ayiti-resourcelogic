@@ -15,6 +15,33 @@ const Index = () => {
 
   const checkAuthAndRedirect = async () => {
     try {
+      // Check if we're on a custom domain first
+      let currentDomain = window.location.hostname;
+      currentDomain = currentDomain.replace(/^www\./, '');
+      
+      const isPreviewDomain = currentDomain.includes('lovable.app') || 
+                              currentDomain.includes('localhost') ||
+                              currentDomain.includes('127.0.0.1');
+      
+      // If on custom domain and not authenticated, redirect to auth page
+      if (!isPreviewDomain) {
+        const { data: orgByDomain } = await supabase
+          .from("organizations")
+          .select("id")
+          .eq("custom_domain", currentDomain)
+          .eq("approval_status", "approved")
+          .maybeSingle();
+        
+        if (orgByDomain) {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) {
+            // Not authenticated on custom domain, redirect to auth
+            navigate("/auth");
+            return;
+          }
+        }
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       
       if (user) {
