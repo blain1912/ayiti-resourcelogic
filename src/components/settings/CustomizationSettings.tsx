@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Palette, Upload } from "lucide-react";
+import { Palette } from "lucide-react";
+import { LogoUpload } from "@/components/ui/logo-upload";
 import type { Database } from "@/integrations/supabase/types";
 
 type Organization = Database["public"]["Tables"]["organizations"]["Row"];
@@ -69,30 +70,11 @@ export const CustomizationSettings = ({ organization, onUpdate }: CustomizationS
         {/* Logo */}
         <div className="space-y-2">
           <Label>Logo de l'organisation</Label>
-          <div className="flex gap-4 items-start">
-            <div className="flex-1">
-              <Input
-                placeholder="https://example.com/logo.png"
-                value={logoUrl}
-                onChange={(e) => setLogoUrl(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                URL de votre logo (format PNG ou JPG recommandé)
-              </p>
-            </div>
-            {logoUrl && (
-              <div className="w-20 h-20 border rounded-lg overflow-hidden bg-muted flex items-center justify-center">
-                <img 
-                  src={logoUrl} 
-                  alt="Logo preview" 
-                  className="max-w-full max-h-full object-contain"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              </div>
-            )}
-          </div>
+          <LogoUpload 
+            value={logoUrl} 
+            onChange={setLogoUrl} 
+            organizationId={organization.id}
+          />
         </div>
 
         {/* Colors */}
