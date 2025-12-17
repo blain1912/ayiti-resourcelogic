@@ -35,7 +35,6 @@ import {
 import { Plus, Trash2, ArrowLeft } from "lucide-react";
 import { useSalaryScale } from "@/hooks/useSalaryScale";
 import { useLanguage } from "@/contexts/LanguageContext";
-import Navbar from "@/components/Navbar";
 
 export default function SalaryScaleTemplate() {
   const { t } = useLanguage();
@@ -117,7 +116,6 @@ export default function SalaryScaleTemplate() {
   if (loading || salaryLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
         <div className="container mx-auto py-8 px-4">
           <p>Chargement...</p>
         </div>
@@ -131,7 +129,6 @@ export default function SalaryScaleTemplate() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
       <main className="container mx-auto py-8 px-4">
         <Button
           variant="ghost"
