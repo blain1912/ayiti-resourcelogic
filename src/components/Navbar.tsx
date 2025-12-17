@@ -146,14 +146,6 @@ export default function Navbar() {
                 </Button>
               </Link>
 
-              {/* Offres internes - Accessible à tous les employés */}
-              <Link to="/internal-jobs">
-                <Button variant="ghost" size="sm" className="gap-2">
-                  <Briefcase className="h-4 w-4" />
-                  Offres internes
-                </Button>
-              </Link>
-
               {/* RH Menu - Fonctions RH uniquement */}
               {isRH && (
                 <DropdownMenu>
@@ -211,6 +203,12 @@ export default function Navbar() {
                       <Link to="/recruitment" className="flex items-center cursor-pointer">
                         <Briefcase className="h-4 w-4 mr-2" />
                         Recrutement
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/internal-jobs" className="flex items-center cursor-pointer">
+                        <Briefcase className="h-4 w-4 mr-2" />
+                        Offres internes
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
@@ -418,12 +416,6 @@ export default function Navbar() {
                   Pointer ma présence
                 </Button>
               </Link>
-              <Link to="/internal-jobs" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
-                  <Briefcase className="h-4 w-4" />
-                  Offres internes
-                </Button>
-              </Link>
             </div>
 
             {/* RH Section */}
@@ -478,6 +470,12 @@ export default function Navbar() {
                   <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                     <Briefcase className="h-4 w-4" />
                     Recrutement
+                  </Button>
+                </Link>
+                <Link to="/internal-jobs" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <Briefcase className="h-4 w-4" />
+                    Offres internes
                   </Button>
                 </Link>
                 <Link to="/careers" onClick={() => setMobileMenuOpen(false)}>
