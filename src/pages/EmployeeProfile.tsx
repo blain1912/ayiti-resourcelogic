@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { EmployeeForm } from "@/components/employees/EmployeeForm";
 import { EmployeeBadge } from "@/components/employees/EmployeeBadge";
+import { EmployeeDocuments } from "@/components/employees/EmployeeDocuments";
 import { toast } from "@/hooks/use-toast";
-import { AlertCircle, CheckCircle, Clock, Download, CreditCard, Printer } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, Download, CreditCard, Printer, FileText } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useProfessorGrades } from "@/hooks/useProfessorGrades";
 import { QRCodeSVG } from "qrcode.react";
@@ -262,8 +263,12 @@ export default function EmployeeProfile() {
 
         {profile?.profile_completed && (
           <Tabs defaultValue="info" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="info">Informations</TabsTrigger>
+              <TabsTrigger value="documents">
+                <FileText className="h-4 w-4 mr-2" />
+                Documents
+              </TabsTrigger>
               <TabsTrigger value="badge">
                 <CreditCard className="h-4 w-4 mr-2" />
                 Badge
@@ -395,6 +400,15 @@ export default function EmployeeProfile() {
                   </CardContent>
                 </Card>
               </div>
+            </TabsContent>
+
+            <TabsContent value="documents">
+              <EmployeeDocuments
+                profileId={profile.id}
+                organizationId={profile.organization_id}
+                userId={profile.user_id}
+                isOwner={true}
+              />
             </TabsContent>
 
             <TabsContent value="badge">
