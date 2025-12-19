@@ -16,7 +16,7 @@ interface EmployeeDocumentsProps {
   isOwner?: boolean;
 }
 
-type DocumentType = 'cv' | 'diplome' | 'certificat' | 'piece_identite' | 'lettre_nomination' | 'autre';
+type DocumentType = 'cv' | 'diplome' | 'certificat' | 'piece_identite' | 'lettre_nomination' | 'matricule_fiscale' | 'declaration_impot' | 'autre';
 
 interface Document {
   id: string;
@@ -33,6 +33,8 @@ const documentTypeLabels: Record<DocumentType, string> = {
   certificat: "Certificat",
   piece_identite: "Pièce d'identité",
   lettre_nomination: "Lettre de nomination",
+  matricule_fiscale: "Matricule fiscale",
+  declaration_impot: "Déclaration définitive d'impôt",
   autre: "Autre"
 };
 
