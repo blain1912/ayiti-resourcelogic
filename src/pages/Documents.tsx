@@ -1,11 +1,14 @@
+import { useRef } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Upload, FileText, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "@/hooks/use-toast";
 
 export default function Documents() {
   const { t } = useLanguage();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const documents = [
     { id: 1, name: "Contrat_MJLouis_2025.pdf", category: "Contrats", date: "01/11/2025", size: "245 KB" },
@@ -16,25 +19,51 @@ export default function Documents() {
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, "default" | "secondary" | "outline"> = {
-      "Contrats": "default",
-      "Paie": "secondary",
-      "Règlements": "outline",
-      "Attestations": "default",
+      Contrats: "default",
+      Paie: "secondary",
+      Règlements: "outline",
+      Attestations: "default",
     };
     return colors[category] || "secondary";
   };
 
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    toast({
+      title: t("uploadDocument"),
+      description: `${file.name} sélectionné.`,
+    });
+
+    // reset so selecting same file again triggers onChange
+    event.currentTarget.value = "";
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
+    <main className="container mx-auto px-4 py-8">
+      <section className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">{t("documentManagement")}</h1>
-        <Button className="gap-2">
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          onChange={handleFileSelect}
+          aria-label={t("uploadDocument")}
+        />
+
+        <Button className="gap-2" onClick={handleUploadClick}>
           <Upload className="h-4 w-4" />
           {t("uploadDocument")}
         </Button>
-      </div>
+      </section>
 
-      <div className="grid gap-4">
+      <section className="grid gap-4">
         {documents.map((doc) => (
           <Card key={doc.id} className="hover:shadow-md transition-shadow">
             <CardContent className="p-6">
@@ -54,14 +83,15 @@ export default function Documents() {
                     </div>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon">
+                <Button variant="ghost" size="icon" aria-label={t("download") || "Télécharger"}>
                   <Download className="h-4 w-4" />
                 </Button>
               </div>
             </CardContent>
           </Card>
         ))}
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
+
