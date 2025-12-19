@@ -3,9 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Upload, Trash2, Download, FileText, Loader2 } from "lucide-react";
+import { Upload, Trash2, Download, FileText, Loader2, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -45,8 +46,15 @@ export function EmployeeDocuments({ profileId, organizationId, userId, isOwner =
   const [selectedType, setSelectedType] = useState<DocumentType>('cv');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Check if upload is possible
+  const canUpload = Boolean(profileId && organizationId && userId);
+
   useEffect(() => {
-    fetchDocuments();
+    if (profileId) {
+      fetchDocuments();
+    } else {
+      setLoading(false);
+    }
   }, [profileId]);
 
   const fetchDocuments = async () => {
@@ -71,9 +79,31 @@ export function EmployeeDocuments({ profileId, organizationId, userId, isOwner =
     }
   };
 
+  const handleUploadClick = () => {
+    if (!canUpload) {
+      toast({
+        title: "Téléchargement impossible",
+        description: "Vous devez être assigné à une organisation pour télécharger des documents.",
+        variant: "destructive",
+      });
+      return;
+    }
+    fileInputRef.current?.click();
+  };
+
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    // Double-check that we have all required data
+    if (!canUpload) {
+      toast({
+        title: "Erreur",
+        description: "Données manquantes pour le téléchargement",
+        variant: "destructive",
+      });
+      return;
+    }
 
     // Validate file type
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 
@@ -238,7 +268,15 @@ export function EmployeeDocuments({ profileId, organizationId, userId, isOwner =
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
-        {isOwner && (
+        {isOwner && !canUpload && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Vous devez être assigné à une organisation pour télécharger des documents.
+            </AlertDescription>
+          </Alert>
+        )}
+        {isOwner && canUpload && (
           <div className="flex flex-col sm:flex-row gap-4 p-4 bg-muted/50 rounded-lg">
             <input
               ref={fileInputRef}
@@ -261,8 +299,8 @@ export function EmployeeDocuments({ profileId, organizationId, userId, isOwner =
             </Select>
 
             <Button 
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
+              onClick={handleUploadClick}
+              disabled={uploading || !canUpload}
               className="flex-1 sm:flex-none"
             >
               {uploading ? (
