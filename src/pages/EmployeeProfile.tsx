@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +15,7 @@ import { useOrganization } from "@/hooks/useOrganization";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function EmployeeProfile() {
+  const { employeeId } = useParams<{ employeeId: string }>();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -21,48 +23,67 @@ export default function EmployeeProfile() {
   const [positions, setPositions] = useState<Array<{ id: string; name: string; salary: number }>>([]);
   const { grades: professorGrades } = useProfessorGrades(profile?.organization_id);
   const { organization } = useOrganization();
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+  }, [employeeId]);
 
+  // Ouvre automatiquement le formulaire si le profil n'est pas complété (seulement si c'est le sien)
   useEffect(() => {
-    // Ouvre automatiquement le formulaire si le profil n'est pas complété
-    if (profile && profile.approval_status === "approved" && !profile.profile_completed) {
+    if (isOwner && profile && profile.approval_status === "approved" && !profile.profile_completed) {
       setShowForm(true);
     }
-  }, [profile]);
+  }, [profile, isOwner]);
 
   const fetchProfile = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: profileData, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
+      let profileData;
 
-      if (error) throw error;
-
-      let currentProfile = profileData;
-      if (!currentProfile) {
-        const { data: inserted, error: insertError } = await supabase
+      if (employeeId) {
+        // Viewing another employee's profile (RH accessing employee)
+        const { data, error } = await supabase
           .from("profiles")
-          .insert({ user_id: user.id, email: user.email })
           .select("*")
-          .single();
-        if (insertError) throw insertError;
-        currentProfile = inserted;
+          .eq("id", employeeId)
+          .maybeSingle();
+
+        if (error) throw error;
+        profileData = data;
+        setIsOwner(data?.user_id === user.id);
+      } else {
+        // Viewing own profile
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (error) throw error;
+
+        if (!data) {
+          const { data: inserted, error: insertError } = await supabase
+            .from("profiles")
+            .insert({ user_id: user.id, email: user.email })
+            .select("*")
+            .single();
+          if (insertError) throw insertError;
+          profileData = inserted;
+        } else {
+          profileData = data;
+        }
+        setIsOwner(true);
       }
 
-      setProfile(currentProfile);
+      setProfile(profileData);
 
-      if (currentProfile?.organization_id) {
+      if (profileData?.organization_id) {
         await Promise.all([
-          fetchUnits(currentProfile.organization_id),
-          fetchPositions(currentProfile.organization_id)
+          fetchUnits(profileData.organization_id),
+          fetchPositions(profileData.organization_id)
         ]);
       }
     } catch (error: any) {
@@ -186,15 +207,20 @@ export default function EmployeeProfile() {
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Mon Profil</h1>
+          <h1 className="text-3xl font-bold">
+            {isOwner ? "Mon Profil" : `Profil de ${profile?.full_name || "l'employé"}`}
+          </h1>
           <p className="text-muted-foreground">
-            Gérez vos informations personnelles et professionnelles
+            {isOwner 
+              ? "Gérez vos informations personnelles et professionnelles"
+              : "Consultez les informations de cet employé"
+            }
           </p>
         </div>
 
-        {getStatusAlert()}
+        {isOwner && getStatusAlert()}
 
-        {profile?.approval_status === "approved" && !profile?.profile_completed && !showForm && (
+        {isOwner && profile?.approval_status === "approved" && !profile?.profile_completed && !showForm && (
           <Card>
             <CardHeader>
               <CardTitle>Complétez votre fiche d'employé</CardTitle>
@@ -210,7 +236,7 @@ export default function EmployeeProfile() {
           </Card>
         )}
 
-        {showForm && (
+        {isOwner && showForm && (
           <Card>
             <CardHeader>
               <CardTitle>Fiche d'employé</CardTitle>
@@ -261,7 +287,7 @@ export default function EmployeeProfile() {
           </Card>
         )}
 
-        {profile?.profile_completed && (
+        {(profile?.profile_completed || !isOwner) && (
           <Tabs defaultValue="info" className="space-y-4">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="info">Informations</TabsTrigger>
@@ -407,7 +433,7 @@ export default function EmployeeProfile() {
                 profileId={profile.id}
                 organizationId={profile.organization_id}
                 userId={profile.user_id}
-                isOwner={true}
+                isOwner={isOwner}
               />
             </TabsContent>
 
