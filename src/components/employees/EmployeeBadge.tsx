@@ -145,12 +145,6 @@ export function EmployeeBadge({ profile, organization, positionName, hideActions
             >
               {organization?.name || "Organisation"}
             </h3>
-            <p 
-              className="text-[10px] font-semibold uppercase tracking-wider mt-0.5"
-              style={{ color: secondaryColor }}
-            >
-              Ministère de la Culture
-            </p>
           </div>
 
           {/* Corps principal */}
