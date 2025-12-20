@@ -80,42 +80,60 @@ export function EmployeeBadge({ profile, organization, positionName, hideActions
           className="absolute inset-0 z-0"
           style={{
             background: `
-              linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 50%, ${primaryColor} 100%)
+              linear-gradient(145deg, ${primaryColor} 0%, ${secondaryColor} 40%, ${accentColor}33 70%, ${primaryColor} 100%)
             `,
           }}
         />
+        
+        {/* Logo en watermark très pâle */}
+        {organization?.logo_url && (
+          <div 
+            className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none"
+          >
+            <img 
+              src={organization.logo_url} 
+              alt=""
+              className="w-64 h-64 object-contain opacity-[0.08]"
+              crossOrigin="anonymous"
+              style={{ filter: 'grayscale(100%) brightness(1.5)' }}
+            />
+          </div>
+        )}
+        
         {/* Motif géométrique subtil */}
         <div 
-          className="absolute inset-0 z-0 opacity-10"
+          className="absolute inset-0 z-0 opacity-[0.06]"
           style={{
             backgroundImage: `
-              radial-gradient(circle at 20% 80%, white 1px, transparent 1px),
-              radial-gradient(circle at 80% 20%, white 1px, transparent 1px),
-              radial-gradient(circle at 40% 40%, white 1px, transparent 1px),
-              radial-gradient(circle at 60% 60%, white 1px, transparent 1px)
+              radial-gradient(circle at 15% 85%, white 2px, transparent 2px),
+              radial-gradient(circle at 85% 15%, white 2px, transparent 2px),
+              radial-gradient(circle at 50% 50%, white 1px, transparent 1px)
             `,
-            backgroundSize: '60px 60px',
+            backgroundSize: '80px 80px',
           }}
         />
+        
         {/* Bande décorative en haut */}
         <div 
-          className="absolute top-0 left-0 right-0 h-2 z-10"
-          style={{ backgroundColor: accentColor }}
+          className="absolute top-0 left-0 right-0 h-3 z-10"
+          style={{ 
+            background: `linear-gradient(90deg, ${accentColor}, ${accentColor}dd, ${accentColor})`
+          }}
         />
         
         <CardContent className="p-0 relative z-10 h-full flex flex-col">
           {/* Header avec logo et nom organisation */}
-          <div className="bg-white px-4 py-4 text-center shadow-md">
+          <div className="bg-white/95 backdrop-blur-sm px-4 py-3 text-center shadow-lg border-b-2" style={{ borderColor: accentColor }}>
             {organization?.logo_url ? (
               <img 
                 src={organization.logo_url} 
                 alt="Logo" 
-                className="h-14 mx-auto object-contain mb-2"
+                className="h-12 mx-auto object-contain mb-1"
                 crossOrigin="anonymous"
               />
             ) : (
               <div 
-                className="w-14 h-14 mx-auto mb-2 rounded-full flex items-center justify-center text-white font-bold text-xl"
+                className="w-12 h-12 mx-auto mb-1 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md"
                 style={{ backgroundColor: primaryColor }}
               >
                 {organization?.name?.charAt(0) || 'O'}
@@ -127,14 +145,12 @@ export function EmployeeBadge({ profile, organization, positionName, hideActions
             >
               {organization?.name || "Organisation"}
             </h3>
-            <div 
-              className="mt-2 py-1 px-3 rounded-full inline-block"
-              style={{ backgroundColor: accentColor }}
+            <p 
+              className="text-[10px] font-semibold uppercase tracking-wider mt-0.5"
+              style={{ color: secondaryColor }}
             >
-              <span className="text-[10px] font-bold text-white uppercase tracking-widest">
-                Carte d'identité
-              </span>
-            </div>
+              Ministère de la Culture
+            </p>
           </div>
 
           {/* Corps principal */}
