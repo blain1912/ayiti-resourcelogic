@@ -5,8 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Palette } from "lucide-react";
+import { Palette, CreditCard } from "lucide-react";
 import { LogoUpload } from "@/components/ui/logo-upload";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import type { Database } from "@/integrations/supabase/types";
 
 type Organization = Database["public"]["Tables"]["organizations"]["Row"];
@@ -23,6 +25,11 @@ export const CustomizationSettings = ({ organization, onUpdate }: CustomizationS
   const [primaryColor, setPrimaryColor] = useState(organization.primary_color || "#0EA5E9");
   const [secondaryColor, setSecondaryColor] = useState(organization.secondary_color || "#8B5CF6");
   const [accentColor, setAccentColor] = useState(organization.accent_color || "#F59E0B");
+  
+  // Badge customization fields
+  const [badgeHeaderText, setBadgeHeaderText] = useState((organization as any).badge_header_text || "");
+  const [badgeFooterText, setBadgeFooterText] = useState((organization as any).badge_footer_text || "En cas de perte, veuillez contacter les RH");
+  const [badgeBorderStyle, setBadgeBorderStyle] = useState((organization as any).badge_border_style || "solid");
 
   const handleSave = async () => {
     setIsUpdating(true);
@@ -34,14 +41,17 @@ export const CustomizationSettings = ({ organization, onUpdate }: CustomizationS
           primary_color: primaryColor,
           secondary_color: secondaryColor,
           accent_color: accentColor,
-        })
+          badge_header_text: badgeHeaderText || null,
+          badge_footer_text: badgeFooterText || null,
+          badge_border_style: badgeBorderStyle,
+        } as any)
         .eq("id", organization.id);
 
       if (error) throw error;
 
       toast({
         title: "Personnalisation mise à jour",
-        description: "Les couleurs et le logo ont été sauvegardés",
+        description: "Les couleurs, le logo et les paramètres du badge ont été sauvegardés",
       });
       onUpdate();
     } catch (error: any) {
@@ -142,7 +152,7 @@ export const CustomizationSettings = ({ organization, onUpdate }: CustomizationS
 
         {/* Preview */}
         <div className="border rounded-lg p-4 space-y-3">
-          <p className="text-sm font-medium">Aperçu</p>
+          <p className="text-sm font-medium">Aperçu des couleurs</p>
           <div className="flex gap-2">
             <div 
               className="px-4 py-2 rounded text-white text-sm font-medium"
@@ -161,6 +171,85 @@ export const CustomizationSettings = ({ organization, onUpdate }: CustomizationS
               style={{ backgroundColor: accentColor }}
             >
               Accent
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Badge Customization Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            <h3 className="font-semibold">Personnalisation du badge</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Personnalisez l'apparence des badges employés de votre organisation
+          </p>
+
+          <div>
+            <Label>Texte en-tête du badge</Label>
+            <Input
+              value={badgeHeaderText}
+              onChange={(e) => setBadgeHeaderText(e.target.value)}
+              placeholder="Ex: Ministère de la Culture"
+              className="mt-2"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Texte affiché sous le nom de l'organisation
+            </p>
+          </div>
+
+          <div>
+            <Label>Texte pied de page du badge</Label>
+            <Input
+              value={badgeFooterText}
+              onChange={(e) => setBadgeFooterText(e.target.value)}
+              placeholder="En cas de perte, veuillez contacter les RH"
+              className="mt-2"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Message affiché en bas du badge
+            </p>
+          </div>
+
+          <div>
+            <Label>Style de bordure</Label>
+            <Select value={badgeBorderStyle} onValueChange={setBadgeBorderStyle}>
+              <SelectTrigger className="mt-2">
+                <SelectValue placeholder="Sélectionner un style" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="solid">Solide</SelectItem>
+                <SelectItem value="rounded">Arrondi</SelectItem>
+                <SelectItem value="gold">Doré</SelectItem>
+                <SelectItem value="silver">Argenté</SelectItem>
+                <SelectItem value="gradient">Dégradé</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">
+              Style de la bordure du badge
+            </p>
+          </div>
+
+          {/* Badge Preview */}
+          <div className="border rounded-lg p-4 space-y-3">
+            <p className="text-sm font-medium">Aperçu du badge</p>
+            <div 
+              className="w-40 h-24 mx-auto rounded-lg flex flex-col items-center justify-center text-white text-xs"
+              style={{ 
+                background: `linear-gradient(145deg, ${primaryColor}, ${secondaryColor})`,
+                border: badgeBorderStyle === 'gold' ? '3px solid #D4AF37' :
+                        badgeBorderStyle === 'silver' ? '3px solid #C0C0C0' :
+                        badgeBorderStyle === 'gradient' ? '3px solid transparent' :
+                        '3px solid ' + primaryColor,
+                borderRadius: badgeBorderStyle === 'rounded' ? '1rem' : '0.5rem',
+                backgroundClip: badgeBorderStyle === 'gradient' ? 'padding-box, border-box' : undefined,
+              }}
+            >
+              <span className="font-bold">{organization?.name || "Organisation"}</span>
+              {badgeHeaderText && <span className="text-[10px] opacity-80">{badgeHeaderText}</span>}
+              <span className="text-[8px] mt-2 opacity-70">{badgeFooterText || "Pied de page"}</span>
             </div>
           </div>
         </div>

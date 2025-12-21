@@ -22,6 +22,9 @@ interface EmployeeBadgeProps {
     primary_color?: string | null;
     secondary_color?: string | null;
     accent_color?: string | null;
+    badge_header_text?: string | null;
+    badge_footer_text?: string | null;
+    badge_border_style?: string | null;
   } | null;
   positionName?: string | null;
   hideActions?: boolean;
@@ -31,6 +34,33 @@ export function EmployeeBadge({ profile, organization, positionName, hideActions
   const primaryColor = organization?.primary_color || '#1e3a5f';
   const secondaryColor = organization?.secondary_color || '#2563eb';
   const accentColor = organization?.accent_color || '#f59e0b';
+  const badgeHeaderText = organization?.badge_header_text || '';
+  const badgeFooterText = organization?.badge_footer_text || 'En cas de perte, veuillez contacter les RH';
+  const badgeBorderStyle = organization?.badge_border_style || 'solid';
+
+  // Calculate border styles based on badge_border_style
+  const getBorderStyle = () => {
+    switch (badgeBorderStyle) {
+      case 'gold':
+        return { border: '4px solid #D4AF37', borderRadius: '0.75rem' };
+      case 'silver':
+        return { border: '4px solid #C0C0C0', borderRadius: '0.75rem' };
+      case 'rounded':
+        return { border: `4px solid ${primaryColor}`, borderRadius: '1.5rem' };
+      case 'gradient':
+        return { 
+          border: '4px solid transparent',
+          borderRadius: '0.75rem',
+          backgroundImage: `linear-gradient(145deg, ${primaryColor}, ${secondaryColor}), linear-gradient(90deg, ${primaryColor}, ${accentColor}, ${secondaryColor})`,
+          backgroundOrigin: 'border-box',
+          backgroundClip: 'padding-box, border-box'
+        };
+      default: // solid
+        return { border: `4px solid ${primaryColor}`, borderRadius: '0.75rem' };
+    }
+  };
+
+  const borderStyle = getBorderStyle();
   
   const handlePrint = () => {
     window.print();
@@ -72,8 +102,11 @@ export function EmployeeBadge({ profile, organization, positionName, hideActions
 
       <Card 
         id="employee-badge" 
-        className="w-[340px] mx-auto overflow-hidden relative rounded-xl shadow-2xl"
-        style={{ aspectRatio: '2.125/3.375' }}
+        className="w-[340px] mx-auto overflow-hidden relative shadow-2xl"
+        style={{ 
+          aspectRatio: '2.125/3.375',
+          ...borderStyle
+        }}
       >
         {/* Background avec dégradé élégant */}
         <div 
@@ -145,6 +178,14 @@ export function EmployeeBadge({ profile, organization, positionName, hideActions
             >
               {organization?.name || "Organisation"}
             </h3>
+            {badgeHeaderText && (
+              <p 
+                className="text-[10px] font-semibold uppercase tracking-wider mt-0.5"
+                style={{ color: secondaryColor }}
+              >
+                {badgeHeaderText}
+              </p>
+            )}
           </div>
 
           {/* Corps principal */}
@@ -233,7 +274,7 @@ export function EmployeeBadge({ profile, organization, positionName, hideActions
             style={{ backgroundColor: 'rgba(0,0,0,0.2)' }}
           >
             <p className="text-[9px] text-white/80">
-              En cas de perte, veuillez contacter les RH
+              {badgeFooterText}
             </p>
           </div>
         </CardContent>
