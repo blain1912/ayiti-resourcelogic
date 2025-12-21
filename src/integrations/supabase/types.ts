@@ -786,6 +786,9 @@ export type Database = {
         Row: {
           accent_color: string | null
           approval_status: string
+          badge_border_style: string | null
+          badge_footer_text: string | null
+          badge_header_text: string | null
           created_at: string
           custom_domain: string | null
           id: string
@@ -804,6 +807,9 @@ export type Database = {
         Insert: {
           accent_color?: string | null
           approval_status?: string
+          badge_border_style?: string | null
+          badge_footer_text?: string | null
+          badge_header_text?: string | null
           created_at?: string
           custom_domain?: string | null
           id?: string
@@ -822,6 +828,9 @@ export type Database = {
         Update: {
           accent_color?: string | null
           approval_status?: string
+          badge_border_style?: string | null
+          badge_footer_text?: string | null
+          badge_header_text?: string | null
           created_at?: string
           custom_domain?: string | null
           id?: string
