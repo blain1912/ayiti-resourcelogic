@@ -2,6 +2,8 @@ import { QRCodeSVG } from "qrcode.react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Printer } from "lucide-react";
+import { format, addMonths } from "date-fns";
+import { fr } from "date-fns/locale";
 
 interface EmployeeBadgeProps {
   profile: {
@@ -15,6 +17,7 @@ interface EmployeeBadgeProps {
     photo_url: string | null;
     organization_id: string | null;
     position_id: string | null;
+    date_entree_fonction?: string | null;
   };
   organization?: {
     name: string;
@@ -25,6 +28,7 @@ interface EmployeeBadgeProps {
     badge_header_text?: string | null;
     badge_footer_text?: string | null;
     badge_border_style?: string | null;
+    badge_validity_months?: number | null;
   } | null;
   positionName?: string | null;
   hideActions?: boolean;
@@ -37,6 +41,17 @@ export function EmployeeBadge({ profile, organization, positionName, hideActions
   const badgeHeaderText = organization?.badge_header_text || '';
   const badgeFooterText = organization?.badge_footer_text || 'En cas de perte, veuillez contacter les RH';
   const badgeBorderStyle = organization?.badge_border_style || 'solid';
+  const badgeValidityMonths = organization?.badge_validity_months || 12;
+
+  // Calculate expiration date based on date_entree_fonction or current date
+  const calculateExpirationDate = () => {
+    const baseDate = profile.date_entree_fonction 
+      ? new Date(profile.date_entree_fonction) 
+      : new Date();
+    return addMonths(baseDate, badgeValidityMonths);
+  };
+
+  const expirationDate = calculateExpirationDate();
 
   // Calculate border styles based on badge_border_style
   const getBorderStyle = () => {
@@ -248,6 +263,17 @@ export function EmployeeBadge({ profile, organization, positionName, hideActions
                   <span className="font-mono text-xs font-bold text-white">{profile.groupe_sanguin}</span>
                 </div>
               )}
+
+              {/* Date de validité */}
+              <div 
+                className="px-3 py-1.5 rounded-lg text-center"
+                style={{ backgroundColor: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(4px)' }}
+              >
+                <span className="text-[9px] opacity-90 block text-white uppercase tracking-wide">Valide jusqu'au</span>
+                <span className="font-mono text-xs font-bold text-white">
+                  {format(expirationDate, "dd/MM/yyyy", { locale: fr })}
+                </span>
+              </div>
             </div>
 
             {/* QR Code */}

@@ -30,6 +30,7 @@ export const CustomizationSettings = ({ organization, onUpdate }: CustomizationS
   const [badgeHeaderText, setBadgeHeaderText] = useState((organization as any).badge_header_text || "");
   const [badgeFooterText, setBadgeFooterText] = useState((organization as any).badge_footer_text || "En cas de perte, veuillez contacter les RH");
   const [badgeBorderStyle, setBadgeBorderStyle] = useState((organization as any).badge_border_style || "solid");
+  const [badgeValidityMonths, setBadgeValidityMonths] = useState((organization as any).badge_validity_months || 12);
 
   const handleSave = async () => {
     setIsUpdating(true);
@@ -44,6 +45,7 @@ export const CustomizationSettings = ({ organization, onUpdate }: CustomizationS
           badge_header_text: badgeHeaderText || null,
           badge_footer_text: badgeFooterText || null,
           badge_border_style: badgeBorderStyle,
+          badge_validity_months: badgeValidityMonths,
         } as any)
         .eq("id", organization.id);
 
@@ -229,6 +231,25 @@ export const CustomizationSettings = ({ organization, onUpdate }: CustomizationS
             </Select>
             <p className="text-xs text-muted-foreground mt-1">
               Style de la bordure du badge
+            </p>
+          </div>
+
+          <div>
+            <Label>Durée de validité du badge</Label>
+            <Select value={String(badgeValidityMonths)} onValueChange={(v) => setBadgeValidityMonths(Number(v))}>
+              <SelectTrigger className="mt-2">
+                <SelectValue placeholder="Sélectionner une durée" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="6">6 mois</SelectItem>
+                <SelectItem value="12">1 an</SelectItem>
+                <SelectItem value="24">2 ans</SelectItem>
+                <SelectItem value="36">3 ans</SelectItem>
+                <SelectItem value="60">5 ans</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">
+              La date de validité sera calculée à partir de la date d'entrée en fonction de l'employé
             </p>
           </div>
 

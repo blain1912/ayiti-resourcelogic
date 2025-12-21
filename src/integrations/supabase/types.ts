@@ -789,6 +789,7 @@ export type Database = {
           badge_border_style: string | null
           badge_footer_text: string | null
           badge_header_text: string | null
+          badge_validity_months: number | null
           created_at: string
           custom_domain: string | null
           id: string
@@ -810,6 +811,7 @@ export type Database = {
           badge_border_style?: string | null
           badge_footer_text?: string | null
           badge_header_text?: string | null
+          badge_validity_months?: number | null
           created_at?: string
           custom_domain?: string | null
           id?: string
@@ -831,6 +833,7 @@ export type Database = {
           badge_border_style?: string | null
           badge_footer_text?: string | null
           badge_header_text?: string | null
+          badge_validity_months?: number | null
           created_at?: string
           custom_domain?: string | null
           id?: string
