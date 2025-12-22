@@ -68,6 +68,44 @@ export type Database = {
           },
         ]
       }
+      badge_templates: {
+        Row: {
+          created_at: string
+          id: string
+          is_default: boolean | null
+          name: string
+          organization_id: string
+          template_data: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          name: string
+          organization_id: string
+          template_data?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          organization_id?: string
+          template_data?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "badge_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_categories: {
         Row: {
           created_at: string
@@ -789,6 +827,7 @@ export type Database = {
           badge_border_style: string | null
           badge_footer_text: string | null
           badge_header_text: string | null
+          badge_template: string | null
           badge_validity_months: number | null
           created_at: string
           custom_domain: string | null
@@ -811,6 +850,7 @@ export type Database = {
           badge_border_style?: string | null
           badge_footer_text?: string | null
           badge_header_text?: string | null
+          badge_template?: string | null
           badge_validity_months?: number | null
           created_at?: string
           custom_domain?: string | null
@@ -833,6 +873,7 @@ export type Database = {
           badge_border_style?: string | null
           badge_footer_text?: string | null
           badge_header_text?: string | null
+          badge_template?: string | null
           badge_validity_months?: number | null
           created_at?: string
           custom_domain?: string | null
