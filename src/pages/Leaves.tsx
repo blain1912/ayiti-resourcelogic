@@ -1,70 +1,186 @@
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Calendar as CalendarIcon } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Plus, Filter, Loader2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useLeaveRequests } from "@/hooks/useLeaveRequests";
+import { LeaveRequestForm } from "@/components/leaves/LeaveRequestForm";
+import { LeaveRequestCard } from "@/components/leaves/LeaveRequestCard";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Leaves() {
   const { t } = useLanguage();
+  const [formOpen, setFormOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  const leaveRequests = [
-    { id: 1, employee: "Marie Jeanne Louis", type: "Congé annuel", start: "15/12/2025", end: "20/12/2025", status: "approved" },
-    { id: 2, employee: "Jean Baptiste Pierre", type: "Congé maladie", start: "10/12/2025", end: "12/12/2025", status: "pending" },
-    { id: 3, employee: "Sophie Duvalsaint", type: "Congé maternité", start: "01/01/2026", end: "31/03/2026", status: "approved" },
-    { id: 4, employee: "Marc Antoine Joseph", type: "Congé sans solde", start: "05/12/2025", end: "05/12/2025", status: "rejected" },
-  ];
+  const {
+    requests,
+    loading,
+    userProfile,
+    createRequest,
+    updateRequestStatus,
+    cancelRequest,
+  } = useLeaveRequests();
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'approved': return 'default';
-      case 'pending': return 'secondary';
-      case 'rejected': return 'destructive';
-      default: return 'secondary';
-    }
+  useEffect(() => {
+    checkAdminRole();
+  }, []);
+
+  const checkAdminRole = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", user.id);
+
+    const adminRoles = ["admin", "directeur_rh", "directeur_administratif", "directeur_general"];
+    const hasAdminRole = roles?.some((r) => adminRoles.includes(r.role)) || false;
+    setIsAdmin(hasAdminRole);
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'approved': return 'Approuvé';
-      case 'pending': return 'En attente';
-      case 'rejected': return 'Rejeté';
-      default: return status;
-    }
+  const filteredRequests = requests.filter((request) => {
+    if (statusFilter === "all") return true;
+    return request.status === statusFilter;
+  });
+
+  const myRequests = filteredRequests.filter(
+    (r) => r.employee_id === userProfile?.id
+  );
+  const teamRequests = filteredRequests.filter(
+    (r) => r.employee_id !== userProfile?.id
+  );
+
+  const handleApprove = async (id: string, comment?: string) => {
+    return updateRequestStatus(id, "approved", comment);
   };
+
+  const handleReject = async (id: string, comment?: string) => {
+    return updateRequestStatus(id, "rejected", comment);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-3xl font-bold">{t("leaveRequests")}</h1>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          {t("requestLeave")}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[150px]">
+              <Filter className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Filtrer" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous</SelectItem>
+              <SelectItem value="pending">En attente</SelectItem>
+              <SelectItem value="approved">Approuvés</SelectItem>
+              <SelectItem value="rejected">Rejetés</SelectItem>
+              <SelectItem value="cancelled">Annulés</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button className="gap-2" onClick={() => setFormOpen(true)}>
+            <Plus className="h-4 w-4" />
+            {t("requestLeave")}
+          </Button>
+        </div>
       </div>
 
-      <div className="grid gap-4">
-        {leaveRequests.map((leave) => (
-          <Card key={leave.id} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle className="text-lg">{leave.employee}</CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">{leave.type}</p>
-                </div>
-                <Badge variant={getStatusColor(leave.status)}>
-                  {getStatusText(leave.status)}
-                </Badge>
+      {isAdmin ? (
+        <Tabs defaultValue="team" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="team">
+              Équipe ({teamRequests.length})
+            </TabsTrigger>
+            <TabsTrigger value="mine">
+              Mes demandes ({myRequests.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="team" className="space-y-4">
+            {teamRequests.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">
+                Aucune demande de congé de l'équipe
+              </p>
+            ) : (
+              <div className="grid gap-4">
+                {teamRequests.map((request) => (
+                  <LeaveRequestCard
+                    key={request.id}
+                    request={request}
+                    isAdmin={isAdmin}
+                    currentUserId={userProfile?.id}
+                    onApprove={handleApprove}
+                    onReject={handleReject}
+                    onCancel={cancelRequest}
+                  />
+                ))}
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CalendarIcon className="h-4 w-4" />
-                <span>Du {leave.start} au {leave.end}</span>
+            )}
+          </TabsContent>
+
+          <TabsContent value="mine" className="space-y-4">
+            {myRequests.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">
+                Vous n'avez pas encore de demandes de congé
+              </p>
+            ) : (
+              <div className="grid gap-4">
+                {myRequests.map((request) => (
+                  <LeaveRequestCard
+                    key={request.id}
+                    request={request}
+                    isAdmin={false}
+                    currentUserId={userProfile?.id}
+                    onCancel={cancelRequest}
+                  />
+                ))}
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <div className="space-y-4">
+          {myRequests.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">
+              Vous n'avez pas encore de demandes de congé
+            </p>
+          ) : (
+            <div className="grid gap-4">
+              {myRequests.map((request) => (
+                <LeaveRequestCard
+                  key={request.id}
+                  request={request}
+                  isAdmin={false}
+                  currentUserId={userProfile?.id}
+                  onCancel={cancelRequest}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      <LeaveRequestForm
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        onSubmit={createRequest}
+      />
     </div>
   );
 }

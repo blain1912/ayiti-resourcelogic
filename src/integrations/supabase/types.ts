@@ -722,6 +722,76 @@ export type Database = {
           },
         ]
       }
+      leave_requests: {
+        Row: {
+          created_at: string
+          employee_id: string
+          end_date: string
+          id: string
+          leave_type: Database["public"]["Enums"]["leave_type"]
+          organization_id: string
+          reason: string | null
+          review_comment: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          start_date: string
+          status: Database["public"]["Enums"]["leave_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          end_date: string
+          id?: string
+          leave_type: Database["public"]["Enums"]["leave_type"]
+          organization_id: string
+          reason?: string | null
+          review_comment?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_date: string
+          status?: Database["public"]["Enums"]["leave_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          end_date?: string
+          id?: string
+          leave_type?: Database["public"]["Enums"]["leave_type"]
+          organization_id?: string
+          reason?: string | null
+          review_comment?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_date?: string
+          status?: Database["public"]["Enums"]["leave_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_requests_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_requests_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       manual_payments: {
         Row: {
           amount: number
@@ -1278,6 +1348,15 @@ export type Database = {
         | "mariage"
       greeting_card_status: "pending" | "approved" | "rejected" | "sent"
       job_posting_status: "draft" | "open" | "closed" | "filled"
+      leave_status: "pending" | "approved" | "rejected" | "cancelled"
+      leave_type:
+        | "conge_annuel"
+        | "conge_maladie"
+        | "conge_maternite"
+        | "conge_paternite"
+        | "conge_sans_solde"
+        | "conge_exceptionnel"
+        | "conge_etudes"
       organization_type:
         | "ministere"
         | "direction_generale"
@@ -1470,6 +1549,16 @@ export const Constants = {
       ],
       greeting_card_status: ["pending", "approved", "rejected", "sent"],
       job_posting_status: ["draft", "open", "closed", "filled"],
+      leave_status: ["pending", "approved", "rejected", "cancelled"],
+      leave_type: [
+        "conge_annuel",
+        "conge_maladie",
+        "conge_maternite",
+        "conge_paternite",
+        "conge_sans_solde",
+        "conge_exceptionnel",
+        "conge_etudes",
+      ],
       organization_type: [
         "ministere",
         "direction_generale",
