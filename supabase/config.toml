@@ -14,3 +14,6 @@ verify_jwt = false
 
 [functions.send-greeting-card]
 verify_jwt = false
+
+[functions.send-leave-notification]
+verify_jwt = false

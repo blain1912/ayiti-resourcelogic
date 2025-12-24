@@ -22,6 +22,7 @@ export interface LeaveRequest {
     prenom: string | null;
     nom: string | null;
     photo_url: string | null;
+    email: string | null;
   };
   reviewer?: {
     id: string;
@@ -31,10 +32,45 @@ export interface LeaveRequest {
   };
 }
 
+interface UserProfile {
+  id: string;
+  organization_id: string;
+  full_name: string | null;
+  prenom: string | null;
+  nom: string | null;
+  email: string | null;
+}
+
+const sendLeaveNotification = async (data: {
+  type: "submitted" | "approved" | "rejected";
+  employeeName: string;
+  employeeEmail: string;
+  leaveType: string;
+  startDate: string;
+  endDate: string;
+  reason?: string;
+  reviewComment?: string;
+  reviewerName?: string;
+}) => {
+  try {
+    const response = await supabase.functions.invoke("send-leave-notification", {
+      body: data,
+    });
+    
+    if (response.error) {
+      console.error("Error sending notification:", response.error);
+    } else {
+      console.log("Notification sent successfully");
+    }
+  } catch (error) {
+    console.error("Error invoking notification function:", error);
+  }
+};
+
 export function useLeaveRequests() {
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userProfile, setUserProfile] = useState<{ id: string; organization_id: string } | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -53,7 +89,7 @@ export function useLeaveRequests() {
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("id, organization_id")
+      .select("id, organization_id, full_name, prenom, nom, email")
       .eq("user_id", user.id)
       .maybeSingle();
 
@@ -70,7 +106,7 @@ export function useLeaveRequests() {
       .from("leave_requests")
       .select(`
         *,
-        employee:profiles!leave_requests_employee_id_fkey(id, full_name, prenom, nom, photo_url),
+        employee:profiles!leave_requests_employee_id_fkey(id, full_name, prenom, nom, photo_url, email),
         reviewer:profiles!leave_requests_reviewed_by_fkey(id, full_name, prenom, nom)
       `)
       .eq("organization_id", userProfile.organization_id)
@@ -87,6 +123,22 @@ export function useLeaveRequests() {
       setRequests(data || []);
     }
     setLoading(false);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("fr-FR", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  const getEmployeeName = (profile: UserProfile | null) => {
+    if (!profile) return "";
+    if (profile.prenom && profile.nom) {
+      return `${profile.prenom} ${profile.nom}`;
+    }
+    return profile.full_name || "";
   };
 
   const createRequest = async (data: {
@@ -120,6 +172,19 @@ export function useLeaveRequests() {
       title: "Succès",
       description: "Demande de congé soumise avec succès",
     });
+
+    // Send email notification
+    if (userProfile.email) {
+      sendLeaveNotification({
+        type: "submitted",
+        employeeName: getEmployeeName(userProfile),
+        employeeEmail: userProfile.email,
+        leaveType: data.leave_type,
+        startDate: formatDate(data.start_date),
+        endDate: formatDate(data.end_date),
+        reason: data.reason,
+      });
+    }
     
     fetchRequests();
     return { error: null };
@@ -131,6 +196,10 @@ export function useLeaveRequests() {
     comment?: string
   ) => {
     if (!userProfile) return { error: "Profile not found" };
+
+    // Find the request to get employee info
+    const request = requests.find(r => r.id === requestId);
+    if (!request) return { error: "Request not found" };
 
     const { error } = await supabase
       .from("leave_requests")
@@ -156,6 +225,24 @@ export function useLeaveRequests() {
       title: "Succès",
       description: `Demande ${status === "approved" ? "approuvée" : "rejetée"}`,
     });
+
+    // Send email notification to employee
+    if (request.employee?.email) {
+      const employeeName = request.employee.prenom && request.employee.nom
+        ? `${request.employee.prenom} ${request.employee.nom}`
+        : request.employee.full_name || "";
+      
+      sendLeaveNotification({
+        type: status,
+        employeeName,
+        employeeEmail: request.employee.email,
+        leaveType: request.leave_type,
+        startDate: formatDate(request.start_date),
+        endDate: formatDate(request.end_date),
+        reviewComment: comment,
+        reviewerName: getEmployeeName(userProfile),
+      });
+    }
     
     fetchRequests();
     return { error: null };
