@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building2, Users, Calendar, DollarSign, Plus, FileSpreadsheet } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PlatformOwnership } from "@/components/settings/PlatformOwnership";
 import type { Database } from "@/integrations/supabase/types";
 
 type SubscriptionTier = Database["public"]["Enums"]["subscription_tier"];
@@ -239,203 +241,216 @@ const SuperAdmin = () => {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Organisations</CardTitle>
-              <Building2 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{organizations.length}</div>
-            </CardContent>
-          </Card>
+        <Tabs defaultValue="organizations" className="w-full">
+          <TabsList>
+            <TabsTrigger value="organizations">Organisations</TabsTrigger>
+            <TabsTrigger value="platform">Paramètres Plateforme</TabsTrigger>
+          </TabsList>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Abonnements Pro</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {organizations.filter(o => o.subscription_tier === 'pro').length}
-              </div>
-            </CardContent>
-          </Card>
+          <TabsContent value="organizations" className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Total Organisations</CardTitle>
+                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{organizations.length}</div>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Abonnements Enterprise</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {organizations.filter(o => o.subscription_tier === 'enterprise').length}
-              </div>
-            </CardContent>
-          </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Abonnements Pro</CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {organizations.filter(o => o.subscription_tier === 'pro').length}
+                  </div>
+                </CardContent>
+              </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Gratuits</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {organizations.filter(o => o.subscription_tier === 'free').length}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Abonnements Enterprise</CardTitle>
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {organizations.filter(o => o.subscription_tier === 'enterprise').length}
+                  </div>
+                </CardContent>
+              </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Toutes les organisations</CardTitle>
-            <CardDescription>
-              Vue d'ensemble de tous vos clients abonnés
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nom</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Plan</TableHead>
-                  <TableHead>Utilisateurs</TableHead>
-                  <TableHead>Expiration</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {organizations.map((org) => (
-                  <TableRow key={org.id}>
-                    <TableCell className="font-medium">{org.name}</TableCell>
-                    <TableCell>{org.type}</TableCell>
-                    <TableCell>{getTierBadge(org.subscription_tier)}</TableCell>
-                    <TableCell>{org.profiles?.[0]?.count || 0} / {org.max_users}</TableCell>
-                    <TableCell>
-                      {org.subscription_expires_at 
-                        ? new Date(org.subscription_expires_at).toLocaleDateString('fr-FR')
-                        : '-'}
-                    </TableCell>
-                    <TableCell>
-                      <Dialog open={paymentDialogOpen && selectedOrg?.id === org.id} onOpenChange={(open) => {
-                        setPaymentDialogOpen(open);
-                        if (!open) setSelectedOrg(null);
-                      }}>
-                        <DialogTrigger asChild>
-                          <Button 
-                            size="sm" 
-                            onClick={() => setSelectedOrg(org)}
-                            variant="outline"
-                          >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Paiement
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
-                          <DialogHeader>
-                            <DialogTitle>Enregistrer un paiement - {org.name}</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <Label>Montant (HTG)</Label>
-                                <Input
-                                  type="number"
-                                  value={paymentForm.amount}
-                                  onChange={(e) => setPaymentForm({...paymentForm, amount: e.target.value})}
-                                  placeholder="10000"
-                                />
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Gratuits</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {organizations.filter(o => o.subscription_tier === 'free').length}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Toutes les organisations</CardTitle>
+                <CardDescription>
+                  Vue d'ensemble de tous vos clients abonnés
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nom</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Plan</TableHead>
+                      <TableHead>Utilisateurs</TableHead>
+                      <TableHead>Expiration</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {organizations.map((org) => (
+                      <TableRow key={org.id}>
+                        <TableCell className="font-medium">{org.name}</TableCell>
+                        <TableCell>{org.type}</TableCell>
+                        <TableCell>{getTierBadge(org.subscription_tier)}</TableCell>
+                        <TableCell>{org.profiles?.[0]?.count || 0} / {org.max_users}</TableCell>
+                        <TableCell>
+                          {org.subscription_expires_at 
+                            ? new Date(org.subscription_expires_at).toLocaleDateString('fr-FR')
+                            : '-'}
+                        </TableCell>
+                        <TableCell>
+                          <Dialog open={paymentDialogOpen && selectedOrg?.id === org.id} onOpenChange={(open) => {
+                            setPaymentDialogOpen(open);
+                            if (!open) setSelectedOrg(null);
+                          }}>
+                            <DialogTrigger asChild>
+                              <Button 
+                                size="sm" 
+                                onClick={() => setSelectedOrg(org)}
+                                variant="outline"
+                              >
+                                <Plus className="h-4 w-4 mr-1" />
+                                Paiement
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-2xl">
+                              <DialogHeader>
+                                <DialogTitle>Enregistrer un paiement - {org.name}</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <Label>Montant (HTG)</Label>
+                                    <Input
+                                      type="number"
+                                      value={paymentForm.amount}
+                                      onChange={(e) => setPaymentForm({...paymentForm, amount: e.target.value})}
+                                      placeholder="10000"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label>Méthode de paiement</Label>
+                                    <Select 
+                                      value={paymentForm.payment_method}
+                                      onValueChange={(value) => setPaymentForm({...paymentForm, payment_method: value})}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="cheque">Chèque</SelectItem>
+                                        <SelectItem value="espece">Espèce</SelectItem>
+                                        <SelectItem value="virement">Virement</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <Label>Date de paiement</Label>
+                                    <Input
+                                      type="date"
+                                      value={paymentForm.payment_date}
+                                      onChange={(e) => setPaymentForm({...paymentForm, payment_date: e.target.value})}
+                                    />
+                                  </div>
+                                  <div>
+                                    <Label>Numéro de chèque (optionnel)</Label>
+                                    <Input
+                                      value={paymentForm.cheque_number}
+                                      onChange={(e) => setPaymentForm({...paymentForm, cheque_number: e.target.value})}
+                                      placeholder="CHQ-12345"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div>
+                                    <Label>Plan d'abonnement</Label>
+                                    <Select 
+                                      value={paymentForm.subscription_tier}
+                                      onValueChange={(value) => setPaymentForm({...paymentForm, subscription_tier: value as SubscriptionTier})}
+                                    >
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="free">Free</SelectItem>
+                                        <SelectItem value="pro">Pro</SelectItem>
+                                        <SelectItem value="enterprise">Enterprise</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div>
+                                    <Label>Durée (mois)</Label>
+                                    <Input
+                                      type="number"
+                                      min="1"
+                                      value={paymentForm.months_paid}
+                                      onChange={(e) => setPaymentForm({...paymentForm, months_paid: parseInt(e.target.value)})}
+                                    />
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <Label>Notes (optionnel)</Label>
+                                  <Textarea
+                                    value={paymentForm.notes}
+                                    onChange={(e) => setPaymentForm({...paymentForm, notes: e.target.value})}
+                                    placeholder="Informations supplémentaires..."
+                                    rows={3}
+                                  />
+                                </div>
+
+                                <Button onClick={handlePaymentSubmit} className="w-full">
+                                  Enregistrer le paiement
+                                </Button>
                               </div>
-                              <div>
-                                <Label>Méthode de paiement</Label>
-                                <Select 
-                                  value={paymentForm.payment_method}
-                                  onValueChange={(value) => setPaymentForm({...paymentForm, payment_method: value})}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="cheque">Chèque</SelectItem>
-                                    <SelectItem value="espece">Espèce</SelectItem>
-                                    <SelectItem value="virement">Virement</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
+                            </DialogContent>
+                          </Dialog>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <Label>Date de paiement</Label>
-                                <Input
-                                  type="date"
-                                  value={paymentForm.payment_date}
-                                  onChange={(e) => setPaymentForm({...paymentForm, payment_date: e.target.value})}
-                                />
-                              </div>
-                              <div>
-                                <Label>Numéro de chèque (optionnel)</Label>
-                                <Input
-                                  value={paymentForm.cheque_number}
-                                  onChange={(e) => setPaymentForm({...paymentForm, cheque_number: e.target.value})}
-                                  placeholder="CHQ-12345"
-                                />
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <Label>Plan d'abonnement</Label>
-                                <Select 
-                                  value={paymentForm.subscription_tier}
-                                  onValueChange={(value) => setPaymentForm({...paymentForm, subscription_tier: value as SubscriptionTier})}
-                                >
-                                  <SelectTrigger>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="free">Free</SelectItem>
-                                    <SelectItem value="pro">Pro</SelectItem>
-                                    <SelectItem value="enterprise">Enterprise</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div>
-                                <Label>Durée (mois)</Label>
-                                <Input
-                                  type="number"
-                                  min="1"
-                                  value={paymentForm.months_paid}
-                                  onChange={(e) => setPaymentForm({...paymentForm, months_paid: parseInt(e.target.value)})}
-                                />
-                              </div>
-                            </div>
-
-                            <div>
-                              <Label>Notes (optionnel)</Label>
-                              <Textarea
-                                value={paymentForm.notes}
-                                onChange={(e) => setPaymentForm({...paymentForm, notes: e.target.value})}
-                                placeholder="Informations supplémentaires..."
-                                rows={3}
-                              />
-                            </div>
-
-                            <Button onClick={handlePaymentSubmit} className="w-full">
-                              Enregistrer le paiement
-                            </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+          <TabsContent value="platform" className="space-y-6">
+            <PlatformOwnership />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
