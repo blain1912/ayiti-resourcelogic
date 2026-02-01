@@ -13,6 +13,7 @@ import {
 import { useLeaveRequests } from "@/hooks/useLeaveRequests";
 import { LeaveRequestForm } from "@/components/leaves/LeaveRequestForm";
 import { LeaveRequestCard } from "@/components/leaves/LeaveRequestCard";
+import { LeaveBalanceOverview } from "@/components/leaves/LeaveBalanceOverview";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function Leaves() {
@@ -43,7 +44,7 @@ export default function Leaves() {
       .select("role")
       .eq("user_id", user.id);
 
-    const adminRoles = ["admin", "directeur_rh", "directeur_administratif", "directeur_general"];
+    const adminRoles = ["admin", "directeur_rh", "directeur_administratif", "directeur_general", "approbateur_conges"];
     const hasAdminRole = roles?.some((r) => adminRoles.includes(r.role)) || false;
     setIsAdmin(hasAdminRole);
   };
@@ -77,9 +78,12 @@ export default function Leaves() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <h1 className="text-3xl font-bold">{t("leaveRequests")}</h1>
+    <div className="container mx-auto px-4 py-8 space-y-6">
+      {/* Leave Balance Overview */}
+      <LeaveBalanceOverview />
+
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h2 className="text-2xl font-bold">{t("leaveRequests")}</h2>
         <div className="flex items-center gap-2">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[150px]">
