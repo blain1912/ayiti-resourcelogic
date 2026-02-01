@@ -1313,6 +1313,7 @@ export type Database = {
         | "directeur_administratif"
         | "directeur_rh"
         | "employe"
+        | "approbateur_conges"
       application_status:
         | "pending"
         | "reviewing"
@@ -1510,6 +1511,7 @@ export const Constants = {
         "directeur_administratif",
         "directeur_rh",
         "employe",
+        "approbateur_conges",
       ],
       application_status: [
         "pending",
