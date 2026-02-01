@@ -35,6 +35,7 @@ const RoleManagement = () => {
     directeur_general: "Directeur Général",
     directeur_administratif: "Directeur Administratif",
     directeur_rh: "Directeur RH",
+    approbateur_conges: "Approbateur Congés",
     employe: "Employé",
     user: "Utilisateur",
   };
@@ -44,6 +45,7 @@ const RoleManagement = () => {
     directeur_general: "bg-purple-500",
     directeur_administratif: "bg-blue-500",
     directeur_rh: "bg-green-500",
+    approbateur_conges: "bg-amber-500",
     employe: "bg-gray-500",
     user: "bg-slate-500",
   };
@@ -258,6 +260,7 @@ const RoleManagement = () => {
                         <SelectContent className="bg-background z-50">
                           <SelectItem value="user">Utilisateur</SelectItem>
                           <SelectItem value="employe">Employé</SelectItem>
+                          <SelectItem value="approbateur_conges">Approbateur Congés</SelectItem>
                           <SelectItem value="directeur_rh">Directeur RH</SelectItem>
                           <SelectItem value="directeur_administratif">Directeur Administratif</SelectItem>
                           <SelectItem value="directeur_general">Directeur Général</SelectItem>
@@ -298,6 +301,10 @@ const RoleManagement = () => {
             <div className="flex items-center gap-3">
               <Badge className={`${roleColors.directeur_rh} text-white`}>Directeur RH</Badge>
               <span className="text-sm">Gestion RH, présence, approbations, badges employés</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge className={`${roleColors.approbateur_conges} text-white`}>Approbateur Congés</Badge>
+              <span className="text-sm">Peut approuver ou rejeter les demandes de congés uniquement</span>
             </div>
             <div className="flex items-center gap-3">
               <Badge className={`${roleColors.employe} text-white`}>Employé</Badge>

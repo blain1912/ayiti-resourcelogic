@@ -1289,6 +1289,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_approve_leaves: {
+        Args: { _organization_id: string; _user_id: string }
+        Returns: boolean
+      }
       check_unit_limit: { Args: { _organization_id: string }; Returns: boolean }
       check_user_limit: { Args: { _organization_id: string }; Returns: boolean }
       has_admin_role: {
