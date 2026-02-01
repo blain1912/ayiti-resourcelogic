@@ -1,7 +1,25 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2, Users, Target, Award, Mail, Phone, MapPin } from "lucide-react";
+import { Building2, Users, Target, Award, Mail, Phone, MapPin, Loader2 } from "lucide-react";
+import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 
 export default function About() {
+  const { ownershipInfo, isLoading } = usePlatformSettings();
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const companyName = ownershipInfo?.company_name || "Ayiti ResourceLogic";
+  const email = ownershipInfo?.email || "contact@ayiti-resourcelogic.com";
+  const phone = ownershipInfo?.phone || "+509 XXXX-XXXX";
+  const address = ownershipInfo?.address || "Port-au-Prince, Haïti";
+  const description = ownershipInfo?.description || 
+    "Une solution innovante de gestion des ressources humaines développée spécialement pour les organisations haïtiennes.";
+
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
       <div className="text-center space-y-4">
@@ -21,10 +39,7 @@ export default function About() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            <strong>Ayiti ResourceLogic</strong> est une solution innovante de gestion des ressources humaines 
-            développée spécialement pour les organisations haïtiennes. Notre plateforme offre des outils modernes 
-            et adaptés aux besoins locaux pour optimiser la gestion du personnel, la présence, les congés, 
-            et bien plus encore.
+            <strong>{companyName}</strong> {description}
           </p>
           <p>
             Fondée avec la vision de moderniser la gestion RH en Haïti, notre entreprise s'engage à fournir 
@@ -120,7 +135,7 @@ export default function About() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Email</p>
-                <p className="font-medium">contact@ayiti-resourcelogic.com</p>
+                <p className="font-medium">{email}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -129,7 +144,7 @@ export default function About() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Téléphone</p>
-                <p className="font-medium">+509 XXXX-XXXX</p>
+                <p className="font-medium">{phone}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -138,7 +153,7 @@ export default function About() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Adresse</p>
-                <p className="font-medium">Port-au-Prince, Haïti</p>
+                <p className="font-medium">{address}</p>
               </div>
             </div>
           </div>
@@ -147,7 +162,7 @@ export default function About() {
 
       {/* Copyright Notice */}
       <div className="text-center text-sm text-muted-foreground border-t pt-6">
-        <p>© {new Date().getFullYear()} Ayiti ResourceLogic. Tous droits réservés.</p>
+        <p>© {new Date().getFullYear()} {companyName}. Tous droits réservés.</p>
         <p className="mt-1">
           Cette application et son code source sont la propriété exclusive de leurs auteurs. 
           Toute reproduction, distribution ou utilisation non autorisée est strictement interdite.

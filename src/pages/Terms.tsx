@@ -1,8 +1,21 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { FileText, Shield, Scale, AlertTriangle, Copyright, Users } from "lucide-react";
+import { FileText, Shield, Scale, AlertTriangle, Copyright, Users, Loader2 } from "lucide-react";
+import { usePlatformSettings } from "@/hooks/usePlatformSettings";
 
 export default function Terms() {
+  const { ownershipInfo, isLoading } = usePlatformSettings();
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const companyName = ownershipInfo?.company_name || "Ayiti ResourceLogic";
+  const email = ownershipInfo?.email || "contact@ayiti-resourcelogic.com";
+
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
       <div className="text-center space-y-4">
@@ -26,13 +39,13 @@ export default function Terms() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p>
-              En accédant à et en utilisant Ayiti ResourceLogic (ci-après "la Plateforme"), vous acceptez 
+              En accédant à et en utilisant {companyName} (ci-après "la Plateforme"), vous acceptez 
               d'être lié par ces conditions d'utilisation. Si vous n'acceptez pas ces conditions, 
               veuillez ne pas utiliser la Plateforme.
             </p>
             <p>
               Ces conditions constituent un accord juridique entre vous (l'utilisateur) et 
-              Ayiti ResourceLogic (le propriétaire de la Plateforme).
+              {companyName} (le propriétaire de la Plateforme).
             </p>
           </CardContent>
         </Card>
@@ -53,7 +66,7 @@ export default function Terms() {
             </p>
             <p>
               <strong>Propriété :</strong> Tous les droits de propriété intellectuelle relatifs à la 
-              Plateforme sont la propriété exclusive de Ayiti ResourceLogic et de ses concédants de licence.
+              Plateforme sont la propriété exclusive de {companyName} et de ses concédants de licence.
             </p>
             <p>
               <strong>Restrictions :</strong> Vous ne pouvez pas :
@@ -78,12 +91,12 @@ export default function Terms() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p>
-              Sous réserve du respect de ces conditions, Ayiti ResourceLogic vous accorde une licence 
+              Sous réserve du respect de ces conditions, {companyName} vous accorde une licence 
               limitée, non exclusive, non transférable et révocable pour utiliser la Plateforme 
               uniquement à des fins de gestion des ressources humaines au sein de votre organisation.
             </p>
             <p>
-              Cette licence ne vous confère aucun droit de propriété sur la Plateforme. Ayiti ResourceLogic 
+              Cette licence ne vous confère aucun droit de propriété sur la Plateforme. {companyName} 
               se réserve tous les droits non expressément accordés dans ces conditions.
             </p>
           </CardContent>
@@ -147,11 +160,11 @@ export default function Terms() {
           <CardContent className="space-y-3">
             <p>
               La Plateforme est fournie "en l'état" sans garantie d'aucune sorte, expresse ou implicite. 
-              Ayiti ResourceLogic ne garantit pas que la Plateforme sera ininterrompue, sécurisée ou 
+              {companyName} ne garantit pas que la Plateforme sera ininterrompue, sécurisée ou 
               exempte d'erreurs.
             </p>
             <p>
-              En aucun cas, Ayiti ResourceLogic ne sera responsable des dommages indirects, accessoires, 
+              En aucun cas, {companyName} ne sera responsable des dommages indirects, accessoires, 
               spéciaux ou consécutifs résultant de l'utilisation ou de l'impossibilité d'utiliser la 
               Plateforme.
             </p>
@@ -165,7 +178,7 @@ export default function Terms() {
           </CardHeader>
           <CardContent className="space-y-3">
             <p>
-              Ayiti ResourceLogic peut suspendre ou résilier votre accès à la Plateforme à tout moment, 
+              {companyName} peut suspendre ou résilier votre accès à la Plateforme à tout moment, 
               avec ou sans motif, avec ou sans préavis. En cas de résiliation, vous devez cesser 
               immédiatement d'utiliser la Plateforme.
             </p>
@@ -199,14 +212,14 @@ export default function Terms() {
             <p>
               Pour toute question concernant ces conditions d'utilisation, veuillez nous contacter à :
             </p>
-            <p className="mt-2 font-medium">contact@ayiti-resourcelogic.com</p>
+            <p className="mt-2 font-medium">{email}</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Footer */}
       <div className="text-center text-sm text-muted-foreground border-t pt-6">
-        <p>© {new Date().getFullYear()} Ayiti ResourceLogic. Tous droits réservés.</p>
+        <p>© {new Date().getFullYear()} {companyName}. Tous droits réservés.</p>
       </div>
     </div>
   );
