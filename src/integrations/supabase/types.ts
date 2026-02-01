@@ -722,6 +722,57 @@ export type Database = {
           },
         ]
       }
+      leave_balances: {
+        Row: {
+          created_at: string
+          employee_id: string
+          id: string
+          leave_type: Database["public"]["Enums"]["leave_type"]
+          organization_id: string
+          total_days: number
+          updated_at: string
+          used_days: number
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          employee_id: string
+          id?: string
+          leave_type: Database["public"]["Enums"]["leave_type"]
+          organization_id: string
+          total_days?: number
+          updated_at?: string
+          used_days?: number
+          year?: number
+        }
+        Update: {
+          created_at?: string
+          employee_id?: string
+          id?: string
+          leave_type?: Database["public"]["Enums"]["leave_type"]
+          organization_id?: string
+          total_days?: number
+          updated_at?: string
+          used_days?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_balances_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_balances_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leave_requests: {
         Row: {
           created_at: string
@@ -1289,6 +1340,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_leave_days: {
+        Args: { end_date: string; start_date: string }
+        Returns: number
+      }
       can_approve_leaves: {
         Args: { _organization_id: string; _user_id: string }
         Returns: boolean
