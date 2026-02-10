@@ -13,6 +13,7 @@ import { useOrganization } from "@/hooks/useOrganization";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import BirthdayWidget from "@/components/dashboard/BirthdayWidget";
+import IncompleteProfilesWidget from "@/components/dashboard/IncompleteProfilesWidget";
 
 export default function Dashboard() {
   const { t } = useLanguage();
@@ -195,8 +196,9 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Birthday Widget */}
-        <div className="mb-8">
+        {/* Incomplete Profiles & Birthday Widgets */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <IncompleteProfilesWidget organizationId={organization?.id || null} />
           <BirthdayWidget organizationId={organization?.id || null} />
         </div>
       </div>
