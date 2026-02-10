@@ -73,7 +73,7 @@ export default function PendingApprovals() {
       const { data, error } = await supabase
         .from("profiles")
         .select("id, user_id, full_name, email, approval_status, created_at")
-        .is("organization_id", null)
+        .eq("organization_id", organization!.id)
         .eq("approval_status", "pending")
         .order("created_at", { ascending: false });
 
