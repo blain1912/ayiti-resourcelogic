@@ -24,6 +24,7 @@ export default function EmployeeProfile() {
   const { grades: professorGrades } = useProfessorGrades(profile?.organization_id);
   const { organization } = useOrganization();
   const [isOwner, setIsOwner] = useState(false);
+  const [isHR, setIsHR] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -54,6 +55,15 @@ export default function EmployeeProfile() {
         if (error) throw error;
         profileData = data;
         setIsOwner(data?.user_id === user.id);
+
+        // Check if current user is HR for this employee's organization
+        if (data?.organization_id) {
+          const { data: hasAdmin } = await supabase.rpc('has_admin_role', {
+            _user_id: user.id,
+            _organization_id: data.organization_id
+          });
+          setIsHR(!!hasAdmin);
+        }
       } else {
         // Viewing own profile
         const { data, error } = await supabase
@@ -131,7 +141,7 @@ export default function EmployeeProfile() {
           full_name: `${formData.prenom} ${formData.nom}`,
           profile_completed: true,
         })
-        .eq("user_id", profile.user_id);
+        .eq("id", profile.id);
 
       if (error) throw error;
 
@@ -141,7 +151,12 @@ export default function EmployeeProfile() {
       });
 
       setTimeout(() => {
-        window.location.href = "/";
+        if (isOwner) {
+          window.location.href = "/";
+        } else {
+          fetchProfile(); // Refresh profile data for HR
+          setShowForm(false);
+        }
       }, 1500);
     } catch (error: any) {
       console.error("Error updating profile:", error);
@@ -220,23 +235,26 @@ export default function EmployeeProfile() {
 
         {isOwner && getStatusAlert()}
 
-        {isOwner && profile?.approval_status === "approved" && !profile?.profile_completed && !showForm && (
+        {(isOwner || isHR) && profile?.approval_status === "approved" && !profile?.profile_completed && !showForm && (
           <Card>
             <CardHeader>
-              <CardTitle>Complétez votre fiche d'employé</CardTitle>
+              <CardTitle>{isOwner ? "Complétez votre fiche d'employé" : "Compléter la fiche de cet employé"}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground mb-4">
-                Votre inscription a été approuvée. Veuillez compléter votre fiche d'employé avec toutes vos informations.
+                {isOwner 
+                  ? "Votre inscription a été approuvée. Veuillez compléter votre fiche d'employé avec toutes vos informations."
+                  : "La fiche de cet employé n'est pas encore complétée. Vous pouvez la remplir."
+                }
               </p>
               <Button onClick={() => setShowForm(true)}>
-                Remplir ma fiche
+                {isOwner ? "Remplir ma fiche" : "Remplir la fiche"}
               </Button>
             </CardContent>
           </Card>
         )}
 
-        {isOwner && showForm && (
+        {(isOwner || isHR) && showForm && (
           <Card>
             <CardHeader>
               <CardTitle>Fiche d'employé</CardTitle>
@@ -364,9 +382,11 @@ export default function EmployeeProfile() {
                           <p className="text-lg">{profile.tel_1 || "Non renseigné"}</p>
                         </div>
                       </div>
-                      <Button variant="outline" onClick={() => setShowForm(true)}>
-                        Modifier mes informations
-                      </Button>
+                      {(isOwner || isHR) && (
+                        <Button variant="outline" onClick={() => setShowForm(true)}>
+                          {isOwner ? "Modifier mes informations" : "Modifier les informations"}
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
