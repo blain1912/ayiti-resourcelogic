@@ -106,6 +106,70 @@ export type Database = {
           },
         ]
       }
+      correspondence_approvals: {
+        Row: {
+          approver_id: string | null
+          comment: string | null
+          created_at: string
+          decided_at: string | null
+          id: string
+          organization_id: string
+          record_id: string
+          status: string
+          step_label: string
+          step_order: number
+          step_role: string
+        }
+        Insert: {
+          approver_id?: string | null
+          comment?: string | null
+          created_at?: string
+          decided_at?: string | null
+          id?: string
+          organization_id: string
+          record_id: string
+          status?: string
+          step_label: string
+          step_order: number
+          step_role: string
+        }
+        Update: {
+          approver_id?: string | null
+          comment?: string | null
+          created_at?: string
+          decided_at?: string | null
+          id?: string
+          organization_id?: string
+          record_id?: string
+          status?: string
+          step_label?: string
+          step_order?: number
+          step_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correspondence_approvals_approver_id_fkey"
+            columns: ["approver_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_approvals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_approvals_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "correspondence_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       correspondence_records: {
         Row: {
           body: string
@@ -114,6 +178,7 @@ export type Database = {
           created_at: string
           document_type: string | null
           id: string
+          is_locked: boolean
           organization_id: string
           recipient_id: string
           sent_at: string
@@ -136,6 +201,7 @@ export type Database = {
           created_at?: string
           document_type?: string | null
           id?: string
+          is_locked?: boolean
           organization_id: string
           recipient_id: string
           sent_at?: string
@@ -158,6 +224,7 @@ export type Database = {
           created_at?: string
           document_type?: string | null
           id?: string
+          is_locked?: boolean
           organization_id?: string
           recipient_id?: string
           sent_at?: string
