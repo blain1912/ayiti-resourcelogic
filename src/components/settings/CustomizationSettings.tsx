@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Palette, CreditCard } from "lucide-react";
+import { Palette, CreditCard, FileText } from "lucide-react";
 import { LogoUpload } from "@/components/ui/logo-upload";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
@@ -32,6 +32,12 @@ export const CustomizationSettings = ({ organization, onUpdate }: CustomizationS
   const [badgeBorderStyle, setBadgeBorderStyle] = useState((organization as any).badge_border_style || "solid");
   const [badgeValidityMonths, setBadgeValidityMonths] = useState((organization as any).badge_validity_months || 12);
 
+  // Document customization fields
+  const [documentHeaderText, setDocumentHeaderText] = useState((organization as any).document_header_text || "");
+  const [documentCity, setDocumentCity] = useState((organization as any).document_city || "Port-au-Prince");
+  const [defaultSignerName, setDefaultSignerName] = useState((organization as any).default_signer_name || "");
+  const [defaultSignerTitle, setDefaultSignerTitle] = useState((organization as any).default_signer_title || "");
+
   const handleSave = async () => {
     setIsUpdating(true);
     try {
@@ -46,6 +52,10 @@ export const CustomizationSettings = ({ organization, onUpdate }: CustomizationS
           badge_footer_text: badgeFooterText || null,
           badge_border_style: badgeBorderStyle,
           badge_validity_months: badgeValidityMonths,
+          document_header_text: documentHeaderText || null,
+          document_city: documentCity || "Port-au-Prince",
+          default_signer_name: defaultSignerName || null,
+          default_signer_title: defaultSignerTitle || null,
         } as any)
         .eq("id", organization.id);
 
@@ -174,6 +184,71 @@ export const CustomizationSettings = ({ organization, onUpdate }: CustomizationS
             >
               Accent
             </div>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Document Customization Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <FileText className="h-5 w-5" />
+            <h3 className="font-semibold">Personnalisation des documents officiels</h3>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Personnalisez les informations par défaut pour vos correspondances et documents administratifs
+          </p>
+
+          <div>
+            <Label>En-tête des documents</Label>
+            <Input
+              value={documentHeaderText}
+              onChange={(e) => setDocumentHeaderText(e.target.value)}
+              placeholder="Ex: La Direction Générale de l'Ecole Nationale des Arts (ENARTS)"
+              className="mt-2"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Texte d'introduction utilisé dans les attestations et certificats. Disponible via la variable {"{{en_tete}}"}
+            </p>
+          </div>
+
+          <div>
+            <Label>Ville par défaut</Label>
+            <Input
+              value={documentCity}
+              onChange={(e) => setDocumentCity(e.target.value)}
+              placeholder="Port-au-Prince"
+              className="mt-2"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Ville affichée dans la mention "Fait à..." des documents. Disponible via la variable {"{{ville}}"}
+            </p>
+          </div>
+
+          <div>
+            <Label>Nom du signataire par défaut</Label>
+            <Input
+              value={defaultSignerName}
+              onChange={(e) => setDefaultSignerName(e.target.value)}
+              placeholder="Ex: Yves Penel"
+              className="mt-2"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Pré-rempli lors de la génération de courriers. Disponible via {"{{signataire}}"}
+            </p>
+          </div>
+
+          <div>
+            <Label>Titre du signataire par défaut</Label>
+            <Input
+              value={defaultSignerTitle}
+              onChange={(e) => setDefaultSignerTitle(e.target.value)}
+              placeholder="Ex: Directeur Général"
+              className="mt-2"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Pré-rempli lors de la génération de courriers. Disponible via {"{{titre_signataire}}"}
+            </p>
           </div>
         </div>
 

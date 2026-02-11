@@ -67,7 +67,10 @@ const VARIABLE_SUGGESTIONS = [
   { key: "{{matricule}}", label: "Matricule" },
   { key: "{{poste}}", label: "Poste" }, { key: "{{service}}", label: "Service/Unité" },
   { key: "{{date}}", label: "Date du jour" }, { key: "{{date_embauche}}", label: "Date d'embauche" },
-  { key: "{{organisation}}", label: "Nom de l'institution" }, { key: "{{email}}", label: "Email" },
+  { key: "{{organisation}}", label: "Nom de l'institution" }, { key: "{{en_tete}}", label: "En-tête document" },
+  { key: "{{ville}}", label: "Ville" }, { key: "{{signataire}}", label: "Nom du signataire" },
+  { key: "{{titre_signataire}}", label: "Titre du signataire" },
+  { key: "{{email}}", label: "Email" },
   { key: "{{telephone}}", label: "Téléphone" }, { key: "{{nif}}", label: "NIF" },
   { key: "{{cin}}", label: "CIN" },
   { key: "{{salaire_mensuel}}", label: "Salaire mensuel" }, { key: "{{salaire_annuel}}", label: "Salaire annuel" },
@@ -158,6 +161,10 @@ export default function Correspondence() {
   const [loading, setLoading] = useState(true);
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [organizationName, setOrganizationName] = useState("");
+  const [orgDocumentHeader, setOrgDocumentHeader] = useState("");
+  const [orgCity, setOrgCity] = useState("Port-au-Prince");
+  const [orgSignerName, setOrgSignerName] = useState("");
+  const [orgSignerTitle, setOrgSignerTitle] = useState("");
   const [profileId, setProfileId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
@@ -217,7 +224,7 @@ export default function Correspondence() {
       setProfileId(profile.id);
 
       const [orgRes, tplRes, recRes, empRes, unitRes, posRes, rolesRes] = await Promise.all([
-        supabase.from("organizations").select("name").eq("id", profile.organization_id).maybeSingle(),
+        supabase.from("organizations").select("name, document_header_text, document_city, default_signer_name, default_signer_title").eq("id", profile.organization_id).maybeSingle(),
         (supabase.from("correspondence_templates") as any).select("*").eq("organization_id", profile.organization_id).order("created_at", { ascending: false }),
         (supabase.from("correspondence_records") as any).select("id, title, category, subject, body, sent_at, status, signature_name, signature_title, signed_at, document_type, category_label, recipient_id, is_locked, reference_number").eq("organization_id", profile.organization_id).order("sent_at", { ascending: false }),
         supabase.from("profiles").select("id, full_name, prenom, nom, email, tel_1, nif, cin, date_entree_fonction, unit_id, position_id, sexe").eq("organization_id", profile.organization_id).eq("approval_status", "approved"),
@@ -227,6 +234,10 @@ export default function Correspondence() {
       ]);
 
       setOrganizationName(orgRes.data?.name || "");
+      setOrgDocumentHeader((orgRes.data as any)?.document_header_text || "");
+      setOrgCity((orgRes.data as any)?.document_city || "Port-au-Prince");
+      setOrgSignerName((orgRes.data as any)?.default_signer_name || "");
+      setOrgSignerTitle((orgRes.data as any)?.default_signer_title || "");
       setTemplates((tplRes.data as any[]) || []);
       setEmployees(empRes.data || []);
       setUnits(unitRes.data || []);
@@ -368,6 +379,10 @@ export default function Correspondence() {
       .replace(/\{\{poste\}\}/g, posName)
       .replace(/\{\{service\}\}/g, unitName)
       .replace(/\{\{organisation\}\}/g, organizationName)
+      .replace(/\{\{en_tete\}\}/g, orgDocumentHeader || organizationName)
+      .replace(/\{\{ville\}\}/g, orgCity)
+      .replace(/\{\{signataire\}\}/g, orgSignerName)
+      .replace(/\{\{titre_signataire\}\}/g, orgSignerTitle)
       .replace(/\{\{salaire_mensuel\}\}/g, salaireMensuel ? salaireMensuel.toLocaleString("fr-FR") + " HTG" : "N/A")
       .replace(/\{\{salaire_annuel\}\}/g, salaireAnnuel ? salaireAnnuel.toLocaleString("fr-FR") + " HTG" : "N/A");
   };
@@ -377,7 +392,7 @@ export default function Correspondence() {
     setWizardStep(tpl ? 2 : 1);
     setSelectedTemplate(tpl || null);
     setSelectedRecipient(""); setSendBody(tpl?.body || ""); setSendSubject(tpl?.subject || "");
-    setSignatureName(""); setSignatureTitle(""); setEnableValidation(true);
+    setSignatureName(orgSignerName); setSignatureTitle(orgSignerTitle); setEnableValidation(true);
     setWizardOpen(true);
   };
 

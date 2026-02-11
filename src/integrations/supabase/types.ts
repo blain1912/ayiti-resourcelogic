@@ -1299,6 +1299,10 @@ export type Database = {
           badge_validity_months: number | null
           created_at: string
           custom_domain: string | null
+          default_signer_name: string | null
+          default_signer_title: string | null
+          document_city: string | null
+          document_header_text: string | null
           id: string
           logo_url: string | null
           max_units: number
@@ -1322,6 +1326,10 @@ export type Database = {
           badge_validity_months?: number | null
           created_at?: string
           custom_domain?: string | null
+          default_signer_name?: string | null
+          default_signer_title?: string | null
+          document_city?: string | null
+          document_header_text?: string | null
           id?: string
           logo_url?: string | null
           max_units?: number
@@ -1345,6 +1353,10 @@ export type Database = {
           badge_validity_months?: number | null
           created_at?: string
           custom_domain?: string | null
+          default_signer_name?: string | null
+          default_signer_title?: string | null
+          document_city?: string | null
+          document_header_text?: string | null
           id?: string
           logo_url?: string | null
           max_units?: number
