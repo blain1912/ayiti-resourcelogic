@@ -1304,6 +1304,7 @@ export type Database = {
           document_city: string | null
           document_header_text: string | null
           id: string
+          letterhead_url: string | null
           logo_url: string | null
           max_units: number
           max_users: number
@@ -1331,6 +1332,7 @@ export type Database = {
           document_city?: string | null
           document_header_text?: string | null
           id?: string
+          letterhead_url?: string | null
           logo_url?: string | null
           max_units?: number
           max_users?: number
@@ -1358,6 +1360,7 @@ export type Database = {
           document_city?: string | null
           document_header_text?: string | null
           id?: string
+          letterhead_url?: string | null
           logo_url?: string | null
           max_units?: number
           max_users?: number

@@ -37,6 +37,7 @@ export const CustomizationSettings = ({ organization, onUpdate }: CustomizationS
   const [documentCity, setDocumentCity] = useState((organization as any).document_city || "Port-au-Prince");
   const [defaultSignerName, setDefaultSignerName] = useState((organization as any).default_signer_name || "");
   const [defaultSignerTitle, setDefaultSignerTitle] = useState((organization as any).default_signer_title || "");
+  const [letterheadUrl, setLetterheadUrl] = useState((organization as any).letterhead_url || "");
 
   const handleSave = async () => {
     setIsUpdating(true);
@@ -56,6 +57,7 @@ export const CustomizationSettings = ({ organization, onUpdate }: CustomizationS
           document_city: documentCity || "Port-au-Prince",
           default_signer_name: defaultSignerName || null,
           default_signer_title: defaultSignerTitle || null,
+          letterhead_url: letterheadUrl || null,
         } as any)
         .eq("id", organization.id);
 
@@ -198,6 +200,26 @@ export const CustomizationSettings = ({ organization, onUpdate }: CustomizationS
           <p className="text-sm text-muted-foreground">
             Personnalisez les informations par défaut pour vos correspondances et documents administratifs
           </p>
+
+          <div>
+            <Label>Papier à en-tête (fond de document)</Label>
+            <p className="text-xs text-muted-foreground mt-1 mb-2">
+              Téléchargez une image de votre papier à en-tête institutionnel. Elle sera utilisée comme fond pour vos documents officiels (optionnel).
+            </p>
+            <LogoUpload 
+              value={letterheadUrl} 
+              onChange={setLetterheadUrl} 
+              organizationId={organization.id}
+            />
+            {letterheadUrl && (
+              <div className="mt-3 border rounded-lg p-2">
+                <p className="text-xs font-medium mb-1">Aperçu du papier à en-tête</p>
+                <div className="w-full h-32 rounded overflow-hidden bg-muted">
+                  <img src={letterheadUrl} alt="Papier à en-tête" className="w-full h-full object-contain" />
+                </div>
+              </div>
+            )}
+          </div>
 
           <div>
             <Label>En-tête des documents</Label>
