@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useOrganizationTheme } from "@/contexts/OrganizationThemeContext";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield, Menu, ScanLine, Activity, FileBarChart, Briefcase, Cake, Gift, Heart, BookOpen } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield, Menu, ScanLine, Activity, FileBarChart, Briefcase, Cake, Gift, Heart, BookOpen, Clock } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -232,6 +232,12 @@ export default function Navbar() {
                       <Link to="/greeting-cards" className="flex items-center cursor-pointer">
                         <Gift className="h-4 w-4 mr-2" />
                         Cartes de vœux
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/special-schedules" className="flex items-center cursor-pointer">
+                        <Clock className="h-4 w-4 mr-2" />
+                        Horaires spéciaux
                       </Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -517,6 +523,12 @@ export default function Navbar() {
                   <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                     <Cake className="h-4 w-4" />
                     Anniversaires
+                  </Button>
+                </Link>
+                <Link to="/special-schedules" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <Clock className="h-4 w-4" />
+                    Horaires spéciaux
                   </Button>
                 </Link>
               </div>

@@ -42,6 +42,7 @@ import Careers from "./pages/Careers";
 import Birthdays from "./pages/Birthdays";
 import GreetingCards from "./pages/GreetingCards";
 import EmployeeCardRequest from "./pages/EmployeeCardRequest";
+import SpecialSchedules from "./pages/SpecialSchedules";
 import About from "./pages/About";
 import Terms from "./pages/Terms";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -99,6 +100,7 @@ const App = () => (
             <Route path="/birthdays" element={<ProtectedRoute><Birthdays /></ProtectedRoute>} />
             <Route path="/greeting-cards" element={<ProtectedRoute><GreetingCards /></ProtectedRoute>} />
             <Route path="/card-request" element={<ProtectedRoute><EmployeeCardRequest /></ProtectedRoute>} />
+            <Route path="/special-schedules" element={<ProtectedRoute><SpecialSchedules /></ProtectedRoute>} />
             <Route path="/user-manual" element={<UserManual />} />
             <Route path="/careers" element={<Careers />} />
             <Route path="/about" element={<About />} />

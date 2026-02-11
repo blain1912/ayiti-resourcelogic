@@ -1289,6 +1289,114 @@ export type Database = {
           },
         ]
       }
+      special_schedule_assignments: {
+        Row: {
+          created_at: string
+          end_time: string
+          id: string
+          notes: string | null
+          organization_id: string
+          profile_id: string
+          schedule_id: string
+          start_time: string
+          updated_at: string
+          work_days: number[]
+        }
+        Insert: {
+          created_at?: string
+          end_time?: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          profile_id: string
+          schedule_id: string
+          start_time?: string
+          updated_at?: string
+          work_days?: number[]
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          profile_id?: string
+          schedule_id?: string
+          start_time?: string
+          updated_at?: string
+          work_days?: number[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "special_schedule_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "special_schedule_assignments_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "special_schedule_assignments_schedule_id_fkey"
+            columns: ["schedule_id"]
+            isOneToOne: false
+            referencedRelation: "special_schedules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      special_schedules: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          end_date: string | null
+          id: string
+          is_active: boolean
+          name: string
+          organization_id: string
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          organization_id: string
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          organization_id?: string
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "special_schedules_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_history: {
         Row: {
           changed_at: string
