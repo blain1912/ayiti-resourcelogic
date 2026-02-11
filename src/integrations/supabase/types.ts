@@ -110,44 +110,68 @@ export type Database = {
         Row: {
           body: string
           category: Database["public"]["Enums"]["correspondence_category"]
+          category_label: string | null
           created_at: string
+          document_type: string | null
           id: string
           organization_id: string
           recipient_id: string
           sent_at: string
           sent_by: string
+          signature_name: string | null
+          signature_title: string | null
+          signed_at: string | null
+          status: string
           subject: string | null
           template_id: string | null
           title: string
           updated_at: string
+          validated_at: string | null
+          validated_by: string | null
         }
         Insert: {
           body: string
           category: Database["public"]["Enums"]["correspondence_category"]
+          category_label?: string | null
           created_at?: string
+          document_type?: string | null
           id?: string
           organization_id: string
           recipient_id: string
           sent_at?: string
           sent_by: string
+          signature_name?: string | null
+          signature_title?: string | null
+          signed_at?: string | null
+          status?: string
           subject?: string | null
           template_id?: string | null
           title: string
           updated_at?: string
+          validated_at?: string | null
+          validated_by?: string | null
         }
         Update: {
           body?: string
           category?: Database["public"]["Enums"]["correspondence_category"]
+          category_label?: string | null
           created_at?: string
+          document_type?: string | null
           id?: string
           organization_id?: string
           recipient_id?: string
           sent_at?: string
           sent_by?: string
+          signature_name?: string | null
+          signature_title?: string | null
+          signed_at?: string | null
+          status?: string
           subject?: string | null
           template_id?: string | null
           title?: string
           updated_at?: string
+          validated_at?: string | null
+          validated_by?: string | null
         }
         Relationships: [
           {
