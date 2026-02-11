@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { Upload, Trash2, Download, FileText, Loader2, AlertCircle } from "lucide-react";
+import { Upload, Trash2, Download, FileText, Loader2, AlertCircle, Printer } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -205,6 +205,30 @@ export function EmployeeDocuments({ profileId, organizationId, userId, isOwner =
     }
   };
 
+  const handlePrint = async (doc: Document) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('employee-documents')
+        .createSignedUrl(doc.file_url, 60);
+
+      if (error) throw error;
+
+      const printWindow = window.open(data.signedUrl, '_blank');
+      if (printWindow) {
+        printWindow.addEventListener('load', () => {
+          printWindow.print();
+        });
+      }
+    } catch (error: any) {
+      console.error('Error printing document:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'imprimer le document",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleDelete = async (doc: Document) => {
     if (!confirm('Êtes-vous sûr de vouloir supprimer ce document ?')) return;
 
@@ -364,6 +388,14 @@ export function EmployeeDocuments({ profileId, organizationId, userId, isOwner =
                           title="Télécharger"
                         >
                           <Download className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handlePrint(doc)}
+                          title="Imprimer"
+                        >
+                          <Printer className="h-4 w-4" />
                         </Button>
                         {isOwner && (
                           <Button
