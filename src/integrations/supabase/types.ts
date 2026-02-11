@@ -1309,6 +1309,10 @@ export type Database = {
           max_units: number
           max_users: number
           name: string
+          pdf_font_size: number | null
+          pdf_line_height: number | null
+          pdf_margin: number | null
+          pdf_vertical_align: string | null
           primary_color: string | null
           secondary_color: string | null
           subscription_expires_at: string | null
@@ -1337,6 +1341,10 @@ export type Database = {
           max_units?: number
           max_users?: number
           name: string
+          pdf_font_size?: number | null
+          pdf_line_height?: number | null
+          pdf_margin?: number | null
+          pdf_vertical_align?: string | null
           primary_color?: string | null
           secondary_color?: string | null
           subscription_expires_at?: string | null
@@ -1365,6 +1373,10 @@ export type Database = {
           max_units?: number
           max_users?: number
           name?: string
+          pdf_font_size?: number | null
+          pdf_line_height?: number | null
+          pdf_margin?: number | null
+          pdf_vertical_align?: string | null
           primary_color?: string | null
           secondary_color?: string | null
           subscription_expires_at?: string | null
