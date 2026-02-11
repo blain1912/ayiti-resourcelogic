@@ -5,19 +5,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, FileText, Send, Edit, Eye, Search, Mail, Archive, Filter, Check, ChevronRight, ChevronLeft, User, PenTool, Download, CheckCircle2, FileDown } from "lucide-react";
+import {
+  Plus, Trash2, FileText, Send, Edit, Eye, Search, Mail, Archive, Filter,
+  Check, ChevronRight, ChevronLeft, User, PenTool, Download, CheckCircle2,
+  FileDown, Clock, XCircle, ShieldCheck, MessageSquare, Lock
+} from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 
-// Categories
+// ──── Constants ────
 const CATEGORIES = [
   { value: "recrutement", label: "Recrutement" },
   { value: "discipline", label: "Discipline" },
@@ -43,42 +47,27 @@ const DOCUMENT_TYPES = [
 ];
 
 const CATEGORY_COLORS: Record<string, string> = {
-  recrutement: "bg-blue-100 text-blue-800",
-  discipline: "bg-red-100 text-red-800",
-  carriere: "bg-purple-100 text-purple-800",
-  administration: "bg-slate-100 text-slate-800",
-  conges: "bg-green-100 text-green-800",
-  remuneration: "bg-amber-100 text-amber-800",
-  formation: "bg-cyan-100 text-cyan-800",
-  evaluation: "bg-orange-100 text-orange-800",
-  depart: "bg-rose-100 text-rose-800",
-  autre: "bg-gray-100 text-gray-800",
+  recrutement: "bg-blue-100 text-blue-800", discipline: "bg-red-100 text-red-800",
+  carriere: "bg-purple-100 text-purple-800", administration: "bg-slate-100 text-slate-800",
+  conges: "bg-green-100 text-green-800", remuneration: "bg-amber-100 text-amber-800",
+  formation: "bg-cyan-100 text-cyan-800", evaluation: "bg-orange-100 text-orange-800",
+  depart: "bg-rose-100 text-rose-800", autre: "bg-gray-100 text-gray-800",
 };
 
 const TYPE_COLORS: Record<string, string> = {
-  lettre: "bg-indigo-100 text-indigo-800",
-  decision: "bg-red-100 text-red-800",
-  note: "bg-yellow-100 text-yellow-800",
-  circulaire: "bg-teal-100 text-teal-800",
-  attestation: "bg-emerald-100 text-emerald-800",
-  certificat: "bg-green-100 text-green-800",
-  convocation: "bg-orange-100 text-orange-800",
-  rapport: "bg-blue-100 text-blue-800",
+  lettre: "bg-indigo-100 text-indigo-800", decision: "bg-red-100 text-red-800",
+  note: "bg-yellow-100 text-yellow-800", circulaire: "bg-teal-100 text-teal-800",
+  attestation: "bg-emerald-100 text-emerald-800", certificat: "bg-green-100 text-green-800",
+  convocation: "bg-orange-100 text-orange-800", rapport: "bg-blue-100 text-blue-800",
 };
 
 const VARIABLE_SUGGESTIONS = [
-  { key: "{{nom}}", label: "Nom complet" },
-  { key: "{{prenom}}", label: "Prénom" },
-  { key: "{{nom_famille}}", label: "Nom de famille" },
-  { key: "{{matricule}}", label: "Matricule" },
-  { key: "{{poste}}", label: "Poste" },
-  { key: "{{service}}", label: "Service/Unité" },
-  { key: "{{date}}", label: "Date du jour" },
-  { key: "{{date_embauche}}", label: "Date d'embauche" },
-  { key: "{{organisation}}", label: "Nom de l'institution" },
-  { key: "{{email}}", label: "Email" },
-  { key: "{{telephone}}", label: "Téléphone" },
-  { key: "{{nif}}", label: "NIF" },
+  { key: "{{nom}}", label: "Nom complet" }, { key: "{{prenom}}", label: "Prénom" },
+  { key: "{{nom_famille}}", label: "Nom de famille" }, { key: "{{matricule}}", label: "Matricule" },
+  { key: "{{poste}}", label: "Poste" }, { key: "{{service}}", label: "Service/Unité" },
+  { key: "{{date}}", label: "Date du jour" }, { key: "{{date_embauche}}", label: "Date d'embauche" },
+  { key: "{{organisation}}", label: "Nom de l'institution" }, { key: "{{email}}", label: "Email" },
+  { key: "{{telephone}}", label: "Téléphone" }, { key: "{{nif}}", label: "NIF" },
   { key: "{{cin}}", label: "CIN" },
 ];
 
@@ -90,51 +79,70 @@ const GENERATION_STEPS = [
   { id: 5, label: "Aperçu & PDF", icon: FileDown },
 ];
 
+const APPROVAL_WORKFLOW_STEPS = [
+  { role: "directeur_rh", label: "Direction RH", order: 1 },
+  { role: "directeur_administratif", label: "Direction Administrative", order: 2 },
+  { role: "directeur_general", label: "Directeur Général", order: 3 },
+];
+
 const STATUS_LABELS: Record<string, string> = {
-  draft: "Brouillon",
-  generated: "Généré",
-  validated: "Validé",
-  signed: "Signé",
-  archived: "Archivé",
+  draft: "Brouillon", pending_validation: "En validation", generated: "Généré",
+  validated: "Validé", rejected: "Rejeté", signed: "Signé", archived: "Archivé",
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  draft: "bg-gray-100 text-gray-800",
-  generated: "bg-blue-100 text-blue-800",
-  validated: "bg-green-100 text-green-800",
-  signed: "bg-emerald-100 text-emerald-800",
+  draft: "bg-gray-100 text-gray-800", pending_validation: "bg-amber-100 text-amber-800",
+  generated: "bg-blue-100 text-blue-800", validated: "bg-green-100 text-green-800",
+  rejected: "bg-red-100 text-red-800", signed: "bg-emerald-100 text-emerald-800",
   archived: "bg-slate-100 text-slate-800",
 };
 
+const APPROVAL_STATUS_ICONS: Record<string, any> = {
+  pending: Clock, approved: CheckCircle2, rejected: XCircle,
+};
+
+// ──── Types ────
 interface Template {
-  id: string;
-  title: string;
-  category: string;
-  category_label: string | null;
-  document_type: string;
-  subject: string | null;
-  body: string;
-  variables: string[];
-  is_active: boolean;
-  created_at: string;
+  id: string; title: string; category: string; category_label: string | null;
+  document_type: string; subject: string | null; body: string; variables: string[];
+  is_active: boolean; created_at: string;
+}
+
+interface Approval {
+  id: string; record_id: string; step_order: number; step_role: string;
+  step_label: string; approver_id: string | null; status: string;
+  comment: string | null; decided_at: string | null; created_at: string;
+  approver?: { full_name: string | null; prenom: string | null; nom: string | null } | null;
 }
 
 interface CorrespondenceRecord {
-  id: string;
-  title: string;
-  category: string;
-  subject: string | null;
-  body: string;
-  sent_at: string;
-  status: string;
-  signature_name: string | null;
-  signature_title: string | null;
-  signed_at: string | null;
-  document_type: string | null;
-  category_label: string | null;
+  id: string; title: string; category: string; subject: string | null; body: string;
+  sent_at: string; status: string; signature_name: string | null; signature_title: string | null;
+  signed_at: string | null; document_type: string | null; category_label: string | null;
+  is_locked: boolean;
   recipient: { id: string; full_name: string | null; prenom: string | null; nom: string | null };
+  approvals?: Approval[];
 }
 
+// ──── Role check helper ────
+type UserRole = string;
+
+function canCreateTemplates(roles: UserRole[]) {
+  return roles.some(r => ["admin", "directeur_general", "directeur_administratif", "directeur_rh"].includes(r));
+}
+function canGenerateCorrespondence(roles: UserRole[]) {
+  return roles.some(r => ["admin", "directeur_general", "directeur_administratif", "directeur_rh"].includes(r));
+}
+function canValidate(roles: UserRole[], stepRole: string) {
+  const hierarchy: Record<string, string[]> = {
+    directeur_rh: ["admin", "directeur_general", "directeur_rh"],
+    directeur_administratif: ["admin", "directeur_general", "directeur_administratif"],
+    directeur_general: ["admin", "directeur_general"],
+  };
+  return roles.some(r => (hierarchy[stepRole] || []).includes(r));
+}
+
+// ════════════════════════════════════════
 export default function Correspondence() {
   const { toast } = useToast();
   const [templates, setTemplates] = useState<Template[]>([]);
@@ -144,6 +152,7 @@ export default function Correspondence() {
   const [organizationName, setOrganizationName] = useState("");
   const [profileId, setProfileId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userRoles, setUserRoles] = useState<UserRole[]>([]);
 
   // Template form
   const [templateOpen, setTemplateOpen] = useState(false);
@@ -164,14 +173,16 @@ export default function Correspondence() {
   const [sendSubject, setSendSubject] = useState("");
   const [signatureName, setSignatureName] = useState("");
   const [signatureTitle, setSignatureTitle] = useState("");
+  const [enableValidation, setEnableValidation] = useState(true);
   const [employees, setEmployees] = useState<any[]>([]);
   const [units, setUnits] = useState<any[]>([]);
   const [positions, setPositions] = useState<any[]>([]);
   const printRef = useRef<HTMLDivElement>(null);
 
-  // Preview
+  // Preview & approval
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewRecord, setPreviewRecord] = useState<CorrespondenceRecord | null>(null);
+  const [approvalComment, setApprovalComment] = useState("");
 
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
@@ -181,30 +192,26 @@ export default function Correspondence() {
 
   useEffect(() => { loadData(); }, []);
 
+  // ──── Data loading ────
   const loadData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       setUserId(user.id);
 
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("id, organization_id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
+      const { data: profile } = await supabase.from("profiles").select("id, organization_id").eq("user_id", user.id).maybeSingle();
       if (!profile?.organization_id) return;
       setOrganizationId(profile.organization_id);
       setProfileId(profile.id);
 
-      // Load org name, templates, records, employees, units, positions in parallel
-      const [orgRes, tplRes, recRes, empRes, unitRes, posRes] = await Promise.all([
+      const [orgRes, tplRes, recRes, empRes, unitRes, posRes, rolesRes] = await Promise.all([
         supabase.from("organizations").select("name").eq("id", profile.organization_id).maybeSingle(),
         (supabase.from("correspondence_templates") as any).select("*").eq("organization_id", profile.organization_id).order("created_at", { ascending: false }),
-        (supabase.from("correspondence_records") as any).select("id, title, category, subject, body, sent_at, status, signature_name, signature_title, signed_at, document_type, category_label, recipient_id").eq("organization_id", profile.organization_id).order("sent_at", { ascending: false }),
+        (supabase.from("correspondence_records") as any).select("id, title, category, subject, body, sent_at, status, signature_name, signature_title, signed_at, document_type, category_label, recipient_id, is_locked").eq("organization_id", profile.organization_id).order("sent_at", { ascending: false }),
         supabase.from("profiles").select("id, full_name, prenom, nom, email, tel_1, nif, cin, date_entree_fonction, unit_id, position_id").eq("organization_id", profile.organization_id).eq("approval_status", "approved"),
         supabase.from("organizational_units").select("id, name").eq("organization_id", profile.organization_id),
         supabase.from("positions").select("id, name").eq("organization_id", profile.organization_id),
+        supabase.from("user_roles").select("role").eq("user_id", user.id).eq("organization_id", profile.organization_id),
       ]);
 
       setOrganizationName(orgRes.data?.name || "");
@@ -212,17 +219,37 @@ export default function Correspondence() {
       setEmployees(empRes.data || []);
       setUnits(unitRes.data || []);
       setPositions(posRes.data || []);
+      setUserRoles((rolesRes.data || []).map((r: any) => r.role));
 
-      if (recRes.data && recRes.data.length > 0) {
-        const recipientIds = [...new Set((recRes.data as any[]).map((r: any) => r.recipient_id))];
-        const { data: recipientProfiles } = await supabase
-          .from("profiles")
-          .select("id, full_name, prenom, nom")
-          .in("id", recipientIds);
-        const profileMap = new Map((recipientProfiles || []).map(p => [p.id, p]));
-        setRecords((recRes.data as any[]).map((r: any) => ({
+      // Load records with recipients and approvals
+      const recs = (recRes.data as any[]) || [];
+      if (recs.length > 0) {
+        const recipientIds = [...new Set(recs.map((r: any) => r.recipient_id))];
+        const recordIds = recs.map((r: any) => r.id);
+
+        const [recipientRes, approvalsRes] = await Promise.all([
+          supabase.from("profiles").select("id, full_name, prenom, nom").in("id", recipientIds),
+          (supabase.from("correspondence_approvals") as any).select("*").in("record_id", recordIds).order("step_order", { ascending: true }),
+        ]);
+
+        const profileMap = new Map((recipientRes.data || []).map(p => [p.id, p]));
+        const approvals = (approvalsRes.data as any[]) || [];
+
+        // Load approver names
+        const approverIds = [...new Set(approvals.filter(a => a.approver_id).map(a => a.approver_id))];
+        let approverMap = new Map<string, any>();
+        if (approverIds.length > 0) {
+          const { data: approverProfiles } = await supabase.from("profiles").select("id, full_name, prenom, nom").in("id", approverIds);
+          approverMap = new Map((approverProfiles || []).map(p => [p.id, p]));
+        }
+
+        setRecords(recs.map((r: any) => ({
           ...r,
           recipient: profileMap.get(r.recipient_id) || { id: r.recipient_id, full_name: null, prenom: null, nom: null },
+          approvals: approvals.filter(a => a.record_id === r.id).map(a => ({
+            ...a,
+            approver: a.approver_id ? approverMap.get(a.approver_id) : null,
+          })),
         })));
       } else {
         setRecords([]);
@@ -234,7 +261,7 @@ export default function Correspondence() {
     }
   };
 
-  // --- Template CRUD ---
+  // ──── Template CRUD ────
   const handleSaveTemplate = async () => {
     if (!organizationId || !profileId) return;
     const detectedVars = VARIABLE_SUGGESTIONS.filter(v => body.includes(v.key)).map(v => v.key);
@@ -243,7 +270,6 @@ export default function Correspondence() {
       subject: subject || null, body, variables: detectedVars, is_active: isActive,
       organization_id: organizationId, created_by: profileId,
     } as any;
-
     let error;
     if (editingTemplate) {
       ({ error } = await (supabase.from("correspondence_templates") as any).update(templateData).eq("id", editingTemplate.id));
@@ -251,10 +277,8 @@ export default function Correspondence() {
       ({ error } = await (supabase.from("correspondence_templates") as any).insert(templateData));
     }
     if (error) { toast({ variant: "destructive", title: "Erreur", description: error.message }); return; }
-    toast({ title: editingTemplate ? "Modèle mis à jour" : "Modèle créé avec succès" });
-    setTemplateOpen(false);
-    resetTemplateForm();
-    loadData();
+    toast({ title: editingTemplate ? "Modèle mis à jour" : "Modèle créé" });
+    setTemplateOpen(false); resetTemplateForm(); loadData();
   };
 
   const resetTemplateForm = () => {
@@ -271,8 +295,7 @@ export default function Correspondence() {
   const handleToggleActive = async (tpl: Template) => {
     const { error } = await (supabase.from("correspondence_templates") as any).update({ is_active: !tpl.is_active }).eq("id", tpl.id);
     if (error) { toast({ variant: "destructive", title: "Erreur", description: error.message }); return; }
-    toast({ title: tpl.is_active ? "Modèle archivé" : "Modèle réactivé" });
-    loadData();
+    toast({ title: tpl.is_active ? "Modèle archivé" : "Modèle réactivé" }); loadData();
   };
 
   const handleDeleteTemplate = async (id: string) => {
@@ -281,7 +304,7 @@ export default function Correspondence() {
     toast({ title: "Modèle supprimé" }); loadData();
   };
 
-  // --- Variable replacement ---
+  // ──── Variable replacement ────
   const replaceVariables = (text: string, employee: any) => {
     const unitName = units.find(u => u.id === employee?.unit_id)?.name || "";
     const posName = positions.find(p => p.id === employee?.position_id)?.name || "";
@@ -301,15 +324,12 @@ export default function Correspondence() {
       .replace(/\{\{organisation\}\}/g, organizationName);
   };
 
-  // --- Generation Wizard ---
+  // ──── Generation Wizard ────
   const openWizard = (tpl?: Template) => {
     setWizardStep(tpl ? 2 : 1);
     setSelectedTemplate(tpl || null);
-    setSelectedRecipient("");
-    setSendBody(tpl?.body || "");
-    setSendSubject(tpl?.subject || "");
-    setSignatureName("");
-    setSignatureTitle("");
+    setSelectedRecipient(""); setSendBody(tpl?.body || ""); setSendSubject(tpl?.subject || "");
+    setSignatureName(""); setSignatureTitle(""); setEnableValidation(true);
     setWizardOpen(true);
   };
 
@@ -324,36 +344,88 @@ export default function Correspondence() {
 
   const handleGenerate = async () => {
     if (!organizationId || !profileId || !selectedRecipient || !selectedTemplate) return;
-    const { error } = await (supabase.from("correspondence_records") as any).insert({
-      organization_id: organizationId,
-      template_id: selectedTemplate.id,
-      recipient_id: selectedRecipient,
-      title: selectedTemplate.title,
-      category: selectedTemplate.category,
-      category_label: selectedTemplate.category_label,
-      document_type: selectedTemplate.document_type,
-      subject: sendSubject || null,
-      body: sendBody,
-      sent_by: profileId,
-      status: signatureName ? "signed" : "generated",
-      signature_name: signatureName || null,
-      signature_title: signatureTitle || null,
-      signed_at: signatureName ? new Date().toISOString() : null,
-    });
+
+    const status = enableValidation ? "pending_validation" : (signatureName ? "signed" : "generated");
+
+    const { data: record, error } = await (supabase.from("correspondence_records") as any).insert({
+      organization_id: organizationId, template_id: selectedTemplate.id,
+      recipient_id: selectedRecipient, title: selectedTemplate.title,
+      category: selectedTemplate.category, category_label: selectedTemplate.category_label,
+      document_type: selectedTemplate.document_type, subject: sendSubject || null,
+      body: sendBody, sent_by: profileId, status,
+      signature_name: signatureName || null, signature_title: signatureTitle || null,
+      signed_at: signatureName && !enableValidation ? new Date().toISOString() : null,
+      is_locked: status === "signed",
+    }).select("id").single();
+
     if (error) { toast({ variant: "destructive", title: "Erreur", description: error.message }); return; }
-    toast({ title: "Correspondance générée et archivée avec succès" });
-    setWizardOpen(false);
-    loadData();
+
+    // Create approval workflow steps
+    if (enableValidation && record) {
+      const approvalSteps = APPROVAL_WORKFLOW_STEPS.map(step => ({
+        record_id: record.id,
+        organization_id: organizationId,
+        step_order: step.order,
+        step_role: step.role,
+        step_label: step.label,
+        status: "pending",
+      }));
+      await (supabase.from("correspondence_approvals") as any).insert(approvalSteps);
+    }
+
+    toast({ title: enableValidation ? "Correspondance soumise pour validation" : "Correspondance générée et archivée" });
+    setWizardOpen(false); loadData();
   };
 
-  const handlePrintPDF = () => {
-    const content = printRef.current;
-    if (!content) return;
+  // ──── Approval actions ────
+  const handleApproval = async (approval: Approval, action: "approved" | "rejected") => {
+    if (!profileId) return;
+    const { error } = await (supabase.from("correspondence_approvals") as any)
+      .update({ status: action, approver_id: profileId, comment: approvalComment || null, decided_at: new Date().toISOString() })
+      .eq("id", approval.id);
+    if (error) { toast({ variant: "destructive", title: "Erreur", description: error.message }); return; }
+
+    if (action === "rejected") {
+      // Reject the whole record
+      await (supabase.from("correspondence_records") as any).update({ status: "rejected" }).eq("id", approval.record_id);
+    } else {
+      // Check if all steps for this record are now approved
+      const { data: allSteps } = await (supabase.from("correspondence_approvals") as any)
+        .select("status").eq("record_id", approval.record_id);
+      const allApproved = (allSteps || []).every((s: any) => s.status === "approved" || s.id === approval.id);
+      if (allApproved || (allSteps || []).filter((s: any) => s.status === "pending").length <= 1) {
+        // Check if this was the last step
+        const remaining = (allSteps || []).filter((s: any) => s.status === "pending" && s.id !== approval.id);
+        if (remaining.length === 0) {
+          await (supabase.from("correspondence_records") as any).update({ status: "validated" }).eq("id", approval.record_id);
+        }
+      }
+    }
+
+    setApprovalComment("");
+    toast({ title: action === "approved" ? "Étape validée" : "Correspondance rejetée" });
+    loadData();
+
+    // Refresh preview if open
+    if (previewRecord?.id === approval.record_id) {
+      const updated = records.find(r => r.id === approval.record_id);
+      if (updated) setPreviewRecord(updated);
+    }
+  };
+
+  // ──── PDF / Print ────
+  const handlePrintPDF = (rec?: CorrespondenceRecord) => {
+    const bodyText = rec?.body || sendBody;
+    const subjectText = rec?.subject || sendSubject;
+    const sigName = rec?.signature_name || signatureName;
+    const sigTitle = rec?.signature_title || signatureTitle;
+    const emp = rec ? rec.recipient : employees.find(e => e.id === selectedRecipient);
+    const empName = getEmployeeName(emp);
+    const docType = rec?.document_type || selectedTemplate?.document_type || "lettre";
+
     const win = window.open("", "_blank");
     if (!win) return;
-    const emp = employees.find(e => e.id === selectedRecipient);
-    const empName = getEmployeeName(emp);
-    win.document.write(`<!DOCTYPE html><html><head><title>${selectedTemplate?.title || "Correspondance"}</title>
+    win.document.write(`<!DOCTYPE html><html><head><title>${rec?.title || selectedTemplate?.title || "Correspondance"}</title>
       <style>
         @page { size: A4; margin: 2.5cm; }
         body { font-family: 'Times New Roman', serif; font-size: 13pt; line-height: 1.7; color: #000; margin: 0; padding: 40px; }
@@ -361,9 +433,7 @@ export default function Correspondence() {
         .header h1 { font-size: 16pt; margin: 0; text-transform: uppercase; letter-spacing: 2px; }
         .header .org { font-size: 11pt; color: #555; margin-top: 5px; }
         .meta { display: flex; justify-content: space-between; margin-bottom: 25px; font-size: 11pt; }
-        .meta .ref { color: #555; }
-        .recipient { margin-bottom: 20px; }
-        .recipient strong { display: block; }
+        .recipient { margin-bottom: 20px; } .recipient strong { display: block; }
         .subject { font-weight: bold; text-align: center; margin: 20px 0; font-size: 14pt; text-decoration: underline; }
         .body-content { white-space: pre-wrap; text-align: justify; margin-bottom: 40px; }
         .signature-block { margin-top: 50px; text-align: right; }
@@ -373,30 +443,19 @@ export default function Correspondence() {
         .footer { margin-top: 60px; text-align: center; font-size: 9pt; color: #888; border-top: 1px solid #ccc; padding-top: 10px; }
         @media print { body { padding: 0; } }
       </style></head><body>
-      <div class="header">
-        <h1>${organizationName}</h1>
-        <div class="org">${getTypeLabel(selectedTemplate?.document_type || "lettre")}</div>
-      </div>
-      <div class="meta">
-        <div class="ref">Réf : CORR-${format(new Date(), "yyyyMMdd-HHmm")}</div>
-        <div>${format(new Date(), "d MMMM yyyy", { locale: fr })}</div>
-      </div>
+      <div class="header"><h1>${organizationName}</h1><div class="org">${getTypeLabel(docType)}</div></div>
+      <div class="meta"><div>Réf : CORR-${format(new Date(), "yyyyMMdd-HHmm")}</div><div>${format(new Date(), "d MMMM yyyy", { locale: fr })}</div></div>
       <div class="recipient"><strong>À l'attention de :</strong> ${empName}</div>
-      ${sendSubject ? `<div class="subject">Objet : ${sendSubject}</div>` : ""}
-      <div class="body-content">${sendBody}</div>
-      ${signatureName ? `
-      <div class="signature-block">
-        <div class="name">${signatureName}</div>
-        ${signatureTitle ? `<div class="title">${signatureTitle}</div>` : ""}
-        <div class="date">Signé le ${format(new Date(), "d MMMM yyyy", { locale: fr })}</div>
-      </div>` : ""}
+      ${subjectText ? `<div class="subject">Objet : ${subjectText}</div>` : ""}
+      <div class="body-content">${bodyText}</div>
+      ${sigName ? `<div class="signature-block"><div class="name">${sigName}</div>${sigTitle ? `<div class="title">${sigTitle}</div>` : ""}<div class="date">Signé le ${format(new Date(), "d MMMM yyyy", { locale: fr })}</div></div>` : ""}
       <div class="footer">Document généré par ${organizationName} — ${format(new Date(), "dd/MM/yyyy HH:mm")}</div>
     </body></html>`);
     win.document.close();
     win.print();
   };
 
-  // --- Helpers ---
+  // ──── Helpers ────
   const getCategoryLabel = (cat: string) => CATEGORIES.find(c => c.value === cat)?.label || cat;
   const getTypeLabel = (type: string) => DOCUMENT_TYPES.find(t => t.value === type)?.label || type;
   const getEmployeeName = (e: any) => e?.prenom && e?.nom ? `${e.prenom} ${e.nom}` : e?.full_name || "Sans nom";
@@ -414,8 +473,19 @@ export default function Correspondence() {
     (r.recipient?.prenom + " " + r.recipient?.nom).toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Pending validations for current user's role
+  const pendingValidations = records.filter(r =>
+    r.status === "pending_validation" &&
+    r.approvals?.some(a => a.status === "pending" && canValidate(userRoles, a.step_role) &&
+      // All previous steps must be approved
+      !r.approvals!.some(prev => prev.step_order < a.step_order && prev.status !== "approved")
+    )
+  );
+
   const activeTemplates = templates.filter(t => t.is_active);
   const selectedEmployee = employees.find(e => e.id === selectedRecipient);
+
+  const isReadOnly = !canGenerateCorrespondence(userRoles) && !canCreateTemplates(userRoles);
 
   if (loading) {
     return (
@@ -433,77 +503,73 @@ export default function Correspondence() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold">Correspondance Administrative</h1>
-          <p className="text-muted-foreground">Bibliothèque de modèles et génération de courriers RH</p>
+          <p className="text-muted-foreground">Bibliothèque de modèles, génération et validation de courriers</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => openWizard()} variant="default">
-            <Send className="h-4 w-4 mr-2" />Générer un courrier
-          </Button>
-          <Dialog open={templateOpen} onOpenChange={(open) => { setTemplateOpen(open); if (!open) resetTemplateForm(); }}>
-            <DialogTrigger asChild>
-              <Button variant="outline"><Plus className="h-4 w-4 mr-2" />Nouveau modèle</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>{editingTemplate ? "Modifier le modèle" : "Créer un modèle de correspondance"}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label>Nom du modèle <span className="text-destructive">*</span></Label>
-                  <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex : Lettre de blâme, Attestation de travail..." />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {canGenerateCorrespondence(userRoles) && (
+            <Button onClick={() => openWizard()} variant="default">
+              <Send className="h-4 w-4 mr-2" />Générer un courrier
+            </Button>
+          )}
+          {canCreateTemplates(userRoles) && (
+            <Dialog open={templateOpen} onOpenChange={(open) => { setTemplateOpen(open); if (!open) resetTemplateForm(); }}>
+              <DialogTrigger asChild>
+                <Button variant="outline"><Plus className="h-4 w-4 mr-2" />Nouveau modèle</Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>{editingTemplate ? "Modifier le modèle" : "Créer un modèle"}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
                   <div>
-                    <Label>Catégorie <span className="text-destructive">*</span></Label>
-                    <Select value={categoryLabel} onValueChange={setCategoryLabel}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <Label>Nom du modèle <span className="text-destructive">*</span></Label>
+                    <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex : Lettre de blâme, Attestation de travail..." />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Catégorie <span className="text-destructive">*</span></Label>
+                      <Select value={categoryLabel} onValueChange={setCategoryLabel}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>{CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Type de document <span className="text-destructive">*</span></Label>
+                      <Select value={documentType} onValueChange={setDocumentType}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>{DOCUMENT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}</SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div>
-                    <Label>Type de document <span className="text-destructive">*</span></Label>
-                    <Select value={documentType} onValueChange={setDocumentType}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {DOCUMENT_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <Label>Objet (optionnel)</Label>
+                    <Input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Objet du courrier" />
                   </div>
-                </div>
-                <div>
-                  <Label>Objet (optionnel)</Label>
-                  <Input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Objet du courrier" />
-                </div>
-                <div>
-                  <Label>Contenu du modèle <span className="text-destructive">*</span></Label>
-                  <Textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Rédigez le contenu du modèle..." className="min-h-[250px] font-mono text-sm" />
-                </div>
-                <div className="border rounded-lg p-4 bg-muted/30">
-                  <Label className="text-sm font-semibold mb-2 block">Variables dynamiques (cliquez pour insérer)</Label>
-                  <p className="text-xs text-muted-foreground mb-3">Ces variables seront remplacées automatiquement lors de la génération.</p>
-                  <div className="flex flex-wrap gap-2">
-                    {VARIABLE_SUGGESTIONS.map(v => (
-                      <Badge key={v.key} variant="outline" className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors text-xs" onClick={() => setBody(prev => prev + v.key)} title={v.label}>
-                        {v.key} <span className="ml-1 opacity-60">({v.label})</span>
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex items-center justify-between border rounded-lg p-4">
                   <div>
-                    <Label>Statut du modèle</Label>
-                    <p className="text-sm text-muted-foreground">{isActive ? "Actif — visible et utilisable" : "Archivé — masqué par défaut"}</p>
+                    <Label>Contenu du modèle <span className="text-destructive">*</span></Label>
+                    <Textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Rédigez le contenu du modèle..." className="min-h-[250px] font-mono text-sm" />
                   </div>
-                  <Switch checked={isActive} onCheckedChange={setIsActive} />
+                  <div className="border rounded-lg p-4 bg-muted/30">
+                    <Label className="text-sm font-semibold mb-2 block">Variables dynamiques</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {VARIABLE_SUGGESTIONS.map(v => (
+                        <Badge key={v.key} variant="outline" className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors text-xs" onClick={() => setBody(prev => prev + v.key)}>
+                          {v.key} <span className="ml-1 opacity-60">({v.label})</span>
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between border rounded-lg p-4">
+                    <div><Label>Statut</Label><p className="text-sm text-muted-foreground">{isActive ? "Actif" : "Archivé"}</p></div>
+                    <Switch checked={isActive} onCheckedChange={setIsActive} />
+                  </div>
+                  <Button onClick={handleSaveTemplate} disabled={!title || !body} className="w-full">
+                    {editingTemplate ? "Mettre à jour" : "Créer le modèle"}
+                  </Button>
                 </div>
-                <Button onClick={handleSaveTemplate} disabled={!title || !body} className="w-full">
-                  {editingTemplate ? "Mettre à jour le modèle" : "Créer le modèle"}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </div>
 
@@ -533,96 +599,100 @@ export default function Correspondence() {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="templates">
-        <TabsList>
-          <TabsTrigger value="templates"><FileText className="h-4 w-4 mr-2" />Modèles ({filteredTemplates.length})</TabsTrigger>
-          <TabsTrigger value="sent"><Mail className="h-4 w-4 mr-2" />Courriers émis ({records.length})</TabsTrigger>
+      <Tabs defaultValue={pendingValidations.length > 0 ? "validations" : "templates"}>
+        <TabsList className="flex-wrap">
+          {canCreateTemplates(userRoles) && (
+            <TabsTrigger value="templates"><FileText className="h-4 w-4 mr-2" />Modèles ({filteredTemplates.length})</TabsTrigger>
+          )}
+          <TabsTrigger value="sent"><Mail className="h-4 w-4 mr-2" />Courriers ({records.length})</TabsTrigger>
+          <TabsTrigger value="validations" className="relative">
+            <ShieldCheck className="h-4 w-4 mr-2" />Validations
+            {pendingValidations.length > 0 && (
+              <span className="ml-1 bg-destructive text-destructive-foreground rounded-full px-1.5 py-0.5 text-xs font-bold">
+                {pendingValidations.length}
+              </span>
+            )}
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="templates" className="space-y-4">
-          {filteredTemplates.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
+        {/* ── Templates tab ── */}
+        {canCreateTemplates(userRoles) && (
+          <TabsContent value="templates" className="space-y-4">
+            {filteredTemplates.length === 0 ? (
+              <Card><CardContent className="flex flex-col items-center justify-center py-12">
                 <FileText className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold">{showArchived ? "Aucun modèle archivé" : "Aucun modèle actif"}</h3>
-                <p className="text-muted-foreground text-center mt-2">{showArchived ? "Les modèles archivés apparaîtront ici." : "Créez votre premier modèle de correspondance."}</p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredTemplates.map(tpl => (
-                <Card key={tpl.id} className={`flex flex-col ${!tpl.is_active ? 'opacity-60' : ''}`}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between gap-2 flex-wrap">
-                      <Badge className={CATEGORY_COLORS[tpl.category_label || "autre"] || CATEGORY_COLORS.autre}>{getCategoryLabel(tpl.category_label || "autre")}</Badge>
-                      <Badge className={TYPE_COLORS[tpl.document_type || "lettre"] || TYPE_COLORS.lettre}>{getTypeLabel(tpl.document_type || "lettre")}</Badge>
-                    </div>
-                    <CardTitle className="text-base mt-2">{tpl.title}</CardTitle>
-                    {tpl.subject && <CardDescription className="text-sm">Objet : {tpl.subject}</CardDescription>}
-                  </CardHeader>
-                  <CardContent className="flex-1">
-                    <p className="text-sm text-muted-foreground line-clamp-3 font-mono">{tpl.body}</p>
-                    {tpl.variables && tpl.variables.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-3">
-                        {tpl.variables.map(v => <Badge key={v} variant="outline" className="text-xs font-mono">{v}</Badge>)}
+              </CardContent></Card>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {filteredTemplates.map(tpl => (
+                  <Card key={tpl.id} className={`flex flex-col ${!tpl.is_active ? 'opacity-60' : ''}`}>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between gap-2 flex-wrap">
+                        <Badge className={CATEGORY_COLORS[tpl.category_label || "autre"]}>{getCategoryLabel(tpl.category_label || "autre")}</Badge>
+                        <Badge className={TYPE_COLORS[tpl.document_type || "lettre"]}>{getTypeLabel(tpl.document_type || "lettre")}</Badge>
                       </div>
-                    )}
-                    <div className="flex items-center gap-2 mt-3">
-                      <Badge variant={tpl.is_active ? "default" : "secondary"}>{tpl.is_active ? "Actif" : "Archivé"}</Badge>
-                      <span className="text-xs text-muted-foreground">{format(new Date(tpl.created_at), "dd/MM/yyyy", { locale: fr })}</span>
+                      <CardTitle className="text-base mt-2">{tpl.title}</CardTitle>
+                      {tpl.subject && <CardDescription>Objet : {tpl.subject}</CardDescription>}
+                    </CardHeader>
+                    <CardContent className="flex-1">
+                      <p className="text-sm text-muted-foreground line-clamp-3 font-mono">{tpl.body}</p>
+                      {tpl.variables?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-3">
+                          {tpl.variables.map(v => <Badge key={v} variant="outline" className="text-xs font-mono">{v}</Badge>)}
+                        </div>
+                      )}
+                    </CardContent>
+                    <div className="p-4 pt-0 flex gap-2 flex-wrap">
+                      <Button size="sm" variant="outline" onClick={() => handleEditTemplate(tpl)}><Edit className="h-3 w-3 mr-1" />Modifier</Button>
+                      {tpl.is_active && canGenerateCorrespondence(userRoles) && (
+                        <Button size="sm" onClick={() => openWizard(tpl)}><Send className="h-3 w-3 mr-1" />Générer</Button>
+                      )}
+                      <Button size="sm" variant="ghost" onClick={() => handleToggleActive(tpl)}><Archive className="h-3 w-3" /></Button>
+                      <Button size="sm" variant="ghost" onClick={() => handleDeleteTemplate(tpl.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
                     </div>
-                  </CardContent>
-                  <div className="p-4 pt-0 flex gap-2 flex-wrap">
-                    <Button size="sm" variant="outline" onClick={() => handleEditTemplate(tpl)}><Edit className="h-3 w-3 mr-1" />Modifier</Button>
-                    {tpl.is_active && <Button size="sm" onClick={() => openWizard(tpl)}><Send className="h-3 w-3 mr-1" />Générer</Button>}
-                    <Button size="sm" variant="ghost" onClick={() => handleToggleActive(tpl)} title={tpl.is_active ? "Archiver" : "Réactiver"}><Archive className="h-3 w-3" /></Button>
-                    <Button size="sm" variant="ghost" onClick={() => handleDeleteTemplate(tpl.id)}><Trash2 className="h-3 w-3 text-destructive" /></Button>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        )}
 
+        {/* ── Sent tab ── */}
         <TabsContent value="sent">
           {filteredRecords.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Mail className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold">Aucun courrier émis</h3>
-                <p className="text-muted-foreground text-center mt-2">Les courriers générés apparaîtront ici.</p>
-              </CardContent>
-            </Card>
+            <Card><CardContent className="flex flex-col items-center justify-center py-12">
+              <Mail className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold">Aucun courrier</h3>
+            </CardContent></Card>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Titre</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Destinataire</TableHead>
-                  <TableHead>Statut</TableHead>
-                  <TableHead></TableHead>
+                  <TableHead>Date</TableHead><TableHead>Titre</TableHead><TableHead>Type</TableHead>
+                  <TableHead>Destinataire</TableHead><TableHead>Statut</TableHead><TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredRecords.map(rec => (
                   <TableRow key={rec.id}>
                     <TableCell className="text-sm">{format(new Date(rec.sent_at), "dd/MM/yyyy", { locale: fr })}</TableCell>
-                    <TableCell className="font-medium">{rec.title}</TableCell>
-                    <TableCell>
-                      <Badge className={TYPE_COLORS[rec.document_type || "lettre"] || TYPE_COLORS.lettre} variant="outline">
-                        {getTypeLabel(rec.document_type || "lettre")}
-                      </Badge>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        {rec.is_locked && <Lock className="h-3 w-3 text-muted-foreground" />}
+                        {rec.title}
+                      </div>
                     </TableCell>
-                    <TableCell>{rec.recipient?.prenom && rec.recipient?.nom ? `${rec.recipient.prenom} ${rec.recipient.nom}` : rec.recipient?.full_name || "—"}</TableCell>
+                    <TableCell><Badge className={TYPE_COLORS[rec.document_type || "lettre"]} variant="outline">{getTypeLabel(rec.document_type || "lettre")}</Badge></TableCell>
+                    <TableCell>{getEmployeeName(rec.recipient)}</TableCell>
+                    <TableCell><Badge className={STATUS_COLORS[rec.status || "generated"]}>{STATUS_LABELS[rec.status || "generated"]}</Badge></TableCell>
                     <TableCell>
-                      <Badge className={STATUS_COLORS[rec.status || "generated"]}>{STATUS_LABELS[rec.status || "generated"]}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button size="sm" variant="ghost" onClick={() => { setPreviewRecord(rec); setPreviewOpen(true); }}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="ghost" onClick={() => { setPreviewRecord(rec); setPreviewOpen(true); }}><Eye className="h-4 w-4" /></Button>
+                        {(rec.status === "validated" || rec.status === "signed") && (
+                          <Button size="sm" variant="ghost" onClick={() => handlePrintPDF(rec)}><Download className="h-4 w-4" /></Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -630,25 +700,116 @@ export default function Correspondence() {
             </Table>
           )}
         </TabsContent>
+
+        {/* ── Validations tab ── */}
+        <TabsContent value="validations" className="space-y-4">
+          {pendingValidations.length === 0 ? (
+            <Card><CardContent className="flex flex-col items-center justify-center py-12">
+              <ShieldCheck className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold">Aucune validation en attente</h3>
+              <p className="text-muted-foreground text-center mt-2">Les courriers en attente de votre approbation apparaîtront ici.</p>
+            </CardContent></Card>
+          ) : (
+            pendingValidations.map(rec => {
+              const currentStep = rec.approvals?.find(a =>
+                a.status === "pending" && canValidate(userRoles, a.step_role) &&
+                !rec.approvals!.some(prev => prev.step_order < a.step_order && prev.status !== "approved")
+              );
+              return (
+                <Card key={rec.id}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between gap-2 flex-wrap">
+                      <div>
+                        <CardTitle className="text-base">{rec.title}</CardTitle>
+                        <CardDescription>
+                          Destinataire : {getEmployeeName(rec.recipient)} — {format(new Date(rec.sent_at), "dd/MM/yyyy", { locale: fr })}
+                        </CardDescription>
+                      </div>
+                      <Badge className={STATUS_COLORS.pending_validation}>{STATUS_LABELS.pending_validation}</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Approval timeline */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold">Circuit de validation</Label>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {rec.approvals?.map((a, idx) => {
+                          const StatusIcon = APPROVAL_STATUS_ICONS[a.status] || Clock;
+                          return (
+                            <div key={a.id} className="flex items-center gap-1">
+                              <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${
+                                a.status === "approved" ? "bg-green-100 text-green-800" :
+                                a.status === "rejected" ? "bg-red-100 text-red-800" :
+                                currentStep?.id === a.id ? "bg-primary text-primary-foreground" :
+                                "bg-muted text-muted-foreground"
+                              }`}>
+                                <StatusIcon className="h-3 w-3" />
+                                {a.step_label}
+                              </div>
+                              {idx < (rec.approvals?.length || 0) - 1 && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {/* Show previous decisions */}
+                      {rec.approvals?.filter(a => a.status !== "pending").map(a => (
+                        <div key={a.id} className="text-xs text-muted-foreground flex items-center gap-2 ml-4">
+                          {a.status === "approved" ? <CheckCircle2 className="h-3 w-3 text-green-600" /> : <XCircle className="h-3 w-3 text-red-600" />}
+                          <span>{a.step_label} — {a.approver ? getEmployeeName(a.approver) : "—"}</span>
+                          {a.decided_at && <span>le {format(new Date(a.decided_at), "dd/MM/yyyy à HH:mm", { locale: fr })}</span>}
+                          {a.comment && <span className="italic">« {a.comment} »</span>}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Document preview */}
+                    <div className="border rounded-lg p-4 bg-muted/20 max-h-[200px] overflow-y-auto">
+                      <p className="text-sm whitespace-pre-wrap">{rec.body}</p>
+                    </div>
+
+                    {/* Action area */}
+                    {currentStep && (
+                      <div className="border rounded-lg p-4 space-y-3 bg-card">
+                        <Label className="font-semibold">Votre décision — {currentStep.step_label}</Label>
+                        <Textarea
+                          value={approvalComment}
+                          onChange={e => setApprovalComment(e.target.value)}
+                          placeholder="Commentaire (optionnel)..."
+                          className="min-h-[80px]"
+                        />
+                        <div className="flex gap-2">
+                          <Button onClick={() => handleApproval(currentStep, "approved")} className="flex-1">
+                            <CheckCircle2 className="h-4 w-4 mr-2" />Valider
+                          </Button>
+                          <Button variant="destructive" onClick={() => handleApproval(currentStep, "rejected")} className="flex-1">
+                            <XCircle className="h-4 w-4 mr-2" />Rejeter
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })
+          )}
+        </TabsContent>
       </Tabs>
 
-      {/* ========== GENERATION WIZARD ========== */}
+      {/* ═══════ GENERATION WIZARD ═══════ */}
       <Dialog open={wizardOpen} onOpenChange={setWizardOpen}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Générer une correspondance</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Générer une correspondance</DialogTitle></DialogHeader>
 
           {/* Stepper */}
           <div className="flex items-center justify-between mb-6">
             {GENERATION_STEPS.map((step, idx) => {
               const Icon = step.icon;
-              const isActive = wizardStep === step.id;
-              const isDone = wizardStep > step.id;
+              const active = wizardStep === step.id;
+              const done = wizardStep > step.id;
               return (
                 <div key={step.id} className="flex items-center gap-1">
-                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${isActive ? "bg-primary text-primary-foreground" : isDone ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
-                    {isDone ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
+                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${active ? "bg-primary text-primary-foreground" : done ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground"}`}>
+                    {done ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Icon className="h-3.5 w-3.5" />}
                     <span className="hidden sm:inline">{step.label}</span>
                   </div>
                   {idx < GENERATION_STEPS.length - 1 && <ChevronRight className="h-4 w-4 text-muted-foreground mx-1" />}
@@ -657,20 +818,17 @@ export default function Correspondence() {
             })}
           </div>
 
-          {/* Step 1: Choose template */}
+          {/* Step 1 */}
           {wizardStep === 1 && (
             <div className="space-y-4">
               <Label className="text-base font-semibold">1. Choisir un modèle</Label>
               {activeTemplates.length === 0 ? (
-                <p className="text-muted-foreground text-sm">Aucun modèle actif. Créez d'abord un modèle.</p>
+                <p className="text-muted-foreground text-sm">Aucun modèle actif disponible.</p>
               ) : (
                 <div className="grid gap-3 max-h-[400px] overflow-y-auto">
                   {activeTemplates.map(tpl => (
-                    <Card
-                      key={tpl.id}
-                      className={`cursor-pointer transition-all hover:border-primary ${selectedTemplate?.id === tpl.id ? "border-primary ring-2 ring-primary/20" : ""}`}
-                      onClick={() => { setSelectedTemplate(tpl); setSendBody(tpl.body); setSendSubject(tpl.subject || ""); }}
-                    >
+                    <Card key={tpl.id} className={`cursor-pointer transition-all hover:border-primary ${selectedTemplate?.id === tpl.id ? "border-primary ring-2 ring-primary/20" : ""}`}
+                      onClick={() => { setSelectedTemplate(tpl); setSendBody(tpl.body); setSendSubject(tpl.subject || ""); }}>
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex-1">
@@ -690,75 +848,99 @@ export default function Correspondence() {
             </div>
           )}
 
-          {/* Step 2: Choose recipient */}
+          {/* Step 2 */}
           {wizardStep === 2 && (
             <div className="space-y-4">
-              <Label className="text-base font-semibold">2. Sélectionner l'agent concerné</Label>
+              <Label className="text-base font-semibold">2. Sélectionner l'agent</Label>
               <Select value={selectedRecipient} onValueChange={onSelectRecipient}>
                 <SelectTrigger><SelectValue placeholder="Choisir un employé..." /></SelectTrigger>
                 <SelectContent>
-                  {employees.map(e => (
-                    <SelectItem key={e.id} value={e.id}>
-                      {getEmployeeName(e)} {e.nif ? `— ${e.nif}` : ""}
-                    </SelectItem>
-                  ))}
+                  {employees.map(e => <SelectItem key={e.id} value={e.id}>{getEmployeeName(e)} {e.nif ? `— ${e.nif}` : ""}</SelectItem>)}
                 </SelectContent>
               </Select>
               {selectedEmployee && (
-                <Card className="bg-muted/30">
-                  <CardContent className="p-4 space-y-1 text-sm">
-                    <p><strong>Nom :</strong> {getEmployeeName(selectedEmployee)}</p>
-                    {selectedEmployee.email && <p><strong>Email :</strong> {selectedEmployee.email}</p>}
-                    {selectedEmployee.nif && <p><strong>NIF :</strong> {selectedEmployee.nif}</p>}
-                    {selectedEmployee.unit_id && <p><strong>Service :</strong> {units.find(u => u.id === selectedEmployee.unit_id)?.name || "—"}</p>}
-                    {selectedEmployee.position_id && <p><strong>Poste :</strong> {positions.find(p => p.id === selectedEmployee.position_id)?.name || "—"}</p>}
-                  </CardContent>
-                </Card>
+                <Card className="bg-muted/30"><CardContent className="p-4 space-y-1 text-sm">
+                  <p><strong>Nom :</strong> {getEmployeeName(selectedEmployee)}</p>
+                  {selectedEmployee.email && <p><strong>Email :</strong> {selectedEmployee.email}</p>}
+                  {selectedEmployee.nif && <p><strong>NIF :</strong> {selectedEmployee.nif}</p>}
+                  {selectedEmployee.unit_id && <p><strong>Service :</strong> {units.find(u => u.id === selectedEmployee.unit_id)?.name || "—"}</p>}
+                  {selectedEmployee.position_id && <p><strong>Poste :</strong> {positions.find(p => p.id === selectedEmployee.position_id)?.name || "—"}</p>}
+                </CardContent></Card>
               )}
             </div>
           )}
 
-          {/* Step 3: Edit content */}
+          {/* Step 3 */}
           {wizardStep === 3 && (
             <div className="space-y-4">
               <Label className="text-base font-semibold">3. Ajuster le contenu</Label>
-              <p className="text-sm text-muted-foreground">Les variables ont été remplacées automatiquement. Vous pouvez ajuster le texte avant la génération.</p>
-              {sendSubject !== undefined && (
-                <div>
-                  <Label>Objet</Label>
-                  <Input value={sendSubject} onChange={e => setSendSubject(e.target.value)} />
-                </div>
-              )}
-              <div>
-                <Label>Contenu</Label>
-                <Textarea value={sendBody} onChange={e => setSendBody(e.target.value)} className="min-h-[300px] font-mono text-sm" />
-              </div>
+              <p className="text-sm text-muted-foreground">Les variables ont été remplacées automatiquement.</p>
+              <div><Label>Objet</Label><Input value={sendSubject} onChange={e => setSendSubject(e.target.value)} /></div>
+              <div><Label>Contenu</Label><Textarea value={sendBody} onChange={e => setSendBody(e.target.value)} className="min-h-[300px] font-mono text-sm" /></div>
             </div>
           )}
 
-          {/* Step 4: Signature */}
+          {/* Step 4 */}
           {wizardStep === 4 && (
             <div className="space-y-4">
-              <Label className="text-base font-semibold">4. Signature</Label>
-              <p className="text-sm text-muted-foreground">Ajoutez les informations du signataire. La signature sera apposée en bas du document.</p>
-              <div>
-                <Label>Nom du signataire</Label>
-                <Input value={signatureName} onChange={e => setSignatureName(e.target.value)} placeholder="Ex : Jean DUPONT" />
+              <Label className="text-base font-semibold">4. Validation & Signature</Label>
+
+              {/* Validation toggle */}
+              <div className="flex items-center justify-between border rounded-lg p-4">
+                <div>
+                  <Label>Circuit de validation hiérarchique</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {enableValidation
+                      ? "Le courrier passera par le circuit de validation avant d'être finalisé."
+                      : "Le courrier sera généré directement sans validation."}
+                  </p>
+                </div>
+                <Switch checked={enableValidation} onCheckedChange={setEnableValidation} />
               </div>
-              <div>
-                <Label>Titre / Fonction</Label>
-                <Input value={signatureTitle} onChange={e => setSignatureTitle(e.target.value)} placeholder="Ex : Directeur des Ressources Humaines" />
-              </div>
-              <div className="border rounded-lg p-4 bg-muted/30">
-                <p className="text-xs text-muted-foreground">💡 Vous pouvez laisser vide si le document sera signé manuellement après impression.</p>
-              </div>
+
+              {enableValidation && (
+                <div className="border rounded-lg p-4 bg-muted/30 space-y-3">
+                  <Label className="text-sm font-semibold">Circuit de validation prévu</Label>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                      <User className="h-3 w-3" />Rédacteur RH
+                    </div>
+                    {APPROVAL_WORKFLOW_STEPS.map((step, idx) => (
+                      <div key={step.role} className="flex items-center gap-1">
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+                          <ShieldCheck className="h-3 w-3" />{step.label}
+                        </div>
+                      </div>
+                    ))}
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                      <PenTool className="h-3 w-3" />Signature finale
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <Separator />
+              <Label className="text-sm font-semibold">Informations de signature</Label>
+              <p className="text-xs text-muted-foreground">
+                {enableValidation ? "La signature sera apposée après validation complète." : "La signature sera apposée immédiatement."}
+              </p>
+              <div><Label>Nom du signataire</Label><Input value={signatureName} onChange={e => setSignatureName(e.target.value)} placeholder="Ex : Jean DUPONT" /></div>
+              <div><Label>Titre / Fonction</Label><Input value={signatureTitle} onChange={e => setSignatureTitle(e.target.value)} placeholder="Ex : Directeur des Ressources Humaines" /></div>
             </div>
           )}
 
-          {/* Step 5: Preview & PDF */}
+          {/* Step 5 */}
           {wizardStep === 5 && (
             <div className="space-y-4">
-              <Label className="text-base font-semibold">5. Aperçu final & Génération PDF</Label>
+              <Label className="text-base font-semibold">5. Aperçu final</Label>
+              {enableValidation && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm">
+                  <Clock className="h-4 w-4 shrink-0" />
+                  Ce courrier sera soumis au circuit de validation avant d'être finalisé.
+                </div>
+              )}
               <div ref={printRef} className="border rounded-lg p-8 bg-card space-y-4">
                 <div className="text-center border-b pb-4">
                   <h2 className="text-lg font-bold uppercase tracking-wider">{organizationName}</h2>
@@ -768,16 +950,13 @@ export default function Correspondence() {
                   <span>Réf : CORR-{format(new Date(), "yyyyMMdd-HHmm")}</span>
                   <span>{format(new Date(), "d MMMM yyyy", { locale: fr })}</span>
                 </div>
-                <div className="text-sm">
-                  <strong>À l'attention de :</strong> {getEmployeeName(selectedEmployee)}
-                </div>
+                <div className="text-sm"><strong>À l'attention de :</strong> {getEmployeeName(selectedEmployee)}</div>
                 {sendSubject && <div className="text-center font-bold underline">Objet : {sendSubject}</div>}
                 <div className="whitespace-pre-wrap text-sm leading-relaxed">{sendBody}</div>
                 {signatureName && (
                   <div className="text-right mt-8 space-y-1">
                     <p className="font-bold">{signatureName}</p>
                     {signatureTitle && <p className="text-sm italic text-muted-foreground">{signatureTitle}</p>}
-                    <p className="text-xs text-muted-foreground">Signé le {format(new Date(), "d MMMM yyyy", { locale: fr })}</p>
                   </div>
                 )}
               </div>
@@ -793,22 +972,14 @@ export default function Correspondence() {
             <div className="flex gap-2">
               {wizardStep === 5 && (
                 <>
-                  <Button variant="outline" onClick={handlePrintPDF}>
-                    <Download className="h-4 w-4 mr-2" />Imprimer / PDF
-                  </Button>
+                  <Button variant="outline" onClick={() => handlePrintPDF()}><Download className="h-4 w-4 mr-2" />PDF</Button>
                   <Button onClick={handleGenerate} disabled={!selectedRecipient || !selectedTemplate}>
-                    <CheckCircle2 className="h-4 w-4 mr-2" />Générer & Archiver
+                    {enableValidation ? <><ShieldCheck className="h-4 w-4 mr-2" />Soumettre pour validation</> : <><CheckCircle2 className="h-4 w-4 mr-2" />Générer & Archiver</>}
                   </Button>
                 </>
               )}
               {wizardStep < 5 && (
-                <Button
-                  onClick={() => setWizardStep(s => s + 1)}
-                  disabled={
-                    (wizardStep === 1 && !selectedTemplate) ||
-                    (wizardStep === 2 && !selectedRecipient)
-                  }
-                >
+                <Button onClick={() => setWizardStep(s => s + 1)} disabled={(wizardStep === 1 && !selectedTemplate) || (wizardStep === 2 && !selectedRecipient)}>
                   Suivant<ChevronRight className="h-4 w-4 ml-1" />
                 </Button>
               )}
@@ -817,25 +988,51 @@ export default function Correspondence() {
         </DialogContent>
       </Dialog>
 
-      {/* Preview dialog for sent records */}
+      {/* ═══════ PREVIEW DIALOG ═══════ */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{previewRecord?.title}</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>{previewRecord?.title}</DialogTitle></DialogHeader>
           {previewRecord && (
             <div className="space-y-4">
-              <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-                <span>Date : {format(new Date(previewRecord.sent_at), "d MMMM yyyy", { locale: fr })}</span>
+              <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
+                <span>{format(new Date(previewRecord.sent_at), "d MMMM yyyy", { locale: fr })}</span>
                 <Badge className={STATUS_COLORS[previewRecord.status || "generated"]}>{STATUS_LABELS[previewRecord.status || "generated"]}</Badge>
-                {previewRecord.document_type && (
-                  <Badge className={TYPE_COLORS[previewRecord.document_type]} variant="outline">{getTypeLabel(previewRecord.document_type)}</Badge>
-                )}
+                {previewRecord.document_type && <Badge className={TYPE_COLORS[previewRecord.document_type]} variant="outline">{getTypeLabel(previewRecord.document_type)}</Badge>}
+                {previewRecord.is_locked && <Badge variant="outline" className="text-muted-foreground"><Lock className="h-3 w-3 mr-1" />Verrouillé</Badge>}
               </div>
-              <div className="text-sm">
-                <strong>Destinataire :</strong> {previewRecord.recipient?.prenom && previewRecord.recipient?.nom ? `${previewRecord.recipient.prenom} ${previewRecord.recipient.nom}` : previewRecord.recipient?.full_name || "—"}
-              </div>
+              <div className="text-sm"><strong>Destinataire :</strong> {getEmployeeName(previewRecord.recipient)}</div>
               {previewRecord.subject && <div className="text-sm"><strong>Objet :</strong> {previewRecord.subject}</div>}
+
+              {/* Approval timeline */}
+              {previewRecord.approvals && previewRecord.approvals.length > 0 && (
+                <div className="border rounded-lg p-4 space-y-3">
+                  <Label className="text-sm font-semibold">Circuit de validation</Label>
+                  {previewRecord.approvals.map(a => {
+                    const StatusIcon = APPROVAL_STATUS_ICONS[a.status] || Clock;
+                    return (
+                      <div key={a.id} className={`flex items-start gap-3 p-3 rounded-lg ${
+                        a.status === "approved" ? "bg-green-50" : a.status === "rejected" ? "bg-red-50" : "bg-muted/30"
+                      }`}>
+                        <StatusIcon className={`h-4 w-4 mt-0.5 shrink-0 ${
+                          a.status === "approved" ? "text-green-600" : a.status === "rejected" ? "text-red-600" : "text-muted-foreground"
+                        }`} />
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">{a.step_label}</span>
+                            <Badge variant="outline" className="text-xs">
+                              {a.status === "approved" ? "Validé" : a.status === "rejected" ? "Rejeté" : "En attente"}
+                            </Badge>
+                          </div>
+                          {a.approver && <p className="text-xs text-muted-foreground">Par : {getEmployeeName(a.approver)}</p>}
+                          {a.decided_at && <p className="text-xs text-muted-foreground">{format(new Date(a.decided_at), "dd/MM/yyyy à HH:mm", { locale: fr })}</p>}
+                          {a.comment && <p className="text-xs italic bg-card rounded p-2 mt-1"><MessageSquare className="h-3 w-3 inline mr-1" />{a.comment}</p>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
               <div className="border rounded-lg p-6 bg-card whitespace-pre-wrap text-sm leading-relaxed">{previewRecord.body}</div>
               {previewRecord.signature_name && (
                 <div className="text-right space-y-1 border-t pt-4">
@@ -843,6 +1040,13 @@ export default function Correspondence() {
                   {previewRecord.signature_title && <p className="text-sm italic text-muted-foreground">{previewRecord.signature_title}</p>}
                   {previewRecord.signed_at && <p className="text-xs text-muted-foreground">Signé le {format(new Date(previewRecord.signed_at), "d MMMM yyyy", { locale: fr })}</p>}
                 </div>
+              )}
+
+              {/* Print button for validated/signed */}
+              {(previewRecord.status === "validated" || previewRecord.status === "signed") && (
+                <Button variant="outline" className="w-full" onClick={() => handlePrintPDF(previewRecord)}>
+                  <Download className="h-4 w-4 mr-2" />Exporter en PDF
+                </Button>
               )}
             </div>
           )}
