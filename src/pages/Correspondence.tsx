@@ -374,7 +374,7 @@ export default function Correspondence() {
       .replace(/\{\{telephone\}\}/g, employee?.tel_1 || "")
       .replace(/\{\{nif\}\}/g, employee?.nif || "")
       .replace(/\{\{cin\}\}/g, `<strong>${employee?.cin || ""}</strong>`)
-      .replace(/\{\{date\}\}/g, format(new Date(), "d MMMM yyyy", { locale: fr }))
+      .replace(/\{\{date\}\}/g, `<strong>${format(new Date(), "d MMMM yyyy", { locale: fr })}</strong>`)
       .replace(/\{\{date_embauche\}\}/g, employee?.date_entree_fonction ? `<strong>${format(new Date(employee.date_entree_fonction), "d MMMM yyyy", { locale: fr })}</strong>` : "N/A")
       .replace(/\{\{poste\}\}/g, `<strong>${posName}</strong>`)
       .replace(/\{\{service\}\}/g, unitName)
@@ -526,9 +526,9 @@ export default function Correspondence() {
         .header .org { font-size: 11pt; color: #555; margin-top: 5px; }
         .meta { display: flex; justify-content: space-between; margin-bottom: 25px; font-size: 11pt; }
         .recipient { margin-bottom: 20px; } .recipient strong { display: block; }
-        .doc-title { font-weight: bold; text-align: center; margin: 25px 0; font-size: 15pt; text-transform: uppercase; }
+        .doc-title { font-weight: bold; text-align: center; margin: 35px 0 30px 0; font-size: 15pt; text-transform: uppercase; }
         .subject { font-weight: bold; text-align: center; margin: 20px 0; font-size: 14pt; text-decoration: underline; }
-        .body-content { white-space: pre-wrap; text-align: justify; margin-bottom: 40px; }
+        .body-content { white-space: pre-wrap; text-align: justify; margin-bottom: 40px; margin-top: 15px; }
         .body-content b, .body-content strong { font-weight: bold; }
         .signature-block { margin-top: 50px; text-align: right; }
         .signature-block .name { font-weight: bold; font-size: 13pt; }
@@ -1129,7 +1129,7 @@ export default function Correspondence() {
                   <h2 className="text-lg font-bold uppercase tracking-wider">{organizationName}</h2>
                   <p className="text-sm text-muted-foreground">{getTypeLabel(selectedTemplate?.document_type || "lettre")}</p>
                 </div>
-                <div className="text-center font-bold text-base uppercase">{getTypeLabel(selectedTemplate?.document_type || "lettre")}</div>
+                <div className="text-center font-bold text-base uppercase mt-6 mb-4">{getTypeLabel(selectedTemplate?.document_type || "lettre")}</div>
                 <div className="flex justify-between text-sm text-muted-foreground">
                   <span>Réf : CORR-{format(new Date(), "yyyyMMdd-HHmm")}</span>
                   <span>{format(new Date(), "d MMMM yyyy", { locale: fr })}</span>
