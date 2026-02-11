@@ -365,7 +365,7 @@ export default function Correspondence() {
     const salaireAnnuel = salaireMensuel * 12;
     const civilite = employee?.sexe === "F" ? "Madame" : "Monsieur";
     return text
-      .replace(/\{\{nom\}\}/g, employee?.prenom && employee?.nom ? `${employee.prenom} ${employee.nom}` : employee?.full_name || "")
+      .replace(/\{\{nom\}\}/g, `<strong>${employee?.prenom && employee?.nom ? `${employee.prenom} ${employee.nom}` : employee?.full_name || ""}</strong>`)
       .replace(/\{\{prenom\}\}/g, employee?.prenom || "")
       .replace(/\{\{nom_famille\}\}/g, employee?.nom || "")
       .replace(/\{\{civilite\}\}/g, civilite)
@@ -373,18 +373,18 @@ export default function Correspondence() {
       .replace(/\{\{email\}\}/g, employee?.email || "")
       .replace(/\{\{telephone\}\}/g, employee?.tel_1 || "")
       .replace(/\{\{nif\}\}/g, employee?.nif || "")
-      .replace(/\{\{cin\}\}/g, employee?.cin || "")
+      .replace(/\{\{cin\}\}/g, `<strong>${employee?.cin || ""}</strong>`)
       .replace(/\{\{date\}\}/g, format(new Date(), "d MMMM yyyy", { locale: fr }))
       .replace(/\{\{date_embauche\}\}/g, employee?.date_entree_fonction ? format(new Date(employee.date_entree_fonction), "d MMMM yyyy", { locale: fr }) : "N/A")
-      .replace(/\{\{poste\}\}/g, posName)
+      .replace(/\{\{poste\}\}/g, `<strong>${posName}</strong>`)
       .replace(/\{\{service\}\}/g, unitName)
       .replace(/\{\{organisation\}\}/g, organizationName)
       .replace(/\{\{en_tete\}\}/g, orgDocumentHeader || organizationName)
       .replace(/\{\{ville\}\}/g, orgCity)
       .replace(/\{\{signataire\}\}/g, orgSignerName)
       .replace(/\{\{titre_signataire\}\}/g, orgSignerTitle)
-      .replace(/\{\{salaire_mensuel\}\}/g, salaireMensuel ? salaireMensuel.toLocaleString("fr-FR") + " HTG" : "N/A")
-      .replace(/\{\{salaire_annuel\}\}/g, salaireAnnuel ? salaireAnnuel.toLocaleString("fr-FR") + " HTG" : "N/A");
+      .replace(/\{\{salaire_mensuel\}\}/g, salaireMensuel ? `<strong>${salaireMensuel.toLocaleString("fr-FR")} HTG</strong>` : "N/A")
+      .replace(/\{\{salaire_annuel\}\}/g, salaireAnnuel ? `<strong>${salaireAnnuel.toLocaleString("fr-FR")} HTG</strong>` : "N/A");
   };
 
   // ──── Generation Wizard ────
@@ -526,8 +526,10 @@ export default function Correspondence() {
         .header .org { font-size: 11pt; color: #555; margin-top: 5px; }
         .meta { display: flex; justify-content: space-between; margin-bottom: 25px; font-size: 11pt; }
         .recipient { margin-bottom: 20px; } .recipient strong { display: block; }
+        .doc-title { font-weight: bold; text-align: center; margin: 25px 0; font-size: 15pt; text-transform: uppercase; }
         .subject { font-weight: bold; text-align: center; margin: 20px 0; font-size: 14pt; text-decoration: underline; }
         .body-content { white-space: pre-wrap; text-align: justify; margin-bottom: 40px; }
+        .body-content b, .body-content strong { font-weight: bold; }
         .signature-block { margin-top: 50px; text-align: right; }
         .signature-block .name { font-weight: bold; font-size: 13pt; }
         .signature-block .title { font-style: italic; color: #555; }
@@ -536,8 +538,8 @@ export default function Correspondence() {
         @media print { body { padding: 0; } }
       </style></head><body>
       <div class="header"><h1>${organizationName}</h1><div class="org">${getTypeLabel(docType)}</div></div>
+      <div class="doc-title">${getTypeLabel(docType)}</div>
       <div class="meta"><div>Réf : ${rec?.reference_number || 'CORR-' + format(new Date(), "yyyyMMdd-HHmm")}</div><div>${format(new Date(), "d MMMM yyyy", { locale: fr })}</div></div>
-      <div class="recipient"><strong>À l'attention de :</strong> ${empName}</div>
       ${subjectText ? `<div class="subject">Objet : ${subjectText}</div>` : ""}
       <div class="body-content">${bodyText}</div>
       ${sigName ? `<div class="signature-block"><div class="name">${sigName}</div>${sigTitle ? `<div class="title">${sigTitle}</div>` : ""}<div class="date">Signé le ${format(new Date(), "d MMMM yyyy", { locale: fr })}</div></div>` : ""}
@@ -1127,13 +1129,13 @@ export default function Correspondence() {
                   <h2 className="text-lg font-bold uppercase tracking-wider">{organizationName}</h2>
                   <p className="text-sm text-muted-foreground">{getTypeLabel(selectedTemplate?.document_type || "lettre")}</p>
                 </div>
+                <div className="text-center font-bold text-base uppercase">{getTypeLabel(selectedTemplate?.document_type || "lettre")}</div>
                 <div className="flex justify-between text-sm text-muted-foreground">
                   <span>Réf : CORR-{format(new Date(), "yyyyMMdd-HHmm")}</span>
                   <span>{format(new Date(), "d MMMM yyyy", { locale: fr })}</span>
                 </div>
-                <div className="text-sm"><strong>À l'attention de :</strong> {getEmployeeName(selectedEmployee)}</div>
                 {sendSubject && <div className="text-center font-bold underline">Objet : {sendSubject}</div>}
-                <div className="whitespace-pre-wrap text-sm leading-relaxed">{sendBody}</div>
+                <div className="whitespace-pre-wrap text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sendBody }} />
                 {signatureName && (
                   <div className="text-right mt-8 space-y-1">
                     <p className="font-bold">{signatureName}</p>
