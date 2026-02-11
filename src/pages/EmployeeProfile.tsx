@@ -254,7 +254,7 @@ export default function EmployeeProfile() {
           </Card>
         )}
 
-        {(isOwner || isHR) && showForm && (
+        {(isOwner || isHR) && showForm && !profile?.profile_completed && (
           <Card>
             <CardHeader>
               <CardTitle>Fiche d'employé</CardTitle>
@@ -320,6 +320,60 @@ export default function EmployeeProfile() {
             </TabsList>
 
             <TabsContent value="info" className="space-y-4">
+              {showForm && profile?.profile_completed ? (
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <CardTitle>Modifier la fiche d'employé</CardTitle>
+                    <Button variant="outline" onClick={() => setShowForm(false)}>
+                      Annuler
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    <EmployeeForm
+                      onSubmit={handleSubmit}
+                      units={units}
+                      positions={positions}
+                      professorGrades={professorGrades}
+                      defaultValues={{
+                        code_budgetaire: profile?.code_budgetaire || "",
+                        photo_url: profile?.photo_url || "",
+                        nom: profile?.nom || "",
+                        prenom: profile?.prenom || "",
+                        date_naissance: profile?.date_naissance ? new Date(profile.date_naissance) : undefined,
+                        lieu_naissance: profile?.lieu_naissance || "",
+                        sexe: (profile?.sexe ?? undefined) as "M" | "F" | undefined,
+                        nationalite: profile?.nationalite || "Haïtienne",
+                        etat_civil: profile?.etat_civil ?? undefined,
+                        groupe_sanguin: profile?.groupe_sanguin ?? undefined,
+                        religion: profile?.religion ?? undefined,
+                        nif: profile?.nif || "",
+                        cin: profile?.cin || "",
+                        adresse_rue: profile?.adresse_rue || "",
+                        adresse_ville: profile?.adresse_ville || "",
+                        adresse_departement: profile?.adresse_departement ?? undefined,
+                        code_postal: profile?.code_postal || "",
+                        tel_1: profile?.tel_1 || "",
+                        tel_2: profile?.tel_2 || "",
+                        whatsapp: profile?.whatsapp || "",
+                        email: profile?.email || "",
+                        contact_urgence_nom: profile?.contact_urgence_nom || "",
+                        contact_urgence_prenom: profile?.contact_urgence_prenom || "",
+                        contact_urgence_lien: profile?.contact_urgence_lien || "",
+                        contact_urgence_tel: profile?.contact_urgence_tel || "",
+                        contact_urgence_whatsapp: profile?.contact_urgence_whatsapp || "",
+                        date_entree_fonction: profile?.date_entree_fonction ? new Date(profile.date_entree_fonction) : undefined,
+                        unit_id: profile?.unit_id || "",
+                        employee_category: profile?.employee_category ?? undefined,
+                        position_id: profile?.position_id || "",
+                        employment_type: profile?.employment_type ?? "permanent",
+                        employee_status: profile?.employee_status ?? "actif",
+                        professor_grade: profile?.professor_grade ?? undefined,
+                      }}
+                    />
+                  </CardContent>
+                </Card>
+              ) : (
+              <>
               <div className="flex gap-2 mb-4 print:hidden">
                 <Button onClick={() => window.print()} variant="outline" className="flex-1">
                   <Printer className="h-4 w-4 mr-2" />
@@ -446,6 +500,8 @@ export default function EmployeeProfile() {
                   </CardContent>
                 </Card>
               </div>
+              </>
+              )}
             </TabsContent>
 
             <TabsContent value="documents">
