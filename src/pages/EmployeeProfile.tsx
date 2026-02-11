@@ -7,8 +7,9 @@ import { EmployeeForm } from "@/components/employees/EmployeeForm";
 import { EmployeeBadge } from "@/components/employees/EmployeeBadge";
 import { EmployeeDocuments } from "@/components/employees/EmployeeDocuments";
 import { EmployeeSchedule } from "@/components/employees/EmployeeSchedule";
+import { ProfileTextGenerator } from "@/components/employees/ProfileTextGenerator";
 import { toast } from "@/hooks/use-toast";
-import { AlertCircle, CheckCircle, Clock, Download, CreditCard, Printer, FileText } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, Download, CreditCard, Printer, FileText, Sparkles } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useProfessorGrades } from "@/hooks/useProfessorGrades";
 import { QRCodeSVG } from "qrcode.react";
@@ -308,8 +309,12 @@ export default function EmployeeProfile() {
 
         {(profile?.profile_completed || !isOwner) && (
           <Tabs defaultValue="info" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="info">Informations</TabsTrigger>
+              <TabsTrigger value="profile-text">
+                <Sparkles className="h-4 w-4 mr-2" />
+                Profil
+              </TabsTrigger>
               <TabsTrigger value="schedule">
                 <Clock className="h-4 w-4 mr-2" />
                 Horaires
@@ -507,6 +512,15 @@ export default function EmployeeProfile() {
               </div>
               </>
               )}
+            </TabsContent>
+
+            <TabsContent value="profile-text">
+              <ProfileTextGenerator
+                profile={profile}
+                organizationName={organization?.name}
+                positionName={positions.find(p => p.id === profile.position_id)?.name}
+                unitName={units.find(u => u.id === profile.unit_id)?.name}
+              />
             </TabsContent>
 
             <TabsContent value="schedule">
