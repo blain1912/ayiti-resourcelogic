@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { EmployeeForm } from "@/components/employees/EmployeeForm";
 import { EmployeeBadge } from "@/components/employees/EmployeeBadge";
 import { EmployeeDocuments } from "@/components/employees/EmployeeDocuments";
+import { EmployeeSchedule } from "@/components/employees/EmployeeSchedule";
 import { toast } from "@/hooks/use-toast";
 import { AlertCircle, CheckCircle, Clock, Download, CreditCard, Printer, FileText } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -307,8 +308,12 @@ export default function EmployeeProfile() {
 
         {(profile?.profile_completed || !isOwner) && (
           <Tabs defaultValue="info" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="info">Informations</TabsTrigger>
+              <TabsTrigger value="schedule">
+                <Clock className="h-4 w-4 mr-2" />
+                Horaires
+              </TabsTrigger>
               <TabsTrigger value="documents">
                 <FileText className="h-4 w-4 mr-2" />
                 Documents
@@ -502,6 +507,10 @@ export default function EmployeeProfile() {
               </div>
               </>
               )}
+            </TabsContent>
+
+            <TabsContent value="schedule">
+              <EmployeeSchedule profileId={profile.id} />
             </TabsContent>
 
             <TabsContent value="documents">
