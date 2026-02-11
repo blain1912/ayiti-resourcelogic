@@ -169,6 +169,37 @@ export function useSpecialSchedules() {
     }
   };
 
+  const sendScheduleNotification = async (
+    profileIds: string[],
+    schedule: SpecialSchedule,
+    workDays: number[],
+    startTime: string,
+    endTime: string
+  ) => {
+    try {
+      const { data: org } = await supabase
+        .from("organizations")
+        .select("name")
+        .eq("id", schedule.organization_id)
+        .maybeSingle();
+
+      await supabase.functions.invoke("send-schedule-notification", {
+        body: {
+          profileIds,
+          scheduleName: schedule.name,
+          startDate: schedule.start_date,
+          endDate: schedule.end_date,
+          workDays,
+          startTime,
+          endTime,
+          organizationName: org?.name || "Votre organisation",
+        },
+      });
+    } catch (e) {
+      console.error("Notification error:", e);
+    }
+  };
+
   const assignEmployee = async (scheduleId: string, data: {
     profile_id: string;
     work_days: number[];
@@ -199,6 +230,12 @@ export function useSpecialSchedules() {
       });
 
       if (error) throw error;
+
+      const schedule = schedules.find(s => s.id === scheduleId);
+      if (schedule) {
+        sendScheduleNotification([data.profile_id], schedule, data.work_days, data.start_time, data.end_time);
+      }
+
       toast({ title: "Employé assigné avec succès" });
       return true;
     } catch (error: any) {
@@ -265,6 +302,12 @@ export function useSpecialSchedules() {
 
       const { error } = await supabase.from("special_schedule_assignments").insert(newAssignments);
       if (error) throw error;
+
+      const schedule = schedules.find(s => s.id === scheduleId);
+      if (schedule) {
+        const assignedIds = newAssignments.map(a => a.profile_id);
+        sendScheduleNotification(assignedIds, schedule, data.work_days, data.start_time, data.end_time);
+      }
 
       toast({ title: `${newAssignments.length} employé(s) assigné(s) avec succès` });
       return true;
