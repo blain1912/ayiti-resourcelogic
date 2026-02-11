@@ -169,6 +169,7 @@ export default function Correspondence() {
   const [orgCity, setOrgCity] = useState("Port-au-Prince");
   const [orgSignerName, setOrgSignerName] = useState("");
   const [orgSignerTitle, setOrgSignerTitle] = useState("");
+  const [orgLetterheadUrl, setOrgLetterheadUrl] = useState<string | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
@@ -235,7 +236,7 @@ export default function Correspondence() {
       setProfileId(profile.id);
 
       const [orgRes, tplRes, recRes, empRes, unitRes, posRes, rolesRes] = await Promise.all([
-        supabase.from("organizations").select("name, document_header_text, document_city, default_signer_name, default_signer_title, pdf_font_size, pdf_line_height, pdf_margin, pdf_vertical_align").eq("id", profile.organization_id).maybeSingle(),
+        supabase.from("organizations").select("name, document_header_text, document_city, default_signer_name, default_signer_title, pdf_font_size, pdf_line_height, pdf_margin, pdf_vertical_align, letterhead_url").eq("id", profile.organization_id).maybeSingle(),
         (supabase.from("correspondence_templates") as any).select("*").eq("organization_id", profile.organization_id).order("created_at", { ascending: false }),
         (supabase.from("correspondence_records") as any).select("id, title, category, subject, body, sent_at, status, signature_name, signature_title, signed_at, document_type, category_label, recipient_id, is_locked, reference_number").eq("organization_id", profile.organization_id).order("sent_at", { ascending: false }),
         supabase.from("profiles").select("id, full_name, prenom, nom, email, tel_1, nif, cin, date_entree_fonction, unit_id, position_id, sexe").eq("organization_id", profile.organization_id).eq("approval_status", "approved"),
@@ -249,6 +250,7 @@ export default function Correspondence() {
       setOrgCity((orgRes.data as any)?.document_city || "Port-au-Prince");
       setOrgSignerName((orgRes.data as any)?.default_signer_name || "");
       setOrgSignerTitle((orgRes.data as any)?.default_signer_title || "");
+      setOrgLetterheadUrl((orgRes.data as any)?.letterhead_url || null);
       // Load saved PDF preferences
       const orgData = orgRes.data as any;
       if (orgData?.pdf_font_size != null) setPdfFontSize(orgData.pdf_font_size);
@@ -560,9 +562,11 @@ export default function Correspondence() {
     if (!win) return;
     win.document.write(`<!DOCTYPE html><html><head><title>${rec?.title || selectedTemplate?.title || "Correspondance"}</title>
       <style>
-        @page { size: 8.5in 11in; margin: ${pdfMargin}cm; }
+        @page { size: 8.5in 11in; margin: 0; }
         html, body { height: 100%; margin: 0; }
-        body { font-family: 'Times New Roman', serif; font-size: ${pdfFontSize}pt; line-height: ${pdfLineHeight}; color: #000; padding: ${pdfMargin}cm; display: flex; flex-direction: column; justify-content: ${pdfVerticalAlign === "top" ? "flex-start" : pdfVerticalAlign === "center" ? "center" : "flex-end"}; min-height: calc(100vh - ${pdfMargin * 2}cm); box-sizing: border-box; }
+        body { font-family: 'Times New Roman', serif; font-size: ${pdfFontSize}pt; line-height: ${pdfLineHeight}; color: #000; position: relative; min-height: 100vh; }
+        .letterhead-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; object-fit: cover; }
+        .content-wrapper { position: relative; z-index: 1; padding: ${pdfMargin}cm; display: flex; flex-direction: column; justify-content: ${pdfVerticalAlign === "top" ? "flex-start" : pdfVerticalAlign === "center" ? "center" : "flex-end"}; min-height: calc(100vh - ${pdfMargin * 2}cm); box-sizing: border-box; }
         .header { display: none; }
         .meta { display: flex; justify-content: space-between; margin-bottom: 25px; font-size: 11pt; }
         .recipient { margin-bottom: 20px; } .recipient strong { display: block; }
@@ -578,8 +582,10 @@ export default function Correspondence() {
         .qr-verification { margin-top: 40px; padding-top: 15px; border-top: 1px solid #ddd; display: flex; align-items: center; gap: 12px; }
         .qr-verification img { width: 80px; height: 80px; }
         .qr-verification .qr-label { font-size: 8pt; color: #888; line-height: 1.4; }
-        @media print { body { padding: 0; } }
+        @media print { .letterhead-bg { position: fixed; print-color-adjust: exact; -webkit-print-color-adjust: exact; } body { padding: 0; } }
       </style></head><body>
+      ${orgLetterheadUrl ? `<img class="letterhead-bg" src="${orgLetterheadUrl}" alt="" />` : ""}
+      <div class="content-wrapper">
       <div class="header"><h1>${organizationName}</h1><div class="org">${getTypeLabel(docType)}</div></div>
       <div class="doc-title">${getTypeLabel(docType)}</div>
       <div class="meta"><div>Réf : ${rec?.reference_number || 'CORR-' + format(new Date(), "yyyyMMdd-HHmm")}</div><div>${format(new Date(), "d MMMM yyyy", { locale: fr })}</div></div>
@@ -587,6 +593,7 @@ export default function Correspondence() {
       <div class="body-content">${bodyText}</div>
       ${sigName ? `<div class="signature-block"><div class="name">${sigName}</div>${sigTitle ? `<div class="title">${sigTitle}</div>` : ""}<div class="date">Signé le ${format(new Date(), "d MMMM yyyy", { locale: fr })}</div></div>` : ""}
       ${qrDataUrl ? `<div class="qr-verification"><img src="${qrDataUrl}" alt="QR Code de vérification" /><div class="qr-label">QR Code d'authentification<br/>Réf : ${rec?.reference_number || 'CORR-' + format(new Date(), "yyyyMMdd-HHmm")}<br/>Scannez pour vérifier l'authenticité du document</div></div>` : ""}
+      </div>
     </body></html>`);
     win.document.close();
     win.print();
@@ -1239,8 +1246,22 @@ export default function Correspondence() {
                 )}
               </div>
 
-              <div ref={printRef} className="border rounded-lg bg-card" style={{ padding: `${pdfMargin * 10}px`, fontSize: `${pdfFontSize}px`, lineHeight: pdfLineHeight }}>
-                <div style={{ display: "flex", flexDirection: "column", justifyContent: pdfVerticalAlign === "top" ? "flex-start" : pdfVerticalAlign === "center" ? "center" : "flex-end", minHeight: "400px" }}>
+              <div ref={printRef} className="border rounded-lg overflow-hidden relative" style={{
+                aspectRatio: "8.5 / 11",
+                fontSize: `${pdfFontSize}px`,
+                lineHeight: pdfLineHeight,
+                fontFamily: "'Times New Roman', serif",
+              }}>
+                {/* Letterhead background */}
+                {orgLetterheadUrl && (
+                  <img
+                    src={orgLetterheadUrl}
+                    alt="Papier à en-tête"
+                    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                    style={{ zIndex: 0, opacity: 1 }}
+                  />
+                )}
+                <div className="relative" style={{ zIndex: 1, padding: `${pdfMargin * 10}px`, minHeight: "100%", display: "flex", flexDirection: "column", justifyContent: pdfVerticalAlign === "top" ? "flex-start" : pdfVerticalAlign === "center" ? "center" : "flex-end" }}>
                   <div className="space-y-4">
                     <div className="text-center font-bold uppercase mt-6 mb-4">{getTypeLabel(selectedTemplate?.document_type || "lettre")}</div>
                     <div className="flex justify-between text-muted-foreground" style={{ fontSize: `${Math.max(pdfFontSize - 2, 8)}px` }}>
@@ -1343,7 +1364,12 @@ export default function Correspondence() {
                 </div>
               )}
 
-              <div className="border rounded-lg p-6 bg-card whitespace-pre-wrap text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: previewRecord.body }} />
+              <div className="border rounded-lg overflow-hidden relative" style={{ aspectRatio: "8.5 / 11", fontFamily: "'Times New Roman', serif" }}>
+                {orgLetterheadUrl && (
+                  <img src={orgLetterheadUrl} alt="Papier à en-tête" className="absolute inset-0 w-full h-full object-cover pointer-events-none" style={{ zIndex: 0 }} />
+                )}
+                <div className="relative p-6 whitespace-pre-wrap text-sm leading-relaxed" style={{ zIndex: 1 }} dangerouslySetInnerHTML={{ __html: previewRecord.body }} />
+              </div>
               {previewRecord.signature_name && (
                 <div className="text-right space-y-1 border-t pt-4">
                   <p className="font-bold">{previewRecord.signature_name}</p>
