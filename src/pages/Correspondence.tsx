@@ -534,7 +534,7 @@ export default function Correspondence() {
         .signature-block .name { font-weight: bold; font-size: 13pt; }
         .signature-block .title { font-style: italic; color: #555; }
         .signature-block .date { margin-top: 8px; font-size: 11pt; color: #555; }
-        .footer { margin-top: 60px; text-align: center; font-size: 9pt; color: #888; border-top: 1px solid #ccc; padding-top: 10px; }
+        .footer { display: none; }
         @media print { body { padding: 0; } }
       </style></head><body>
       <div class="header"><h1>${organizationName}</h1><div class="org">${getTypeLabel(docType)}</div></div>
@@ -543,7 +543,7 @@ export default function Correspondence() {
       ${subjectText ? `<div class="subject">Objet : ${subjectText}</div>` : ""}
       <div class="body-content">${bodyText}</div>
       ${sigName ? `<div class="signature-block"><div class="name">${sigName}</div>${sigTitle ? `<div class="title">${sigTitle}</div>` : ""}<div class="date">Signé le ${format(new Date(), "d MMMM yyyy", { locale: fr })}</div></div>` : ""}
-      <div class="footer">Document généré par ${organizationName} — ${format(new Date(), "dd/MM/yyyy HH:mm")}</div>
+      
     </body></html>`);
     win.document.close();
     win.print();
