@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Switch } from "@/components/ui/switch";
 import { useSpecialSchedules, ScheduleAssignment } from "@/hooks/useSpecialSchedules";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, Calendar, Clock, Users, ChevronRight, ArrowLeft } from "lucide-react";
+import { Plus, Trash2, Calendar, Clock, Users, ChevronRight, ArrowLeft, Building2 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -21,14 +21,16 @@ const DAY_LABELS = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
 export default function SpecialSchedules() {
   const {
     schedules, loading, createSchedule, updateSchedule, deleteSchedule,
-    fetchAssignments, assignEmployee, removeAssignment,
+    fetchAssignments, assignEmployee, assignUnit, removeAssignment,
   } = useSpecialSchedules();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedSchedule, setSelectedSchedule] = useState<string | null>(null);
   const [assignments, setAssignments] = useState<ScheduleAssignment[]>([]);
   const [assignOpen, setAssignOpen] = useState(false);
+  const [assignUnitOpen, setAssignUnitOpen] = useState(false);
   const [employees, setEmployees] = useState<any[]>([]);
+  const [units, setUnits] = useState<any[]>([]);
   
   // Form states
   const [name, setName] = useState("");
@@ -43,10 +45,18 @@ export default function SpecialSchedules() {
   const [endTime, setEndTime] = useState("16:00");
   const [assignNotes, setAssignNotes] = useState("");
 
+  // Unit assignment form
+  const [selectedUnit, setSelectedUnit] = useState("");
+  const [unitWorkDays, setUnitWorkDays] = useState<number[]>([1, 2, 3, 4, 5]);
+  const [unitStartTime, setUnitStartTime] = useState("08:00");
+  const [unitEndTime, setUnitEndTime] = useState("16:00");
+  const [unitNotes, setUnitNotes] = useState("");
+
   useEffect(() => {
     if (selectedSchedule) {
       loadAssignments(selectedSchedule);
       loadEmployees();
+      loadUnits();
     }
   }, [selectedSchedule]);
 
@@ -71,6 +81,24 @@ export default function SpecialSchedules() {
       .eq("organization_id", profile.organization_id)
       .eq("approval_status", "approved");
     setEmployees(data || []);
+  };
+
+  const loadUnits = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("organization_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (!profile?.organization_id) return;
+
+    const { data } = await supabase
+      .from("organizational_units")
+      .select("id, name, type")
+      .eq("organization_id", profile.organization_id)
+      .order("name");
+    setUnits(data || []);
   };
 
   const handleCreate = async () => {
@@ -104,6 +132,25 @@ export default function SpecialSchedules() {
 
   const toggleDay = (day: number) => {
     setWorkDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day].sort());
+  };
+
+  const toggleUnitDay = (day: number) => {
+    setUnitWorkDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day].sort());
+  };
+
+  const handleAssignUnit = async () => {
+    if (!selectedSchedule || !selectedUnit) return;
+    const success = await assignUnit(selectedSchedule, selectedUnit, {
+      work_days: unitWorkDays,
+      start_time: unitStartTime,
+      end_time: unitEndTime,
+      notes: unitNotes || undefined,
+    });
+    if (success) {
+      setAssignUnitOpen(false);
+      setSelectedUnit(""); setUnitWorkDays([1, 2, 3, 4, 5]); setUnitStartTime("08:00"); setUnitEndTime("16:00"); setUnitNotes("");
+      loadAssignments(selectedSchedule);
+    }
   };
 
   const currentSchedule = schedules.find(s => s.id === selectedSchedule);
@@ -150,67 +197,112 @@ export default function SpecialSchedules() {
               </CardTitle>
               <CardDescription>Jours et heures de travail assignés à chaque employé</CardDescription>
             </div>
-            <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm"><Plus className="h-4 w-4 mr-2" />Assigner</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Assigner un employé</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <Label>Employé</Label>
-                    <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
-                      <SelectTrigger><SelectValue placeholder="Sélectionner un employé" /></SelectTrigger>
-                      <SelectContent>
-                        {employees
-                          .filter(e => !assignments.some(a => a.profile_id === e.id))
-                          .map(e => (
-                            <SelectItem key={e.id} value={e.id}>
-                              {e.prenom && e.nom ? `${e.prenom} ${e.nom}` : e.full_name || "Sans nom"}
-                            </SelectItem>
+            <div className="flex gap-2">
+              <Dialog open={assignUnitOpen} onOpenChange={setAssignUnitOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" variant="outline"><Building2 className="h-4 w-4 mr-2" />Assigner une unité</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Assigner tous les employés d'une unité</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Unité organisationnelle</Label>
+                      <Select value={selectedUnit} onValueChange={setSelectedUnit}>
+                        <SelectTrigger><SelectValue placeholder="Sélectionner une unité" /></SelectTrigger>
+                        <SelectContent>
+                          {units.map(u => (
+                            <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
                           ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Jours de travail</Label>
-                    <div className="flex gap-2 mt-2">
-                      {DAY_LABELS.map((label, i) => (
-                        <Button
-                          key={i}
-                          type="button"
-                          variant={workDays.includes(i) ? "default" : "outline"}
-                          size="sm"
-                          className="w-10 h-10 p-0"
-                          onClick={() => toggleDay(i)}
-                        >
-                          {label}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>Heure début</Label>
-                      <Input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
+                        </SelectContent>
+                      </Select>
                     </div>
                     <div>
-                      <Label>Heure fin</Label>
-                      <Input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
+                      <Label>Jours de travail</Label>
+                      <div className="flex gap-2 mt-2">
+                        {DAY_LABELS.map((label, i) => (
+                          <Button key={i} type="button" variant={unitWorkDays.includes(i) ? "default" : "outline"} size="sm" className="w-10 h-10 p-0" onClick={() => toggleUnitDay(i)}>
+                            {label}
+                          </Button>
+                        ))}
+                      </div>
                     </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Heure début</Label>
+                        <Input type="time" value={unitStartTime} onChange={e => setUnitStartTime(e.target.value)} />
+                      </div>
+                      <div>
+                        <Label>Heure fin</Label>
+                        <Input type="time" value={unitEndTime} onChange={e => setUnitEndTime(e.target.value)} />
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Notes</Label>
+                      <Textarea value={unitNotes} onChange={e => setUnitNotes(e.target.value)} placeholder="Notes optionnelles..." />
+                    </div>
+                    <Button onClick={handleAssignUnit} disabled={!selectedUnit} className="w-full">
+                      Assigner toute l'unité
+                    </Button>
                   </div>
-                  <div>
-                    <Label>Notes</Label>
-                    <Textarea value={assignNotes} onChange={e => setAssignNotes(e.target.value)} placeholder="Notes optionnelles..." />
+                </DialogContent>
+              </Dialog>
+              <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm"><Plus className="h-4 w-4 mr-2" />Assigner un employé</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Assigner un employé</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Employé</Label>
+                      <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+                        <SelectTrigger><SelectValue placeholder="Sélectionner un employé" /></SelectTrigger>
+                        <SelectContent>
+                          {employees
+                            .filter(e => !assignments.some(a => a.profile_id === e.id))
+                            .map(e => (
+                              <SelectItem key={e.id} value={e.id}>
+                                {e.prenom && e.nom ? `${e.prenom} ${e.nom}` : e.full_name || "Sans nom"}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Jours de travail</Label>
+                      <div className="flex gap-2 mt-2">
+                        {DAY_LABELS.map((label, i) => (
+                          <Button key={i} type="button" variant={workDays.includes(i) ? "default" : "outline"} size="sm" className="w-10 h-10 p-0" onClick={() => toggleDay(i)}>
+                            {label}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label>Heure début</Label>
+                        <Input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
+                      </div>
+                      <div>
+                        <Label>Heure fin</Label>
+                        <Input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Notes</Label>
+                      <Textarea value={assignNotes} onChange={e => setAssignNotes(e.target.value)} placeholder="Notes optionnelles..." />
+                    </div>
+                    <Button onClick={handleAssign} disabled={!selectedEmployee} className="w-full">
+                      Assigner l'employé
+                    </Button>
                   </div>
-                  <Button onClick={handleAssign} disabled={!selectedEmployee} className="w-full">
-                    Assigner l'employé
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
+                </DialogContent>
+              </Dialog>
+            </div>
           </CardHeader>
           <CardContent>
             {assignments.length === 0 ? (
