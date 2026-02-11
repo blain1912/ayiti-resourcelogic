@@ -521,9 +521,7 @@ export default function Correspondence() {
       <style>
         @page { size: 8.5in 11in; margin: 2.5cm 2.5cm 2.5cm 2.5cm; }
         body { font-family: 'Times New Roman', serif; font-size: 13pt; line-height: 1.7; color: #000; margin: 0; padding: 2.5cm; }
-        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 15px; }
-        .header h1 { font-size: 16pt; margin: 0; text-transform: uppercase; letter-spacing: 2px; }
-        .header .org { font-size: 11pt; font-weight: bold; color: #555; margin-top: 5px; }
+        .header { display: none; }
         .meta { display: flex; justify-content: space-between; margin-bottom: 25px; font-size: 11pt; }
         .recipient { margin-bottom: 20px; } .recipient strong { display: block; }
         .doc-title { font-weight: bold; text-align: center; margin: 35px 0 30px 0; font-size: 15pt; text-transform: uppercase; }
