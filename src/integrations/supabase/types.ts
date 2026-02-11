@@ -1842,6 +1842,10 @@ export type Database = {
         Args: { _organization_id: string; _user_id: string }
         Returns: boolean
       }
+      check_previous_steps_approved: {
+        Args: { _record_id: string; _step_order: number }
+        Returns: boolean
+      }
       check_unit_limit: { Args: { _organization_id: string }; Returns: boolean }
       check_user_limit: { Args: { _organization_id: string }; Returns: boolean }
       generate_correspondence_reference: {
