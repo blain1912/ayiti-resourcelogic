@@ -509,7 +509,7 @@ export default function EmployeeProfile() {
                 profileId={profile.id}
                 organizationId={profile.organization_id}
                 userId={profile.user_id}
-                isOwner={isOwner}
+                isOwner={isOwner || isHR}
               />
             </TabsContent>
 
