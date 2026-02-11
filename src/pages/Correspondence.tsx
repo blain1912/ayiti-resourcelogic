@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Plus, Trash2, FileText, Send, Edit, Eye, Search, Mail, Archive, Filter,
   Check, ChevronRight, ChevronLeft, User, PenTool, Download, CheckCircle2,
-  FileDown, Clock, XCircle, ShieldCheck, MessageSquare, Lock
+  FileDown, Clock, XCircle, ShieldCheck, MessageSquare, Lock, History, Hash
 } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -119,9 +119,15 @@ interface CorrespondenceRecord {
   id: string; title: string; category: string; subject: string | null; body: string;
   sent_at: string; status: string; signature_name: string | null; signature_title: string | null;
   signed_at: string | null; document_type: string | null; category_label: string | null;
-  is_locked: boolean;
+  is_locked: boolean; reference_number: string | null;
   recipient: { id: string; full_name: string | null; prenom: string | null; nom: string | null };
   approvals?: Approval[];
+}
+
+interface AuditLogEntry {
+  id: string; record_id: string; action: string; performed_by: string;
+  details: any; created_at: string;
+  performer?: { full_name: string | null; prenom: string | null; nom: string | null };
 }
 
 // ──── Role check helper ────
@@ -190,6 +196,10 @@ export default function Correspondence() {
   const [filterType, setFilterType] = useState("all");
   const [showArchived, setShowArchived] = useState(false);
 
+  // Audit log
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
+  const [auditRecordId, setAuditRecordId] = useState<string | null>(null);
+
   useEffect(() => { loadData(); }, []);
 
   // ──── Data loading ────
@@ -207,7 +217,7 @@ export default function Correspondence() {
       const [orgRes, tplRes, recRes, empRes, unitRes, posRes, rolesRes] = await Promise.all([
         supabase.from("organizations").select("name").eq("id", profile.organization_id).maybeSingle(),
         (supabase.from("correspondence_templates") as any).select("*").eq("organization_id", profile.organization_id).order("created_at", { ascending: false }),
-        (supabase.from("correspondence_records") as any).select("id, title, category, subject, body, sent_at, status, signature_name, signature_title, signed_at, document_type, category_label, recipient_id, is_locked").eq("organization_id", profile.organization_id).order("sent_at", { ascending: false }),
+        (supabase.from("correspondence_records") as any).select("id, title, category, subject, body, sent_at, status, signature_name, signature_title, signed_at, document_type, category_label, recipient_id, is_locked, reference_number").eq("organization_id", profile.organization_id).order("sent_at", { ascending: false }),
         supabase.from("profiles").select("id, full_name, prenom, nom, email, tel_1, nif, cin, date_entree_fonction, unit_id, position_id").eq("organization_id", profile.organization_id).eq("approval_status", "approved"),
         supabase.from("organizational_units").select("id, name").eq("organization_id", profile.organization_id),
         supabase.from("positions").select("id, name").eq("organization_id", profile.organization_id),
@@ -259,6 +269,35 @@ export default function Correspondence() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // ──── Load audit logs ────
+  const loadAuditLogs = async (recordId: string) => {
+    setAuditRecordId(recordId);
+    const { data } = await (supabase.from("correspondence_audit_log") as any)
+      .select("*")
+      .eq("record_id", recordId)
+      .order("created_at", { ascending: true });
+    
+    const logs = (data || []) as AuditLogEntry[];
+    if (logs.length > 0) {
+      const performerIds = [...new Set(logs.map(l => l.performed_by))];
+      const { data: performers } = await supabase.from("profiles").select("user_id, full_name, prenom, nom").in("user_id", performerIds);
+      const perfMap = new Map((performers || []).map(p => [p.user_id, p]));
+      setAuditLogs(logs.map(l => ({ ...l, performer: perfMap.get(l.performed_by) || null })));
+    } else {
+      setAuditLogs([]);
+    }
+  };
+
+  // ──── Send notification ────
+  const sendNotification = async (type: string, recordId: string, targetUserIds: string[], refNum?: string, docTitle?: string, stepLabel?: string) => {
+    if (!organizationId || targetUserIds.length === 0) return;
+    try {
+      await supabase.functions.invoke("send-correspondence-notification", {
+        body: { type, record_id: recordId, organization_id: organizationId, target_user_ids: targetUserIds, reference_number: refNum, document_title: docTitle, step_label: stepLabel },
+      });
+    } catch (e) { console.error("Notification error:", e); }
   };
 
   // ──── Template CRUD ────
@@ -356,7 +395,7 @@ export default function Correspondence() {
       signature_name: signatureName || null, signature_title: signatureTitle || null,
       signed_at: signatureName && !enableValidation ? new Date().toISOString() : null,
       is_locked: status === "signed",
-    }).select("id").single();
+    }).select("id, reference_number").single();
 
     if (error) { toast({ variant: "destructive", title: "Erreur", description: error.message }); return; }
 
@@ -371,6 +410,19 @@ export default function Correspondence() {
         status: "pending",
       }));
       await (supabase.from("correspondence_approvals") as any).insert(approvalSteps);
+
+      // Notify first approver (Direction RH users)
+      const firstStep = APPROVAL_WORKFLOW_STEPS[0];
+      const { data: approverRoles } = await supabase.from("user_roles").select("user_id").eq("organization_id", organizationId).eq("role", firstStep.role as any);
+      if (approverRoles?.length) {
+        sendNotification("validation_required", record.id, approverRoles.map(r => r.user_id), record.reference_number, selectedTemplate.title, firstStep.label);
+      }
+    } else if (record) {
+      // Notify recipient that document is available
+      const emp = employees.find(e => e.id === selectedRecipient);
+      if (emp?.user_id) {
+        sendNotification("document_available", record.id, [emp.user_id], record.reference_number, selectedTemplate.title);
+      }
     }
 
     toast({ title: enableValidation ? "Correspondance soumise pour validation" : "Correspondance générée et archivée" });
@@ -385,19 +437,36 @@ export default function Correspondence() {
       .eq("id", approval.id);
     if (error) { toast({ variant: "destructive", title: "Erreur", description: error.message }); return; }
 
+    // Find the record for notification context
+    const rec = records.find(r => r.id === approval.record_id);
+
     if (action === "rejected") {
-      // Reject the whole record
       await (supabase.from("correspondence_records") as any).update({ status: "rejected" }).eq("id", approval.record_id);
+      // Notify creator
+      if (rec) {
+        const { data: recData } = await (supabase.from("correspondence_records") as any).select("sent_by").eq("id", approval.record_id).single();
+        if (recData?.sent_by) {
+          const { data: creatorProfile } = await supabase.from("profiles").select("user_id").eq("id", recData.sent_by).single();
+          if (creatorProfile) sendNotification("document_rejected", approval.record_id, [creatorProfile.user_id], rec.reference_number || undefined, rec.title, approval.step_label);
+        }
+      }
     } else {
-      // Check if all steps for this record are now approved
       const { data: allSteps } = await (supabase.from("correspondence_approvals") as any)
-        .select("status").eq("record_id", approval.record_id);
-      const allApproved = (allSteps || []).every((s: any) => s.status === "approved" || s.id === approval.id);
-      if (allApproved || (allSteps || []).filter((s: any) => s.status === "pending").length <= 1) {
-        // Check if this was the last step
-        const remaining = (allSteps || []).filter((s: any) => s.status === "pending" && s.id !== approval.id);
-        if (remaining.length === 0) {
-          await (supabase.from("correspondence_records") as any).update({ status: "validated" }).eq("id", approval.record_id);
+        .select("id, status, step_order, step_role, step_label").eq("record_id", approval.record_id).order("step_order");
+      const remaining = (allSteps || []).filter((s: any) => s.status === "pending" && s.id !== approval.id);
+      if (remaining.length === 0) {
+        await (supabase.from("correspondence_records") as any).update({ status: "validated" }).eq("id", approval.record_id);
+        // Notify recipient
+        if (rec?.recipient) {
+          const { data: recipientProfile } = await supabase.from("profiles").select("user_id").eq("id", rec.recipient.id).single();
+          if (recipientProfile) sendNotification("document_signed", approval.record_id, [recipientProfile.user_id], rec.reference_number || undefined, rec.title);
+        }
+      } else {
+        // Notify next approver
+        const nextStep = remaining[0];
+        const { data: nextApprovers } = await supabase.from("user_roles").select("user_id").eq("organization_id", organizationId!).eq("role", nextStep.step_role as any);
+        if (nextApprovers?.length && rec) {
+          sendNotification("validation_required", approval.record_id, nextApprovers.map((r: any) => r.user_id), rec.reference_number || undefined, rec.title, nextStep.step_label);
         }
       }
     }
@@ -406,7 +475,6 @@ export default function Correspondence() {
     toast({ title: action === "approved" ? "Étape validée" : "Correspondance rejetée" });
     loadData();
 
-    // Refresh preview if open
     if (previewRecord?.id === approval.record_id) {
       const updated = records.find(r => r.id === approval.record_id);
       if (updated) setPreviewRecord(updated);
@@ -444,7 +512,7 @@ export default function Correspondence() {
         @media print { body { padding: 0; } }
       </style></head><body>
       <div class="header"><h1>${organizationName}</h1><div class="org">${getTypeLabel(docType)}</div></div>
-      <div class="meta"><div>Réf : CORR-${format(new Date(), "yyyyMMdd-HHmm")}</div><div>${format(new Date(), "d MMMM yyyy", { locale: fr })}</div></div>
+      <div class="meta"><div>Réf : ${rec?.reference_number || 'CORR-' + format(new Date(), "yyyyMMdd-HHmm")}</div><div>${format(new Date(), "d MMMM yyyy", { locale: fr })}</div></div>
       <div class="recipient"><strong>À l'attention de :</strong> ${empName}</div>
       ${subjectText ? `<div class="subject">Objet : ${subjectText}</div>` : ""}
       <div class="body-content">${bodyText}</div>
@@ -613,6 +681,9 @@ export default function Correspondence() {
               </span>
             )}
           </TabsTrigger>
+          {canCreateTemplates(userRoles) && (
+            <TabsTrigger value="audit"><History className="h-4 w-4 mr-2" />Journal d'audit</TabsTrigger>
+          )}
         </TabsList>
 
         {/* ── Templates tab ── */}
@@ -669,13 +740,18 @@ export default function Correspondence() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead><TableHead>Titre</TableHead><TableHead>Type</TableHead>
+                  <TableHead>Réf.</TableHead><TableHead>Date</TableHead><TableHead>Titre</TableHead><TableHead>Type</TableHead>
                   <TableHead>Destinataire</TableHead><TableHead>Statut</TableHead><TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredRecords.map(rec => (
                   <TableRow key={rec.id}>
+                    <TableCell className="text-xs font-mono text-muted-foreground">
+                      {rec.reference_number ? (
+                        <div className="flex items-center gap-1"><Hash className="h-3 w-3" />{rec.reference_number}</div>
+                      ) : "—"}
+                    </TableCell>
                     <TableCell className="text-sm">{format(new Date(rec.sent_at), "dd/MM/yyyy", { locale: fr })}</TableCell>
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
@@ -689,6 +765,9 @@ export default function Correspondence() {
                     <TableCell>
                       <div className="flex gap-1">
                         <Button size="sm" variant="ghost" onClick={() => { setPreviewRecord(rec); setPreviewOpen(true); }}><Eye className="h-4 w-4" /></Button>
+                        {canCreateTemplates(userRoles) && (
+                          <Button size="sm" variant="ghost" onClick={() => loadAuditLogs(rec.id)} title="Journal d'audit"><History className="h-4 w-4" /></Button>
+                        )}
                         {(rec.status === "validated" || rec.status === "signed") && (
                           <Button size="sm" variant="ghost" onClick={() => handlePrintPDF(rec)}><Download className="h-4 w-4" /></Button>
                         )}
@@ -793,6 +872,84 @@ export default function Correspondence() {
             })
           )}
         </TabsContent>
+
+        {/* ── Audit trail tab ── */}
+        {canCreateTemplates(userRoles) && (
+          <TabsContent value="audit" className="space-y-4">
+            {!auditRecordId ? (
+              <Card><CardContent className="flex flex-col items-center justify-center py-12">
+                <History className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold">Journal d'audit</h3>
+                <p className="text-muted-foreground text-center mt-2">Sélectionnez un courrier dans l'onglet "Courriers" via l'icône <History className="h-4 w-4 inline" /> pour consulter son historique.</p>
+              </CardContent></Card>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <History className="h-5 w-5" />
+                      Historique — {records.find(r => r.id === auditRecordId)?.reference_number || records.find(r => r.id === auditRecordId)?.title || "Document"}
+                    </CardTitle>
+                    <Button variant="ghost" size="sm" onClick={() => setAuditRecordId(null)}>
+                      <XCircle className="h-4 w-4 mr-1" />Fermer
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {auditLogs.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-8">Aucune entrée dans le journal.</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {auditLogs.map((log, idx) => {
+                        const actionLabels: Record<string, string> = {
+                          created: "Création", status_changed: "Changement de statut", locked: "Verrouillage",
+                          signed: "Signature", modified: "Modification", approval_approved: "Validation approuvée",
+                          approval_rejected: "Validation rejetée",
+                        };
+                        const actionColors: Record<string, string> = {
+                          created: "bg-blue-100 text-blue-800", status_changed: "bg-amber-100 text-amber-800",
+                          locked: "bg-slate-100 text-slate-800", signed: "bg-emerald-100 text-emerald-800",
+                          modified: "bg-purple-100 text-purple-800", approval_approved: "bg-green-100 text-green-800",
+                          approval_rejected: "bg-red-100 text-red-800",
+                        };
+                        return (
+                          <div key={log.id} className="flex items-start gap-3">
+                            <div className="flex flex-col items-center">
+                              <div className={`w-3 h-3 rounded-full mt-1.5 ${log.action.includes("reject") ? "bg-destructive" : log.action.includes("approv") ? "bg-green-500" : "bg-primary"}`} />
+                              {idx < auditLogs.length - 1 && <div className="w-0.5 h-full bg-border mt-1" />}
+                            </div>
+                            <div className="flex-1 pb-4">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <Badge className={actionColors[log.action] || "bg-muted text-muted-foreground"} variant="outline">
+                                  {actionLabels[log.action] || log.action}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground">
+                                  {format(new Date(log.created_at), "dd/MM/yyyy à HH:mm:ss", { locale: fr })}
+                                </span>
+                              </div>
+                              {log.performer && (
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Par : {getEmployeeName(log.performer)}
+                                </p>
+                              )}
+                              {log.details && Object.keys(log.details).length > 0 && (
+                                <div className="text-xs bg-muted/50 rounded p-2 mt-1 font-mono">
+                                  {Object.entries(log.details).filter(([_, v]) => v != null).map(([k, v]) => (
+                                    <div key={k}><span className="text-muted-foreground">{k}:</span> {String(v)}</div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* ═══════ GENERATION WIZARD ═══════ */}
@@ -995,6 +1152,9 @@ export default function Correspondence() {
           {previewRecord && (
             <div className="space-y-4">
               <div className="flex items-center gap-3 text-sm text-muted-foreground flex-wrap">
+                {previewRecord.reference_number && (
+                  <Badge variant="outline" className="font-mono"><Hash className="h-3 w-3 mr-1" />{previewRecord.reference_number}</Badge>
+                )}
                 <span>{format(new Date(previewRecord.sent_at), "d MMMM yyyy", { locale: fr })}</span>
                 <Badge className={STATUS_COLORS[previewRecord.status || "generated"]}>{STATUS_LABELS[previewRecord.status || "generated"]}</Badge>
                 {previewRecord.document_type && <Badge className={TYPE_COLORS[previewRecord.document_type]} variant="outline">{getTypeLabel(previewRecord.document_type)}</Badge>}
