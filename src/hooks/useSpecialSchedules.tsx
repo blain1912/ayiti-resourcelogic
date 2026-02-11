@@ -207,6 +207,73 @@ export function useSpecialSchedules() {
     }
   };
 
+  const assignUnit = async (scheduleId: string, unitId: string, data: {
+    work_days: number[];
+    start_time: string;
+    end_time: string;
+    notes?: string;
+  }) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Non authentifié");
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("organization_id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!profile?.organization_id) throw new Error("Pas d'organisation");
+
+      // Get all employees in the unit
+      const { data: unitEmployees, error: empError } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("organization_id", profile.organization_id)
+        .eq("unit_id", unitId)
+        .eq("approval_status", "approved");
+
+      if (empError) throw empError;
+      if (!unitEmployees || unitEmployees.length === 0) {
+        toast({ title: "Aucun employé dans cette unité", variant: "destructive" });
+        return false;
+      }
+
+      // Get existing assignments to avoid duplicates
+      const { data: existing } = await supabase
+        .from("special_schedule_assignments")
+        .select("profile_id")
+        .eq("schedule_id", scheduleId);
+      const existingIds = new Set((existing || []).map((e: any) => e.profile_id));
+
+      const newAssignments = unitEmployees
+        .filter(e => !existingIds.has(e.id))
+        .map(e => ({
+          schedule_id: scheduleId,
+          profile_id: e.id,
+          organization_id: profile.organization_id!,
+          work_days: data.work_days,
+          start_time: data.start_time,
+          end_time: data.end_time,
+          notes: data.notes || null,
+        }));
+
+      if (newAssignments.length === 0) {
+        toast({ title: "Tous les employés de cette unité sont déjà assignés" });
+        return true;
+      }
+
+      const { error } = await supabase.from("special_schedule_assignments").insert(newAssignments);
+      if (error) throw error;
+
+      toast({ title: `${newAssignments.length} employé(s) assigné(s) avec succès` });
+      return true;
+    } catch (error: any) {
+      toast({ title: "Erreur", description: error.message, variant: "destructive" });
+      return false;
+    }
+  };
+
   const removeAssignment = async (assignmentId: string) => {
     try {
       const { error } = await supabase
@@ -228,6 +295,7 @@ export function useSpecialSchedules() {
     deleteSchedule,
     fetchAssignments,
     assignEmployee,
+    assignUnit,
     removeAssignment,
     refetch: fetchSchedules,
   };
