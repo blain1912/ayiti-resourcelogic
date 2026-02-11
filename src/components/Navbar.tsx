@@ -240,6 +240,12 @@ export default function Navbar() {
                         Horaires spéciaux
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/correspondence" className="flex items-center cursor-pointer">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Correspondance
+                      </Link>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
@@ -529,6 +535,12 @@ export default function Navbar() {
                   <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                     <Clock className="h-4 w-4" />
                     Horaires spéciaux
+                  </Button>
+                </Link>
+                <Link to="/correspondence" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <FileText className="h-4 w-4" />
+                    Correspondance
                   </Button>
                 </Link>
               </div>
