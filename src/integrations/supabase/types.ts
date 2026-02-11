@@ -106,6 +106,123 @@ export type Database = {
           },
         ]
       }
+      correspondence_records: {
+        Row: {
+          body: string
+          category: Database["public"]["Enums"]["correspondence_category"]
+          created_at: string
+          id: string
+          organization_id: string
+          recipient_id: string
+          sent_at: string
+          sent_by: string
+          subject: string | null
+          template_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          category: Database["public"]["Enums"]["correspondence_category"]
+          created_at?: string
+          id?: string
+          organization_id: string
+          recipient_id: string
+          sent_at?: string
+          sent_by: string
+          subject?: string | null
+          template_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          category?: Database["public"]["Enums"]["correspondence_category"]
+          created_at?: string
+          id?: string
+          organization_id?: string
+          recipient_id?: string
+          sent_at?: string
+          sent_by?: string
+          subject?: string | null
+          template_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correspondence_records_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_records_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_records_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "correspondence_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      correspondence_templates: {
+        Row: {
+          body: string
+          category: Database["public"]["Enums"]["correspondence_category"]
+          created_at: string
+          created_by: string
+          id: string
+          is_active: boolean
+          organization_id: string
+          subject: string | null
+          title: string
+          updated_at: string
+          variables: string[] | null
+        }
+        Insert: {
+          body: string
+          category?: Database["public"]["Enums"]["correspondence_category"]
+          created_at?: string
+          created_by: string
+          id?: string
+          is_active?: boolean
+          organization_id: string
+          subject?: string | null
+          title: string
+          updated_at?: string
+          variables?: string[] | null
+        }
+        Update: {
+          body?: string
+          category?: Database["public"]["Enums"]["correspondence_category"]
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_active?: boolean
+          organization_id?: string
+          subject?: string | null
+          title?: string
+          updated_at?: string
+          variables?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correspondence_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employee_categories: {
         Row: {
           created_at: string
@@ -1513,6 +1630,17 @@ export type Database = {
         | "offered"
         | "accepted"
         | "rejected"
+      correspondence_category:
+        | "attestation_travail"
+        | "certificat_travail"
+        | "lettre_recommandation"
+        | "note_service"
+        | "decision"
+        | "convocation"
+        | "mise_en_demeure"
+        | "avertissement"
+        | "felicitations"
+        | "autre"
       employee_status:
         | "actif"
         | "conge_annuel"
@@ -1712,6 +1840,18 @@ export const Constants = {
         "offered",
         "accepted",
         "rejected",
+      ],
+      correspondence_category: [
+        "attestation_travail",
+        "certificat_travail",
+        "lettre_recommandation",
+        "note_service",
+        "decision",
+        "convocation",
+        "mise_en_demeure",
+        "avertissement",
+        "felicitations",
+        "autre",
       ],
       employee_status: [
         "actif",
