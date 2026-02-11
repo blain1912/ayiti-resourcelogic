@@ -63,12 +63,14 @@ const TYPE_COLORS: Record<string, string> = {
 
 const VARIABLE_SUGGESTIONS = [
   { key: "{{nom}}", label: "Nom complet" }, { key: "{{prenom}}", label: "Prénom" },
-  { key: "{{nom_famille}}", label: "Nom de famille" }, { key: "{{matricule}}", label: "Matricule" },
+  { key: "{{nom_famille}}", label: "Nom de famille" }, { key: "{{civilite}}", label: "Monsieur/Madame" },
+  { key: "{{matricule}}", label: "Matricule" },
   { key: "{{poste}}", label: "Poste" }, { key: "{{service}}", label: "Service/Unité" },
   { key: "{{date}}", label: "Date du jour" }, { key: "{{date_embauche}}", label: "Date d'embauche" },
   { key: "{{organisation}}", label: "Nom de l'institution" }, { key: "{{email}}", label: "Email" },
   { key: "{{telephone}}", label: "Téléphone" }, { key: "{{nif}}", label: "NIF" },
   { key: "{{cin}}", label: "CIN" },
+  { key: "{{salaire_mensuel}}", label: "Salaire mensuel" }, { key: "{{salaire_annuel}}", label: "Salaire annuel" },
 ];
 
 const GENERATION_STEPS = [
@@ -218,9 +220,9 @@ export default function Correspondence() {
         supabase.from("organizations").select("name").eq("id", profile.organization_id).maybeSingle(),
         (supabase.from("correspondence_templates") as any).select("*").eq("organization_id", profile.organization_id).order("created_at", { ascending: false }),
         (supabase.from("correspondence_records") as any).select("id, title, category, subject, body, sent_at, status, signature_name, signature_title, signed_at, document_type, category_label, recipient_id, is_locked, reference_number").eq("organization_id", profile.organization_id).order("sent_at", { ascending: false }),
-        supabase.from("profiles").select("id, full_name, prenom, nom, email, tel_1, nif, cin, date_entree_fonction, unit_id, position_id").eq("organization_id", profile.organization_id).eq("approval_status", "approved"),
+        supabase.from("profiles").select("id, full_name, prenom, nom, email, tel_1, nif, cin, date_entree_fonction, unit_id, position_id, sexe").eq("organization_id", profile.organization_id).eq("approval_status", "approved"),
         supabase.from("organizational_units").select("id, name").eq("organization_id", profile.organization_id),
-        supabase.from("positions").select("id, name").eq("organization_id", profile.organization_id),
+        supabase.from("positions").select("id, name, salary").eq("organization_id", profile.organization_id),
         supabase.from("user_roles").select("role").eq("user_id", user.id).eq("organization_id", profile.organization_id),
       ]);
 
@@ -346,11 +348,16 @@ export default function Correspondence() {
   // ──── Variable replacement ────
   const replaceVariables = (text: string, employee: any) => {
     const unitName = units.find(u => u.id === employee?.unit_id)?.name || "";
-    const posName = positions.find(p => p.id === employee?.position_id)?.name || "";
+    const pos = positions.find(p => p.id === employee?.position_id);
+    const posName = pos?.name || "";
+    const salaireMensuel = pos?.salary ? Number(pos.salary) : 0;
+    const salaireAnnuel = salaireMensuel * 12;
+    const civilite = employee?.sexe === "F" ? "Madame" : "Monsieur";
     return text
       .replace(/\{\{nom\}\}/g, employee?.prenom && employee?.nom ? `${employee.prenom} ${employee.nom}` : employee?.full_name || "")
       .replace(/\{\{prenom\}\}/g, employee?.prenom || "")
       .replace(/\{\{nom_famille\}\}/g, employee?.nom || "")
+      .replace(/\{\{civilite\}\}/g, civilite)
       .replace(/\{\{matricule\}\}/g, employee?.nif || "N/A")
       .replace(/\{\{email\}\}/g, employee?.email || "")
       .replace(/\{\{telephone\}\}/g, employee?.tel_1 || "")
@@ -360,7 +367,9 @@ export default function Correspondence() {
       .replace(/\{\{date_embauche\}\}/g, employee?.date_entree_fonction ? format(new Date(employee.date_entree_fonction), "d MMMM yyyy", { locale: fr }) : "N/A")
       .replace(/\{\{poste\}\}/g, posName)
       .replace(/\{\{service\}\}/g, unitName)
-      .replace(/\{\{organisation\}\}/g, organizationName);
+      .replace(/\{\{organisation\}\}/g, organizationName)
+      .replace(/\{\{salaire_mensuel\}\}/g, salaireMensuel ? salaireMensuel.toLocaleString("fr-FR") + " HTG" : "N/A")
+      .replace(/\{\{salaire_annuel\}\}/g, salaireAnnuel ? salaireAnnuel.toLocaleString("fr-FR") + " HTG" : "N/A");
   };
 
   // ──── Generation Wizard ────
