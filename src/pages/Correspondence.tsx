@@ -233,7 +233,7 @@ export default function Correspondence() {
       setProfileId(profile.id);
 
       const [orgRes, tplRes, recRes, empRes, unitRes, posRes, rolesRes] = await Promise.all([
-        supabase.from("organizations").select("name, document_header_text, document_city, default_signer_name, default_signer_title").eq("id", profile.organization_id).maybeSingle(),
+        supabase.from("organizations").select("name, document_header_text, document_city, default_signer_name, default_signer_title, pdf_font_size, pdf_line_height, pdf_margin, pdf_vertical_align").eq("id", profile.organization_id).maybeSingle(),
         (supabase.from("correspondence_templates") as any).select("*").eq("organization_id", profile.organization_id).order("created_at", { ascending: false }),
         (supabase.from("correspondence_records") as any).select("id, title, category, subject, body, sent_at, status, signature_name, signature_title, signed_at, document_type, category_label, recipient_id, is_locked, reference_number").eq("organization_id", profile.organization_id).order("sent_at", { ascending: false }),
         supabase.from("profiles").select("id, full_name, prenom, nom, email, tel_1, nif, cin, date_entree_fonction, unit_id, position_id, sexe").eq("organization_id", profile.organization_id).eq("approval_status", "approved"),
@@ -247,6 +247,12 @@ export default function Correspondence() {
       setOrgCity((orgRes.data as any)?.document_city || "Port-au-Prince");
       setOrgSignerName((orgRes.data as any)?.default_signer_name || "");
       setOrgSignerTitle((orgRes.data as any)?.default_signer_title || "");
+      // Load saved PDF preferences
+      const orgData = orgRes.data as any;
+      if (orgData?.pdf_font_size != null) setPdfFontSize(orgData.pdf_font_size);
+      if (orgData?.pdf_line_height != null) setPdfLineHeight(orgData.pdf_line_height);
+      if (orgData?.pdf_margin != null) setPdfMargin(orgData.pdf_margin);
+      if (orgData?.pdf_vertical_align) setPdfVerticalAlign(orgData.pdf_vertical_align);
       setTemplates((tplRes.data as any[]) || []);
       setEmployees(empRes.data || []);
       setUnits(unitRes.data || []);
@@ -1183,9 +1189,23 @@ export default function Correspondence() {
                         </div>
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" className="text-xs" onClick={() => { setPdfFontSize(13); setPdfLineHeight(1.7); setPdfMargin(2.5); setPdfVerticalAlign("bottom"); }}>
-                      <RotateCcw className="h-3 w-3 mr-1" />Réinitialiser
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm" className="text-xs" onClick={() => { setPdfFontSize(13); setPdfLineHeight(1.7); setPdfMargin(2.5); setPdfVerticalAlign("bottom"); }}>
+                        <RotateCcw className="h-3 w-3 mr-1" />Réinitialiser
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-xs" onClick={async () => {
+                        if (!organizationId) return;
+                        const { error } = await supabase.from("organizations").update({
+                          pdf_font_size: pdfFontSize,
+                          pdf_line_height: pdfLineHeight,
+                          pdf_margin: pdfMargin,
+                          pdf_vertical_align: pdfVerticalAlign,
+                        } as any).eq("id", organizationId);
+                        toast({ title: error ? "Erreur" : "Préférences sauvegardées", description: error ? error.message : "Les ajustements seront appliqués par défaut.", variant: error ? "destructive" : "default" });
+                      }}>
+                        <Check className="h-3 w-3 mr-1" />Sauvegarder
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
