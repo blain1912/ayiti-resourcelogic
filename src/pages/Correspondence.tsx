@@ -1219,7 +1219,7 @@ export default function Correspondence() {
                 </div>
               )}
 
-              <div className="border rounded-lg p-6 bg-card whitespace-pre-wrap text-sm leading-relaxed">{previewRecord.body}</div>
+              <div className="border rounded-lg p-6 bg-card whitespace-pre-wrap text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: previewRecord.body }} />
               {previewRecord.signature_name && (
                 <div className="text-right space-y-1 border-t pt-4">
                   <p className="font-bold">{previewRecord.signature_name}</p>
