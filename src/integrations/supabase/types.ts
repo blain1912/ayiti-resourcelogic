@@ -170,6 +170,92 @@ export type Database = {
           },
         ]
       }
+      correspondence_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: string | null
+          organization_id: string
+          performed_by: string
+          record_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          organization_id: string
+          performed_by: string
+          record_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          organization_id?: string
+          performed_by?: string
+          record_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correspondence_audit_log_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "correspondence_audit_log_record_id_fkey"
+            columns: ["record_id"]
+            isOneToOne: false
+            referencedRelation: "correspondence_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      correspondence_counters: {
+        Row: {
+          category_prefix: string
+          created_at: string
+          id: string
+          last_number: number
+          organization_id: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          category_prefix: string
+          created_at?: string
+          id?: string
+          last_number?: number
+          organization_id: string
+          updated_at?: string
+          year?: number
+        }
+        Update: {
+          category_prefix?: string
+          created_at?: string
+          id?: string
+          last_number?: number
+          organization_id?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "correspondence_counters_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       correspondence_records: {
         Row: {
           body: string
@@ -181,6 +267,7 @@ export type Database = {
           is_locked: boolean
           organization_id: string
           recipient_id: string
+          reference_number: string | null
           sent_at: string
           sent_by: string
           signature_name: string | null
@@ -204,6 +291,7 @@ export type Database = {
           is_locked?: boolean
           organization_id: string
           recipient_id: string
+          reference_number?: string | null
           sent_at?: string
           sent_by: string
           signature_name?: string | null
@@ -227,6 +315,7 @@ export type Database = {
           is_locked?: boolean
           organization_id?: string
           recipient_id?: string
+          reference_number?: string | null
           sent_at?: string
           sent_by?: string
           signature_name?: string | null
@@ -1110,6 +1199,50 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          link: string | null
+          message: string
+          organization_id: string
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message: string
+          organization_id: string
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message?: string
+          organization_id?: string
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizational_units: {
         Row: {
           created_at: string
@@ -1696,6 +1829,14 @@ export type Database = {
       }
       check_unit_limit: { Args: { _organization_id: string }; Returns: boolean }
       check_user_limit: { Args: { _organization_id: string }; Returns: boolean }
+      generate_correspondence_reference: {
+        Args: {
+          _category: string
+          _document_type: string
+          _organization_id: string
+        }
+        Returns: string
+      }
       has_admin_role: {
         Args: { _organization_id: string; _user_id: string }
         Returns: boolean
