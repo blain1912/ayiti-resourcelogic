@@ -9,53 +9,86 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Trash2, FileText, Send, Edit, Eye, Search, Mail } from "lucide-react";
+import { Plus, Trash2, FileText, Send, Edit, Eye, Search, Mail, Archive, Filter } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 
-const CATEGORY_LABELS: Record<string, string> = {
-  attestation_travail: "Attestation de travail",
-  certificat_travail: "Certificat de travail",
-  lettre_recommandation: "Lettre de recommandation",
-  note_service: "Note de service",
-  decision: "Décision",
-  convocation: "Convocation",
-  mise_en_demeure: "Mise en demeure",
-  avertissement: "Avertissement",
-  felicitations: "Félicitations",
-  autre: "Autre",
-};
+// Categories
+const CATEGORIES = [
+  { value: "recrutement", label: "Recrutement" },
+  { value: "discipline", label: "Discipline" },
+  { value: "carriere", label: "Carrière" },
+  { value: "administration", label: "Administration" },
+  { value: "conges", label: "Congés" },
+  { value: "remuneration", label: "Rémunération" },
+  { value: "formation", label: "Formation" },
+  { value: "evaluation", label: "Évaluation" },
+  { value: "depart", label: "Départ" },
+  { value: "autre", label: "Autre" },
+];
+
+// Document types
+const DOCUMENT_TYPES = [
+  { value: "lettre", label: "Lettre" },
+  { value: "decision", label: "Décision" },
+  { value: "note", label: "Note de service" },
+  { value: "circulaire", label: "Circulaire" },
+  { value: "attestation", label: "Attestation" },
+  { value: "certificat", label: "Certificat" },
+  { value: "convocation", label: "Convocation" },
+  { value: "rapport", label: "Rapport" },
+];
 
 const CATEGORY_COLORS: Record<string, string> = {
-  attestation_travail: "bg-blue-100 text-blue-800",
-  certificat_travail: "bg-green-100 text-green-800",
-  lettre_recommandation: "bg-purple-100 text-purple-800",
-  note_service: "bg-orange-100 text-orange-800",
-  decision: "bg-red-100 text-red-800",
-  convocation: "bg-yellow-100 text-yellow-800",
-  mise_en_demeure: "bg-red-200 text-red-900",
-  avertissement: "bg-amber-100 text-amber-800",
-  felicitations: "bg-emerald-100 text-emerald-800",
+  recrutement: "bg-blue-100 text-blue-800",
+  discipline: "bg-red-100 text-red-800",
+  carriere: "bg-purple-100 text-purple-800",
+  administration: "bg-slate-100 text-slate-800",
+  conges: "bg-green-100 text-green-800",
+  remuneration: "bg-amber-100 text-amber-800",
+  formation: "bg-cyan-100 text-cyan-800",
+  evaluation: "bg-orange-100 text-orange-800",
+  depart: "bg-rose-100 text-rose-800",
   autre: "bg-gray-100 text-gray-800",
 };
 
+const TYPE_COLORS: Record<string, string> = {
+  lettre: "bg-indigo-100 text-indigo-800",
+  decision: "bg-red-100 text-red-800",
+  note: "bg-yellow-100 text-yellow-800",
+  circulaire: "bg-teal-100 text-teal-800",
+  attestation: "bg-emerald-100 text-emerald-800",
+  certificat: "bg-green-100 text-green-800",
+  convocation: "bg-orange-100 text-orange-800",
+  rapport: "bg-blue-100 text-blue-800",
+};
+
+// Variables dynamiques
 const VARIABLE_SUGGESTIONS = [
-  "{nom_employe}",
-  "{prenom_employe}",
-  "{poste}",
-  "{unite}",
-  "{date_embauche}",
-  "{date_courante}",
-  "{nom_organisation}",
-  "{matricule}",
+  { key: "{{nom}}", label: "Nom complet" },
+  { key: "{{prenom}}", label: "Prénom" },
+  { key: "{{nom_famille}}", label: "Nom de famille" },
+  { key: "{{matricule}}", label: "Matricule" },
+  { key: "{{poste}}", label: "Poste" },
+  { key: "{{service}}", label: "Service/Unité" },
+  { key: "{{date}}", label: "Date du jour" },
+  { key: "{{date_embauche}}", label: "Date d'embauche" },
+  { key: "{{organisation}}", label: "Nom de l'institution" },
+  { key: "{{email}}", label: "Email" },
+  { key: "{{telephone}}", label: "Téléphone" },
+  { key: "{{nif}}", label: "NIF" },
+  { key: "{{cin}}", label: "CIN" },
 ];
 
 interface Template {
   id: string;
   title: string;
   category: string;
+  category_label: string | null;
+  document_type: string;
   subject: string | null;
   body: string;
   variables: string[];
@@ -85,9 +118,11 @@ export default function Correspondence() {
   const [templateOpen, setTemplateOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState("attestation_travail");
+  const [categoryLabel, setCategoryLabel] = useState("administration");
+  const [documentType, setDocumentType] = useState("lettre");
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
+  const [isActive, setIsActive] = useState(true);
 
   // Send form
   const [sendOpen, setSendOpen] = useState(false);
@@ -101,8 +136,11 @@ export default function Correspondence() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewRecord, setPreviewRecord] = useState<CorrespondenceRecord | null>(null);
 
-  // Search
+  // Filters
   const [searchTerm, setSearchTerm] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterType, setFilterType] = useState("all");
+  const [showArchived, setShowArchived] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -123,7 +161,6 @@ export default function Correspondence() {
       setOrganizationId(profile.organization_id);
       setProfileId(profile.id);
 
-      // Load templates
       const { data: tplData } = await (supabase
         .from("correspondence_templates") as any)
         .select("*")
@@ -132,14 +169,12 @@ export default function Correspondence() {
 
       setTemplates((tplData as any[]) || []);
 
-      // Load records
       const { data: recData } = await (supabase
         .from("correspondence_records") as any)
         .select("id, title, category, subject, body, sent_at, recipient_id")
         .eq("organization_id", profile.organization_id)
         .order("sent_at", { ascending: false });
 
-      // Load recipient info for records
       if (recData && recData.length > 0) {
         const recipientIds = [...new Set((recData as any[]).map((r: any) => r.recipient_id))];
         const { data: recipientProfiles } = await supabase
@@ -156,10 +191,9 @@ export default function Correspondence() {
         setRecords([]);
       }
 
-      // Load employees
       const { data: empData } = await supabase
         .from("profiles")
-        .select("id, full_name, prenom, nom")
+        .select("id, full_name, prenom, nom, email, tel_1, nif, cin, date_entree_fonction, unit_id, position_id")
         .eq("organization_id", profile.organization_id)
         .eq("approval_status", "approved");
       setEmployees(empData || []);
@@ -173,12 +207,19 @@ export default function Correspondence() {
   const handleSaveTemplate = async () => {
     if (!organizationId || !profileId) return;
 
+    const detectedVars = VARIABLE_SUGGESTIONS
+      .filter(v => body.includes(v.key))
+      .map(v => v.key);
+
     const templateData = {
       title,
-      category,
+      category: "autre",
+      category_label: categoryLabel,
+      document_type: documentType,
       subject: subject || null,
       body,
-      variables: VARIABLE_SUGGESTIONS.filter(v => body.includes(v)),
+      variables: detectedVars,
+      is_active: isActive,
       organization_id: organizationId,
       created_by: profileId,
     } as any;
@@ -202,24 +243,43 @@ export default function Correspondence() {
       return;
     }
 
-    toast({ title: editingTemplate ? "Modèle mis à jour" : "Modèle créé" });
+    toast({ title: editingTemplate ? "Modèle mis à jour" : "Modèle créé avec succès" });
     setTemplateOpen(false);
     resetTemplateForm();
     loadData();
   };
 
   const resetTemplateForm = () => {
-    setTitle(""); setCategory("attestation_travail"); setSubject(""); setBody("");
+    setTitle("");
+    setCategoryLabel("administration");
+    setDocumentType("lettre");
+    setSubject("");
+    setBody("");
+    setIsActive(true);
     setEditingTemplate(null);
   };
 
   const handleEditTemplate = (tpl: Template) => {
     setEditingTemplate(tpl);
     setTitle(tpl.title);
-    setCategory(tpl.category);
+    setCategoryLabel(tpl.category_label || "administration");
+    setDocumentType(tpl.document_type || "lettre");
     setSubject(tpl.subject || "");
     setBody(tpl.body);
+    setIsActive(tpl.is_active);
     setTemplateOpen(true);
+  };
+
+  const handleToggleActive = async (tpl: Template) => {
+    const { error } = await (supabase.from("correspondence_templates") as any)
+      .update({ is_active: !tpl.is_active })
+      .eq("id", tpl.id);
+    if (error) {
+      toast({ variant: "destructive", title: "Erreur", description: error.message });
+      return;
+    }
+    toast({ title: tpl.is_active ? "Modèle archivé" : "Modèle réactivé" });
+    loadData();
   };
 
   const handleDeleteTemplate = async (id: string) => {
@@ -242,9 +302,21 @@ export default function Correspondence() {
 
   const replaceVariables = (text: string, employee: any) => {
     return text
-      .replace(/{nom_employe}/g, employee?.nom || "")
-      .replace(/{prenom_employe}/g, employee?.prenom || "")
-      .replace(/{date_courante}/g, format(new Date(), "d MMMM yyyy", { locale: fr }));
+      .replace(/\{\{nom\}\}/g, employee?.prenom && employee?.nom ? `${employee.prenom} ${employee.nom}` : employee?.full_name || "")
+      .replace(/\{\{prenom\}\}/g, employee?.prenom || "")
+      .replace(/\{\{nom_famille\}\}/g, employee?.nom || "")
+      .replace(/\{\{matricule\}\}/g, employee?.nif || "N/A")
+      .replace(/\{\{email\}\}/g, employee?.email || "")
+      .replace(/\{\{telephone\}\}/g, employee?.tel_1 || "")
+      .replace(/\{\{nif\}\}/g, employee?.nif || "")
+      .replace(/\{\{cin\}\}/g, employee?.cin || "")
+      .replace(/\{\{date\}\}/g, format(new Date(), "d MMMM yyyy", { locale: fr }))
+      .replace(/\{\{date_embauche\}\}/g, employee?.date_entree_fonction
+        ? format(new Date(employee.date_entree_fonction), "d MMMM yyyy", { locale: fr })
+        : "N/A")
+      .replace(/\{\{poste\}\}/g, "")
+      .replace(/\{\{service\}\}/g, "")
+      .replace(/\{\{organisation\}\}/g, "");
   };
 
   const handleSend = async () => {
@@ -269,23 +341,32 @@ export default function Correspondence() {
       return;
     }
 
-    toast({ title: "Correspondance envoyée" });
+    toast({ title: "Correspondance générée avec succès" });
     setSendOpen(false);
     loadData();
   };
 
-  const filteredTemplates = templates.filter(t =>
-    t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    CATEGORY_LABELS[t.category]?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const getCategoryLabel = (cat: string) =>
+    CATEGORIES.find(c => c.value === cat)?.label || cat;
+
+  const getTypeLabel = (type: string) =>
+    DOCUMENT_TYPES.find(t => t.value === type)?.label || type;
+
+  const getEmployeeName = (e: any) =>
+    e.prenom && e.nom ? `${e.prenom} ${e.nom}` : e.full_name || "Sans nom";
+
+  const filteredTemplates = templates.filter(t => {
+    const matchesSearch = t.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = filterCategory === "all" || (t.category_label || "autre") === filterCategory;
+    const matchesType = filterType === "all" || (t.document_type || "lettre") === filterType;
+    const matchesStatus = showArchived ? !t.is_active : t.is_active;
+    return matchesSearch && matchesCategory && matchesType && matchesStatus;
+  });
 
   const filteredRecords = records.filter(r =>
     r.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (r.recipient?.prenom + " " + r.recipient?.nom).toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const getEmployeeName = (e: any) =>
-    e.prenom && e.nom ? `${e.prenom} ${e.nom}` : e.full_name || "Sans nom";
 
   if (loading) {
     return (
@@ -299,86 +380,161 @@ export default function Correspondence() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold">Correspondance Administrative</h1>
-          <p className="text-muted-foreground">Gérer les modèles et courriers administratifs RH</p>
+          <p className="text-muted-foreground">Bibliothèque de modèles et courriers RH</p>
         </div>
         <Dialog open={templateOpen} onOpenChange={(open) => { setTemplateOpen(open); if (!open) resetTemplateForm(); }}>
           <DialogTrigger asChild>
             <Button><Plus className="h-4 w-4 mr-2" />Nouveau modèle</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>{editingTemplate ? "Modifier le modèle" : "Créer un modèle"}</DialogTitle>
+              <DialogTitle>{editingTemplate ? "Modifier le modèle" : "Créer un modèle de correspondance"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
+              {/* Nom du modèle */}
               <div>
-                <Label>Titre du modèle</Label>
-                <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Attestation de travail standard" />
+                <Label>Nom du modèle <span className="text-destructive">*</span></Label>
+                <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex : Lettre de blâme, Attestation de travail..." />
               </div>
-              <div>
-                <Label>Catégorie</Label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Catégorie */}
+                <div>
+                  <Label>Catégorie <span className="text-destructive">*</span></Label>
+                  <Select value={categoryLabel} onValueChange={setCategoryLabel}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {CATEGORIES.map(c => (
+                        <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Type */}
+                <div>
+                  <Label>Type de document <span className="text-destructive">*</span></Label>
+                  <Select value={documentType} onValueChange={setDocumentType}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {DOCUMENT_TYPES.map(t => (
+                        <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+
+              {/* Objet */}
               <div>
                 <Label>Objet (optionnel)</Label>
                 <Input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Objet du courrier" />
               </div>
+
+              {/* Contenu */}
               <div>
-                <Label>Contenu du modèle</Label>
+                <Label>Contenu du modèle <span className="text-destructive">*</span></Label>
                 <Textarea
                   value={body}
                   onChange={e => setBody(e.target.value)}
-                  placeholder="Rédigez le contenu du modèle..."
-                  className="min-h-[200px]"
+                  placeholder="Rédigez le contenu du modèle. Utilisez les variables dynamiques ci-dessous pour personnaliser automatiquement..."
+                  className="min-h-[250px] font-mono text-sm"
                 />
               </div>
-              <div>
-                <Label className="text-sm text-muted-foreground">Variables disponibles (cliquez pour insérer)</Label>
-                <div className="flex flex-wrap gap-2 mt-2">
+
+              {/* Variables dynamiques */}
+              <div className="border rounded-lg p-4 bg-muted/30">
+                <Label className="text-sm font-semibold mb-2 block">Variables dynamiques (cliquez pour insérer)</Label>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Ces variables seront automatiquement remplacées par les informations de l'employé lors de la génération.
+                </p>
+                <div className="flex flex-wrap gap-2">
                   {VARIABLE_SUGGESTIONS.map(v => (
                     <Badge
-                      key={v}
+                      key={v.key}
                       variant="outline"
-                      className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
-                      onClick={() => setBody(prev => prev + " " + v)}
+                      className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors text-xs"
+                      onClick={() => setBody(prev => prev + v.key)}
+                      title={v.label}
                     >
-                      {v}
+                      {v.key} <span className="ml-1 opacity-60">({v.label})</span>
                     </Badge>
                   ))}
                 </div>
               </div>
+
+              {/* Statut */}
+              <div className="flex items-center justify-between border rounded-lg p-4">
+                <div>
+                  <Label>Statut du modèle</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {isActive ? "Actif — visible et utilisable" : "Archivé — masqué par défaut"}
+                  </p>
+                </div>
+                <Switch checked={isActive} onCheckedChange={setIsActive} />
+              </div>
+
               <Button onClick={handleSaveTemplate} disabled={!title || !body} className="w-full">
-                {editingTemplate ? "Mettre à jour" : "Créer le modèle"}
+                {editingTemplate ? "Mettre à jour le modèle" : "Créer le modèle"}
               </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Rechercher un modèle ou courrier..."
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
+      {/* Search and Filters */}
+      <div className="flex flex-col md:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Rechercher un modèle..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={filterCategory} onValueChange={setFilterCategory}>
+          <SelectTrigger className="w-[180px]">
+            <Filter className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Catégorie" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toutes catégories</SelectItem>
+            {CATEGORIES.map(c => (
+              <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={filterType} onValueChange={setFilterType}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous types</SelectItem>
+            {DOCUMENT_TYPES.map(t => (
+              <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button
+          variant={showArchived ? "default" : "outline"}
+          size="sm"
+          onClick={() => setShowArchived(!showArchived)}
+          className="shrink-0"
+        >
+          <Archive className="h-4 w-4 mr-2" />
+          {showArchived ? "Archivés" : "Actifs"}
+        </Button>
       </div>
 
       <Tabs defaultValue="templates">
         <TabsList>
           <TabsTrigger value="templates">
             <FileText className="h-4 w-4 mr-2" />
-            Modèles ({templates.length})
+            Modèles ({filteredTemplates.length})
           </TabsTrigger>
           <TabsTrigger value="sent">
             <Mail className="h-4 w-4 mr-2" />
@@ -391,44 +547,63 @@ export default function Correspondence() {
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold">Aucun modèle</h3>
+                <h3 className="text-lg font-semibold">
+                  {showArchived ? "Aucun modèle archivé" : "Aucun modèle actif"}
+                </h3>
                 <p className="text-muted-foreground text-center mt-2">
-                  Créez votre premier modèle de correspondance administrative.
+                  {showArchived
+                    ? "Les modèles archivés apparaîtront ici."
+                    : "Créez votre premier modèle de correspondance administrative."}
                 </p>
               </CardContent>
             </Card>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {filteredTemplates.map(tpl => (
-                <Card key={tpl.id} className="flex flex-col">
+                <Card key={tpl.id} className={`flex flex-col ${!tpl.is_active ? 'opacity-60' : ''}`}>
                   <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <Badge className={CATEGORY_COLORS[tpl.category] || CATEGORY_COLORS.autre}>
-                        {CATEGORY_LABELS[tpl.category] || tpl.category}
+                    <div className="flex items-start justify-between gap-2 flex-wrap">
+                      <Badge className={CATEGORY_COLORS[tpl.category_label || "autre"] || CATEGORY_COLORS.autre}>
+                        {getCategoryLabel(tpl.category_label || "autre")}
                       </Badge>
-                      {!tpl.is_active && <Badge variant="secondary">Inactif</Badge>}
+                      <Badge className={TYPE_COLORS[tpl.document_type || "lettre"] || TYPE_COLORS.lettre}>
+                        {getTypeLabel(tpl.document_type || "lettre")}
+                      </Badge>
                     </div>
                     <CardTitle className="text-base mt-2">{tpl.title}</CardTitle>
                     {tpl.subject && (
-                      <CardDescription className="text-sm">Objet: {tpl.subject}</CardDescription>
+                      <CardDescription className="text-sm">Objet : {tpl.subject}</CardDescription>
                     )}
                   </CardHeader>
                   <CardContent className="flex-1">
-                    <p className="text-sm text-muted-foreground line-clamp-3">{tpl.body}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-3 font-mono">{tpl.body}</p>
                     {tpl.variables && tpl.variables.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-3">
                         {tpl.variables.map(v => (
-                          <Badge key={v} variant="outline" className="text-xs">{v}</Badge>
+                          <Badge key={v} variant="outline" className="text-xs font-mono">{v}</Badge>
                         ))}
                       </div>
                     )}
+                    <div className="flex items-center gap-2 mt-3">
+                      <Badge variant={tpl.is_active ? "default" : "secondary"}>
+                        {tpl.is_active ? "Actif" : "Archivé"}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(tpl.created_at), "dd/MM/yyyy", { locale: fr })}
+                      </span>
+                    </div>
                   </CardContent>
-                  <div className="p-4 pt-0 flex gap-2">
+                  <div className="p-4 pt-0 flex gap-2 flex-wrap">
                     <Button size="sm" variant="outline" onClick={() => handleEditTemplate(tpl)}>
                       <Edit className="h-3 w-3 mr-1" />Modifier
                     </Button>
-                    <Button size="sm" onClick={() => handleOpenSend(tpl)}>
-                      <Send className="h-3 w-3 mr-1" />Envoyer
+                    {tpl.is_active && (
+                      <Button size="sm" onClick={() => handleOpenSend(tpl)}>
+                        <Send className="h-3 w-3 mr-1" />Générer
+                      </Button>
+                    )}
+                    <Button size="sm" variant="ghost" onClick={() => handleToggleActive(tpl)} title={tpl.is_active ? "Archiver" : "Réactiver"}>
+                      <Archive className="h-3 w-3" />
                     </Button>
                     <Button size="sm" variant="ghost" onClick={() => handleDeleteTemplate(tpl.id)}>
                       <Trash2 className="h-3 w-3 text-destructive" />
@@ -457,7 +632,6 @@ export default function Correspondence() {
                 <TableRow>
                   <TableHead>Date</TableHead>
                   <TableHead>Titre</TableHead>
-                  <TableHead>Catégorie</TableHead>
                   <TableHead>Destinataire</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
@@ -469,11 +643,6 @@ export default function Correspondence() {
                       {format(new Date(rec.sent_at), "dd/MM/yyyy", { locale: fr })}
                     </TableCell>
                     <TableCell className="font-medium">{rec.title}</TableCell>
-                    <TableCell>
-                      <Badge className={CATEGORY_COLORS[rec.category] || CATEGORY_COLORS.autre}>
-                        {CATEGORY_LABELS[rec.category] || rec.category}
-                      </Badge>
-                    </TableCell>
                     <TableCell>
                       {rec.recipient?.prenom && rec.recipient?.nom
                         ? `${rec.recipient.prenom} ${rec.recipient.nom}`
@@ -504,18 +673,21 @@ export default function Correspondence() {
           </DialogHeader>
           {selectedTemplate && (
             <div className="space-y-4">
-              <div>
-                <Label>Modèle: {selectedTemplate.title}</Label>
-                <Badge className={`ml-2 ${CATEGORY_COLORS[selectedTemplate.category]}`}>
-                  {CATEGORY_LABELS[selectedTemplate.category]}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="font-medium">{selectedTemplate.title}</span>
+                <Badge className={CATEGORY_COLORS[selectedTemplate.category_label || "autre"]}>
+                  {getCategoryLabel(selectedTemplate.category_label || "autre")}
+                </Badge>
+                <Badge className={TYPE_COLORS[selectedTemplate.document_type || "lettre"]}>
+                  {getTypeLabel(selectedTemplate.document_type || "lettre")}
                 </Badge>
               </div>
               <div>
-                <Label>Destinataire</Label>
+                <Label>Destinataire <span className="text-destructive">*</span></Label>
                 <Select value={selectedRecipient} onValueChange={(val) => {
                   setSelectedRecipient(val);
                   const emp = employees.find(e => e.id === val);
-                  if (emp) {
+                  if (emp && selectedTemplate) {
                     setSendBody(replaceVariables(selectedTemplate.body, emp));
                   }
                 }}>
@@ -534,11 +706,11 @@ export default function Correspondence() {
                 </div>
               )}
               <div>
-                <Label>Contenu</Label>
+                <Label>Contenu (modifiable avant génération)</Label>
                 <Textarea
                   value={sendBody}
                   onChange={e => setSendBody(e.target.value)}
-                  className="min-h-[200px]"
+                  className="min-h-[250px] font-mono text-sm"
                 />
               </div>
               <Button onClick={handleSend} disabled={!selectedRecipient} className="w-full">
@@ -559,20 +731,17 @@ export default function Correspondence() {
           {previewRecord && (
             <div className="space-y-4">
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span>Date: {format(new Date(previewRecord.sent_at), "d MMMM yyyy", { locale: fr })}</span>
-                <Badge className={CATEGORY_COLORS[previewRecord.category]}>
-                  {CATEGORY_LABELS[previewRecord.category]}
-                </Badge>
+                <span>Date : {format(new Date(previewRecord.sent_at), "d MMMM yyyy", { locale: fr })}</span>
               </div>
               <div className="text-sm">
-                <strong>Destinataire:</strong>{" "}
+                <strong>Destinataire :</strong>{" "}
                 {previewRecord.recipient?.prenom && previewRecord.recipient?.nom
                   ? `${previewRecord.recipient.prenom} ${previewRecord.recipient.nom}`
                   : previewRecord.recipient?.full_name || "—"}
               </div>
               {previewRecord.subject && (
                 <div className="text-sm">
-                  <strong>Objet:</strong> {previewRecord.subject}
+                  <strong>Objet :</strong> {previewRecord.subject}
                 </div>
               )}
               <div className="border rounded-lg p-6 bg-card whitespace-pre-wrap text-sm leading-relaxed">

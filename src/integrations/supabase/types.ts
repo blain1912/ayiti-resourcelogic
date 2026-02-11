@@ -177,8 +177,10 @@ export type Database = {
         Row: {
           body: string
           category: Database["public"]["Enums"]["correspondence_category"]
+          category_label: string | null
           created_at: string
           created_by: string
+          document_type: string
           id: string
           is_active: boolean
           organization_id: string
@@ -190,8 +192,10 @@ export type Database = {
         Insert: {
           body: string
           category?: Database["public"]["Enums"]["correspondence_category"]
+          category_label?: string | null
           created_at?: string
           created_by: string
+          document_type?: string
           id?: string
           is_active?: boolean
           organization_id: string
@@ -203,8 +207,10 @@ export type Database = {
         Update: {
           body?: string
           category?: Database["public"]["Enums"]["correspondence_category"]
+          category_label?: string | null
           created_at?: string
           created_by?: string
+          document_type?: string
           id?: string
           is_active?: boolean
           organization_id?: string
