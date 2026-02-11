@@ -22,6 +22,8 @@ import { Slider } from "@/components/ui/slider";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
+import { QRCodeSVG } from "qrcode.react";
+import QRCode from "qrcode";
 
 // ──── Constants ────
 const CATEGORIES = [
@@ -520,8 +522,26 @@ export default function Correspondence() {
     }
   };
 
+  // ──── QR Code verification data ────
+  const getQRVerificationData = (rec?: CorrespondenceRecord) => {
+    const refNum = rec?.reference_number || 'CORR-' + format(new Date(), "yyyyMMdd-HHmm");
+    const docDate = rec ? format(new Date(rec.sent_at), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
+    const emp = rec ? rec.recipient : employees.find(e => e.id === selectedRecipient);
+    const empName = getEmployeeName(emp);
+    const docType = rec?.document_type || selectedTemplate?.document_type || "lettre";
+    return JSON.stringify({
+      ref: refNum,
+      org: organizationName,
+      type: getTypeLabel(docType),
+      date: docDate,
+      dest: empName,
+      status: rec?.status || "generated",
+      signed: rec?.signed_at ? format(new Date(rec.signed_at), "yyyy-MM-dd") : null,
+    });
+  };
+
   // ──── PDF / Print ────
-  const handlePrintPDF = (rec?: CorrespondenceRecord) => {
+  const handlePrintPDF = async (rec?: CorrespondenceRecord) => {
     const bodyText = rec?.body || sendBody;
     const subjectText = rec?.subject || sendSubject;
     const sigName = rec?.signature_name || signatureName;
@@ -529,6 +549,12 @@ export default function Correspondence() {
     const emp = rec ? rec.recipient : employees.find(e => e.id === selectedRecipient);
     const empName = getEmployeeName(emp);
     const docType = rec?.document_type || selectedTemplate?.document_type || "lettre";
+
+    // Generate QR code data URL
+    let qrDataUrl = "";
+    try {
+      qrDataUrl = await QRCode.toDataURL(getQRVerificationData(rec), { width: 100, margin: 1 });
+    } catch (e) { console.error("QR generation error:", e); }
 
     const win = window.open("", "_blank");
     if (!win) return;
@@ -549,6 +575,9 @@ export default function Correspondence() {
         .signature-block .title { font-style: italic; color: #555; }
         .signature-block .date { margin-top: 8px; font-size: 11pt; color: #555; }
         .footer { display: none; }
+        .qr-verification { margin-top: 40px; padding-top: 15px; border-top: 1px solid #ddd; display: flex; align-items: center; gap: 12px; }
+        .qr-verification img { width: 80px; height: 80px; }
+        .qr-verification .qr-label { font-size: 8pt; color: #888; line-height: 1.4; }
         @media print { body { padding: 0; } }
       </style></head><body>
       <div class="header"><h1>${organizationName}</h1><div class="org">${getTypeLabel(docType)}</div></div>
@@ -557,7 +586,7 @@ export default function Correspondence() {
       ${subjectText ? `<div class="subject">Objet : ${subjectText}</div>` : ""}
       <div class="body-content">${bodyText}</div>
       ${sigName ? `<div class="signature-block"><div class="name">${sigName}</div>${sigTitle ? `<div class="title">${sigTitle}</div>` : ""}<div class="date">Signé le ${format(new Date(), "d MMMM yyyy", { locale: fr })}</div></div>` : ""}
-      
+      ${qrDataUrl ? `<div class="qr-verification"><img src="${qrDataUrl}" alt="QR Code de vérification" /><div class="qr-label">QR Code d'authentification<br/>Réf : ${rec?.reference_number || 'CORR-' + format(new Date(), "yyyyMMdd-HHmm")}<br/>Scannez pour vérifier l'authenticité du document</div></div>` : ""}
     </body></html>`);
     win.document.close();
     win.print();
@@ -1226,6 +1255,15 @@ export default function Correspondence() {
                         {signatureTitle && <p className="italic text-muted-foreground" style={{ fontSize: `${Math.max(pdfFontSize - 1, 8)}px` }}>{signatureTitle}</p>}
                       </div>
                     )}
+                    {/* QR Code d'authentification */}
+                    <div className="flex items-center gap-3 mt-8 pt-4 border-t border-border">
+                      <QRCodeSVG value={getQRVerificationData()} size={70} level="M" />
+                      <div className="text-xs text-muted-foreground leading-relaxed">
+                        <p className="font-medium">QR Code d'authentification</p>
+                        <p>Réf : CORR-{format(new Date(), "yyyyMMdd-HHmm")}</p>
+                        <p>Scannez pour vérifier l'authenticité</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1313,6 +1351,15 @@ export default function Correspondence() {
                   {previewRecord.signed_at && <p className="text-xs text-muted-foreground">Signé le {format(new Date(previewRecord.signed_at), "d MMMM yyyy", { locale: fr })}</p>}
                 </div>
               )}
+              {/* QR Code d'authentification */}
+              <div className="flex items-center gap-3 pt-4 border-t border-border">
+                <QRCodeSVG value={getQRVerificationData(previewRecord)} size={70} level="M" />
+                <div className="text-xs text-muted-foreground leading-relaxed">
+                  <p className="font-medium">QR Code d'authentification</p>
+                  <p>Réf : {previewRecord.reference_number || "—"}</p>
+                  <p>Scannez pour vérifier l'authenticité du document</p>
+                </div>
+              </div>
 
               {/* Print button for validated/signed */}
               {(previewRecord.status === "validated" || previewRecord.status === "signed") && (
