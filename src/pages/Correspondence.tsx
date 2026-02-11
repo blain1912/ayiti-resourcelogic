@@ -15,8 +15,10 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   Plus, Trash2, FileText, Send, Edit, Eye, Search, Mail, Archive, Filter,
   Check, ChevronRight, ChevronLeft, User, PenTool, Download, CheckCircle2,
-  FileDown, Clock, XCircle, ShieldCheck, MessageSquare, Lock, History, Hash
+  FileDown, Clock, XCircle, ShieldCheck, MessageSquare, Lock, History, Hash,
+  Settings2, Minus, RotateCcw
 } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -193,6 +195,13 @@ export default function Correspondence() {
   const [units, setUnits] = useState<any[]>([]);
   const [positions, setPositions] = useState<any[]>([]);
   const printRef = useRef<HTMLDivElement>(null);
+
+  // Text adjustment settings
+  const [pdfFontSize, setPdfFontSize] = useState(13);
+  const [pdfLineHeight, setPdfLineHeight] = useState(1.7);
+  const [pdfMargin, setPdfMargin] = useState(2.5);
+  const [pdfVerticalAlign, setPdfVerticalAlign] = useState<"top" | "center" | "bottom">("bottom");
+  const [showAdjustments, setShowAdjustments] = useState(false);
 
   // Preview & approval
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -519,9 +528,9 @@ export default function Correspondence() {
     if (!win) return;
     win.document.write(`<!DOCTYPE html><html><head><title>${rec?.title || selectedTemplate?.title || "Correspondance"}</title>
       <style>
-        @page { size: 8.5in 11in; margin: 2.5cm 2.5cm 2.5cm 2.5cm; }
+        @page { size: 8.5in 11in; margin: ${pdfMargin}cm; }
         html, body { height: 100%; margin: 0; }
-        body { font-family: 'Times New Roman', serif; font-size: 13pt; line-height: 1.7; color: #000; padding: 2.5cm; display: flex; flex-direction: column; justify-content: flex-end; min-height: calc(100vh - 5cm); box-sizing: border-box; }
+        body { font-family: 'Times New Roman', serif; font-size: ${pdfFontSize}pt; line-height: ${pdfLineHeight}; color: #000; padding: ${pdfMargin}cm; display: flex; flex-direction: column; justify-content: ${pdfVerticalAlign === "top" ? "flex-start" : pdfVerticalAlign === "center" ? "center" : "flex-end"}; min-height: calc(100vh - ${pdfMargin * 2}cm); box-sizing: border-box; }
         .header { display: none; }
         .meta { display: flex; justify-content: space-between; margin-bottom: 25px; font-size: 11pt; }
         .recipient { margin-bottom: 20px; } .recipient strong { display: block; }
@@ -1123,20 +1132,82 @@ export default function Correspondence() {
                   Ce courrier sera soumis au circuit de validation avant d'être finalisé.
                 </div>
               )}
-              <div ref={printRef} className="border rounded-lg p-8 bg-card space-y-4">
-                <div className="text-center font-bold text-base uppercase mt-6 mb-4">{getTypeLabel(selectedTemplate?.document_type || "lettre")}</div>
-                <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>Réf : CORR-{format(new Date(), "yyyyMMdd-HHmm")}</span>
-                  <span>{format(new Date(), "d MMMM yyyy", { locale: fr })}</span>
-                </div>
-                {sendSubject && <div className="text-center font-bold underline">Objet : {sendSubject}</div>}
-                <div className="whitespace-pre-wrap text-sm leading-relaxed" dangerouslySetInnerHTML={{ __html: sendBody }} />
-                {signatureName && (
-                  <div className="text-right mt-8 space-y-1">
-                    <p className="font-bold">{signatureName}</p>
-                    {signatureTitle && <p className="text-sm italic text-muted-foreground">{signatureTitle}</p>}
+
+              {/* Text Adjustment Controls */}
+              <div className="border rounded-lg overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setShowAdjustments(!showAdjustments)}
+                  className="w-full flex items-center justify-between p-3 bg-muted/50 hover:bg-muted transition-colors text-sm font-medium"
+                >
+                  <span className="flex items-center gap-2"><Settings2 className="h-4 w-4" />Ajustements du document</span>
+                  <ChevronRight className={`h-4 w-4 transition-transform ${showAdjustments ? "rotate-90" : ""}`} />
+                </button>
+                {showAdjustments && (
+                  <div className="p-4 space-y-4 border-t">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-xs">Taille de police ({pdfFontSize}pt)</Label>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setPdfFontSize(s => Math.max(8, s - 1))}><Minus className="h-3 w-3" /></Button>
+                          <Slider value={[pdfFontSize]} onValueChange={([v]) => setPdfFontSize(v)} min={8} max={20} step={1} className="flex-1" />
+                          <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setPdfFontSize(s => Math.min(20, s + 1))}><Plus className="h-3 w-3" /></Button>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs">Interligne ({pdfLineHeight.toFixed(1)})</Label>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setPdfLineHeight(s => Math.max(1.0, +(s - 0.1).toFixed(1)))}><Minus className="h-3 w-3" /></Button>
+                          <Slider value={[pdfLineHeight * 10]} onValueChange={([v]) => setPdfLineHeight(v / 10)} min={10} max={30} step={1} className="flex-1" />
+                          <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setPdfLineHeight(s => Math.min(3.0, +(s + 0.1).toFixed(1)))}><Plus className="h-3 w-3" /></Button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-xs">Marges ({pdfMargin.toFixed(1)} cm)</Label>
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setPdfMargin(s => Math.max(1.0, +(s - 0.5).toFixed(1)))}><Minus className="h-3 w-3" /></Button>
+                          <Slider value={[pdfMargin * 10]} onValueChange={([v]) => setPdfMargin(v / 10)} min={10} max={50} step={5} className="flex-1" />
+                          <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => setPdfMargin(s => Math.min(5.0, +(s + 0.5).toFixed(1)))}><Plus className="h-3 w-3" /></Button>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs">Position verticale</Label>
+                        <div className="flex gap-1">
+                          {([["top", "Haut"], ["center", "Centre"], ["bottom", "Bas"]] as const).map(([val, label]) => (
+                            <Button key={val} variant={pdfVerticalAlign === val ? "default" : "outline"} size="sm" className="flex-1 text-xs h-8" onClick={() => setPdfVerticalAlign(val)}>
+                              {label}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="sm" className="text-xs" onClick={() => { setPdfFontSize(13); setPdfLineHeight(1.7); setPdfMargin(2.5); setPdfVerticalAlign("bottom"); }}>
+                      <RotateCcw className="h-3 w-3 mr-1" />Réinitialiser
+                    </Button>
                   </div>
                 )}
+              </div>
+
+              <div ref={printRef} className="border rounded-lg bg-card" style={{ padding: `${pdfMargin * 10}px`, fontSize: `${pdfFontSize}px`, lineHeight: pdfLineHeight }}>
+                <div style={{ display: "flex", flexDirection: "column", justifyContent: pdfVerticalAlign === "top" ? "flex-start" : pdfVerticalAlign === "center" ? "center" : "flex-end", minHeight: "400px" }}>
+                  <div className="space-y-4">
+                    <div className="text-center font-bold uppercase mt-6 mb-4">{getTypeLabel(selectedTemplate?.document_type || "lettre")}</div>
+                    <div className="flex justify-between text-muted-foreground" style={{ fontSize: `${Math.max(pdfFontSize - 2, 8)}px` }}>
+                      <span>Réf : CORR-{format(new Date(), "yyyyMMdd-HHmm")}</span>
+                      <span>{format(new Date(), "d MMMM yyyy", { locale: fr })}</span>
+                    </div>
+                    {sendSubject && <div className="text-center font-bold underline">Objet : {sendSubject}</div>}
+                    <div className="whitespace-pre-wrap" style={{ textAlign: "justify" }} dangerouslySetInnerHTML={{ __html: sendBody }} />
+                    {signatureName && (
+                      <div className="text-right mt-8 space-y-1">
+                        <p className="font-bold">{signatureName}</p>
+                        {signatureTitle && <p className="italic text-muted-foreground" style={{ fontSize: `${Math.max(pdfFontSize - 1, 8)}px` }}>{signatureTitle}</p>}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           )}
