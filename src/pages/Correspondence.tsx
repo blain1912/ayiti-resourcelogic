@@ -520,7 +520,8 @@ export default function Correspondence() {
     win.document.write(`<!DOCTYPE html><html><head><title>${rec?.title || selectedTemplate?.title || "Correspondance"}</title>
       <style>
         @page { size: 8.5in 11in; margin: 2.5cm 2.5cm 2.5cm 2.5cm; }
-        body { font-family: 'Times New Roman', serif; font-size: 13pt; line-height: 1.7; color: #000; margin: 0; padding: 2.5cm; }
+        html, body { height: 100%; margin: 0; }
+        body { font-family: 'Times New Roman', serif; font-size: 13pt; line-height: 1.7; color: #000; padding: 2.5cm; display: flex; flex-direction: column; justify-content: flex-end; min-height: calc(100vh - 5cm); box-sizing: border-box; }
         .header { display: none; }
         .meta { display: flex; justify-content: space-between; margin-bottom: 25px; font-size: 11pt; }
         .recipient { margin-bottom: 20px; } .recipient strong { display: block; }
