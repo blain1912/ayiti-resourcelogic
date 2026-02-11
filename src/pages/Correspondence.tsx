@@ -1124,10 +1124,6 @@ export default function Correspondence() {
                 </div>
               )}
               <div ref={printRef} className="border rounded-lg p-8 bg-card space-y-4">
-                <div className="text-center border-b pb-4">
-                  <h2 className="text-lg font-bold uppercase tracking-wider">{organizationName}</h2>
-                  <p className="text-sm font-bold text-muted-foreground">{getTypeLabel(selectedTemplate?.document_type || "lettre")}</p>
-                </div>
                 <div className="text-center font-bold text-base uppercase mt-6 mb-4">{getTypeLabel(selectedTemplate?.document_type || "lettre")}</div>
                 <div className="flex justify-between text-sm text-muted-foreground">
                   <span>Réf : CORR-{format(new Date(), "yyyyMMdd-HHmm")}</span>
