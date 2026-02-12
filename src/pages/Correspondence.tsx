@@ -603,7 +603,7 @@ export default function Correspondence() {
         .letterhead-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; object-fit: cover; }
         .content-wrapper { position: relative; z-index: 1; padding: ${pdfMargin}cm; display: flex; flex-direction: column; justify-content: ${pdfVerticalAlign === "top" ? "flex-start" : pdfVerticalAlign === "center" ? "center" : "flex-end"}; min-height: calc(100vh - ${pdfMargin * 2}cm); box-sizing: border-box; }
         .header { display: none; }
-        .meta { display: flex; justify-content: space-between; margin-bottom: 25px; font-size: 11pt; }
+        .meta { display: none; }
         .recipient { margin-bottom: 20px; } .recipient strong { display: block; }
         .doc-title { font-weight: bold; text-align: center; margin: 35px 0 30px 0; font-size: 15pt; text-transform: uppercase; }
         .subject { font-weight: bold; text-align: center; margin: 20px 0; font-size: 14pt; text-decoration: underline; }
