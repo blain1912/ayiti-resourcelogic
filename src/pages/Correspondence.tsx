@@ -48,6 +48,7 @@ const DOCUMENT_TYPES = [
   { value: "certificat", label: "Certificat" },
   { value: "convocation", label: "Convocation" },
   { value: "rapport", label: "Rapport" },
+  { value: "contrat", label: "Contrat de service" },
 ];
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -63,6 +64,7 @@ const TYPE_COLORS: Record<string, string> = {
   note: "bg-yellow-100 text-yellow-800", circulaire: "bg-teal-100 text-teal-800",
   attestation: "bg-emerald-100 text-emerald-800", certificat: "bg-green-100 text-green-800",
   convocation: "bg-orange-100 text-orange-800", rapport: "bg-blue-100 text-blue-800",
+  contrat: "bg-violet-100 text-violet-800",
 };
 
 const VARIABLE_SUGGESTIONS = [
@@ -78,6 +80,8 @@ const VARIABLE_SUGGESTIONS = [
   { key: "{{telephone}}", label: "Téléphone" }, { key: "{{nif}}", label: "NIF" },
   { key: "{{cin}}", label: "CIN" },
   { key: "{{salaire_mensuel}}", label: "Salaire mensuel" }, { key: "{{salaire_annuel}}", label: "Salaire annuel" },
+  { key: "{{adresse}}", label: "Adresse complète" }, { key: "{{annee_en_cours}}", label: "Année en cours" },
+  { key: "{{nif_employe}}", label: "NIF de l'employé" },
 ];
 
 const GENERATION_STEPS = [
@@ -403,7 +407,10 @@ export default function Correspondence() {
       .replace(/\{\{signataire\}\}/g, orgSignerName)
       .replace(/\{\{titre_signataire\}\}/g, orgSignerTitle)
       .replace(/\{\{salaire_mensuel\}\}/g, salaireMensuel ? `<strong>${salaireMensuel.toLocaleString("fr-FR")} HTG</strong>` : "N/A")
-      .replace(/\{\{salaire_annuel\}\}/g, salaireAnnuel ? `<strong>${salaireAnnuel.toLocaleString("fr-FR")} HTG</strong>` : "N/A");
+      .replace(/\{\{salaire_annuel\}\}/g, salaireAnnuel ? `<strong>${salaireAnnuel.toLocaleString("fr-FR")} HTG</strong>` : "N/A")
+      .replace(/\{\{adresse\}\}/g, [employee?.adresse_rue, employee?.adresse_ville, employee?.adresse_departement].filter(Boolean).join(", ") || "N/A")
+      .replace(/\{\{annee_en_cours\}\}/g, `<strong>${new Date().getFullYear()}</strong>`)
+      .replace(/\{\{nif_employe\}\}/g, `<strong>${employee?.nif || ""}</strong>`);
   };
 
   // ──── Generation Wizard ────
