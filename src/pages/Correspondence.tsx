@@ -80,6 +80,7 @@ const VARIABLE_SUGGESTIONS = [
   { key: "{{titre_signataire}}", label: "Titre du signataire" },
   { key: "{{cin_signataire}}", label: "CIN du signataire" },
   { key: "{{nif_signataire}}", label: "NIF du signataire" },
+  { key: "{{civilite_signataire}}", label: "Monsieur/Madame (signataire)" },
   { key: "{{email}}", label: "Email" },
   { key: "{{telephone}}", label: "Téléphone" }, { key: "{{nif}}", label: "NIF" },
   { key: "{{cin}}", label: "CIN" },
@@ -206,6 +207,7 @@ export default function Correspondence() {
   const [signatureTitle, setSignatureTitle] = useState("");
   const [signatureCin, setSignatureCin] = useState("");
   const [signatureNif, setSignatureNif] = useState("");
+  const [civiliteSignataire, setCiviliteSignataire] = useState("MONSIEUR");
   const [contractStartDate, setContractStartDate] = useState("");
   const [contractEndDate, setContractEndDate] = useState("");
   const [enableValidation, setEnableValidation] = useState(true);
@@ -421,8 +423,9 @@ export default function Correspondence() {
       .replace(/\{\{organisation\}\}/g, organizationName)
       .replace(/\{\{en_tete\}\}/g, `<strong>${orgDocumentHeader || organizationName}</strong>`)
       .replace(/\{\{ville\}\}/g, `<strong>${orgCity}</strong>`)
-      .replace(/\{\{signataire\}\}/g, orgSignerName)
-      .replace(/\{\{titre_signataire\}\}/g, orgSignerTitle)
+      .replace(/\{\{signataire\}\}/g, `<strong>${signatureName || orgSignerName}</strong>`)
+      .replace(/\{\{titre_signataire\}\}/g, signatureTitle || orgSignerTitle)
+      .replace(/\{\{civilite_signataire\}\}/g, civiliteSignataire)
       .replace(/\{\{salaire_mensuel\}\}/g, salaireMensuel ? `<strong>${salaireMensuel.toLocaleString("fr-FR")} HTG</strong>` : "N/A")
       .replace(/\{\{salaire_annuel\}\}/g, salaireAnnuel ? `<strong>${salaireAnnuel.toLocaleString("fr-FR")} HTG</strong>` : "N/A")
       .replace(/\{\{adresse\}\}/g, [employee?.adresse_rue, employee?.adresse_ville, employee?.adresse_departement].filter(Boolean).join(", ") || "N/A")
@@ -440,7 +443,7 @@ export default function Correspondence() {
     setWizardStep(tpl ? 2 : 1);
     setSelectedTemplate(tpl || null);
     setSelectedRecipient(""); setSendBody(tpl?.body || ""); setSendSubject(tpl?.subject || "");
-    setSignatureName(orgSignerName); setSignatureTitle(orgSignerTitle); setSignatureCin(""); setSignatureNif(""); setContractStartDate(""); setContractEndDate(""); setEnableValidation(true);
+    setSignatureName(orgSignerName); setSignatureTitle(orgSignerTitle); setSignatureCin(""); setSignatureNif(""); setCiviliteSignataire("MONSIEUR"); setContractStartDate(""); setContractEndDate(""); setEnableValidation(true);
     setWizardOpen(true);
   };
 
@@ -1188,8 +1191,15 @@ export default function Correspondence() {
               <p className="text-xs text-muted-foreground">
                 {enableValidation ? "La signature sera apposée après validation complète." : "La signature sera apposée immédiatement."}
               </p>
+              <div>
+                <Label>Civilité du signataire</Label>
+                <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={civiliteSignataire} onChange={e => setCiviliteSignataire(e.target.value)}>
+                  <option value="MONSIEUR">MONSIEUR</option>
+                  <option value="MADAME">MADAME</option>
+                </select>
+              </div>
               <div><Label>Nom du signataire</Label><Input value={signatureName} onChange={e => setSignatureName(e.target.value)} placeholder="Ex : Jean DUPONT" /></div>
-              <div><Label>Titre / Fonction</Label><Input value={signatureTitle} onChange={e => setSignatureTitle(e.target.value)} placeholder="Ex : Directeur des Ressources Humaines" /></div>
+              <div><Label>Titre / Fonction</Label><Input value={signatureTitle} onChange={e => setSignatureTitle(e.target.value)} placeholder="Ex : Directeur Général" /></div>
               <div><Label>CIN du signataire</Label><Input value={signatureCin} onChange={e => setSignatureCin(e.target.value)} placeholder="Ex : 01-01-99-1234-56" /></div>
               <div><Label>NIF du signataire</Label><Input value={signatureNif} onChange={e => setSignatureNif(e.target.value)} placeholder="Ex : 000-000-000-0" /></div>
               <Separator />
