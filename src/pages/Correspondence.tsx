@@ -16,7 +16,7 @@ import {
   Plus, Trash2, FileText, Send, Edit, Eye, Search, Mail, Archive, Filter,
   Check, ChevronRight, ChevronLeft, User, PenTool, Download, CheckCircle2,
   FileDown, Clock, XCircle, ShieldCheck, MessageSquare, Lock, History, Hash,
-  Settings2, Minus, RotateCcw
+  Settings2, Minus, RotateCcw, Printer
 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { format } from "date-fns";
@@ -578,7 +578,7 @@ export default function Correspondence() {
   };
 
   // ──── PDF / Print ────
-  const handlePrintPDF = async (rec?: CorrespondenceRecord) => {
+  const handlePrintPDF = async (rec?: CorrespondenceRecord, withLetterhead = true) => {
     const bodyText = rec?.body || sendBody;
     const subjectText = rec?.subject || sendSubject;
     const sigName = rec?.signature_name || signatureName;
@@ -593,15 +593,20 @@ export default function Correspondence() {
       qrDataUrl = await QRCode.toDataURL(getQRVerificationData(rec), { width: 100, margin: 1 });
     } catch (e) { console.error("QR generation error:", e); }
 
+    // Margins: 2.5cm bottom, 2.5cm right, 2.5cm left, 2cm top (below header area)
+    const topMargin = withLetterhead ? pdfMargin : 2;
+    const sideMargin = 2.5;
+    const bottomMargin = 2.5;
+
     const win = window.open("", "_blank");
     if (!win) return;
     win.document.write(`<!DOCTYPE html><html><head><title>${rec?.title || selectedTemplate?.title || "Correspondance"}</title>
       <style>
-        @page { size: 8.5in 11in; margin: 0; }
+        @page { size: 8.5in 11in; margin: ${topMargin}cm ${sideMargin}cm ${bottomMargin}cm ${sideMargin}cm; }
         html, body { height: 100%; margin: 0; }
-        body { font-family: 'Times New Roman', serif; font-size: ${pdfFontSize}pt; line-height: ${pdfLineHeight}; color: #000; position: relative; min-height: 100vh; }
-        .letterhead-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; object-fit: cover; }
-        .content-wrapper { position: relative; z-index: 1; padding: ${pdfMargin}cm; display: flex; flex-direction: column; justify-content: ${pdfVerticalAlign === "top" ? "flex-start" : pdfVerticalAlign === "center" ? "center" : "flex-end"}; min-height: calc(100vh - ${pdfMargin * 2}cm); box-sizing: border-box; }
+        body { font-family: 'Times New Roman', serif; font-size: ${pdfFontSize}pt; line-height: ${pdfLineHeight}; color: #000; position: relative; }
+        ${withLetterhead ? `.letterhead-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; object-fit: cover; }` : ''}
+        .content-wrapper { position: relative; z-index: 1; ${withLetterhead ? `padding: ${pdfMargin}cm; display: flex; flex-direction: column; justify-content: ${pdfVerticalAlign === "top" ? "flex-start" : pdfVerticalAlign === "center" ? "center" : "flex-end"}; min-height: calc(100vh - ${pdfMargin * 2}cm); box-sizing: border-box;` : ''} }
         .header { display: none; }
         .meta { display: none; }
         .recipient { margin-bottom: 20px; } .recipient strong { display: block; }
@@ -617,9 +622,9 @@ export default function Correspondence() {
         .qr-verification { margin-top: 40px; padding-top: 15px; border-top: 1px solid #ddd; display: flex; align-items: center; gap: 12px; }
         .qr-verification img { width: 80px; height: 80px; }
         .qr-verification .qr-label { font-size: 8pt; color: #888; line-height: 1.4; }
-        @media print { .letterhead-bg { position: fixed; print-color-adjust: exact; -webkit-print-color-adjust: exact; } body { padding: 0; } }
+        @media print { ${withLetterhead ? `.letterhead-bg { position: fixed; print-color-adjust: exact; -webkit-print-color-adjust: exact; }` : ''} body { padding: 0; } }
       </style></head><body>
-      ${orgLetterheadUrl ? `<img class="letterhead-bg" src="${orgLetterheadUrl}" alt="" />` : ""}
+      ${withLetterhead && orgLetterheadUrl ? `<img class="letterhead-bg" src="${orgLetterheadUrl}" alt="" />` : ""}
       <div class="content-wrapper">
       <div class="header"><h1>${organizationName}</h1><div class="org">${getTypeLabel(docType)}</div></div>
       <div class="doc-title">${getTypeLabel(docType)}</div>
@@ -880,7 +885,10 @@ export default function Correspondence() {
                           <Button size="sm" variant="ghost" onClick={() => loadAuditLogs(rec.id)} title="Journal d'audit"><History className="h-4 w-4" /></Button>
                         )}
                         {(rec.status === "validated" || rec.status === "signed") && (
-                          <Button size="sm" variant="ghost" onClick={() => handlePrintPDF(rec)}><Download className="h-4 w-4" /></Button>
+                          <>
+                            <Button size="sm" variant="ghost" onClick={() => handlePrintPDF(rec, true)} title="PDF avec en-tête"><Download className="h-4 w-4" /></Button>
+                            <Button size="sm" variant="ghost" onClick={() => handlePrintPDF(rec, false)} title="PDF sans en-tête"><Printer className="h-4 w-4" /></Button>
+                          </>
                         )}
                       </div>
                     </TableCell>
@@ -1358,7 +1366,8 @@ export default function Correspondence() {
             <div className="flex gap-2">
               {wizardStep === 5 && (
                 <>
-                  <Button variant="outline" onClick={() => handlePrintPDF()}><Download className="h-4 w-4 mr-2" />PDF</Button>
+                  <Button variant="outline" onClick={() => handlePrintPDF(undefined, true)}><Download className="h-4 w-4 mr-2" />PDF</Button>
+                  <Button variant="outline" onClick={() => handlePrintPDF(undefined, false)}><Printer className="h-4 w-4 mr-2" />Sans en-tête</Button>
                   <Button onClick={handleGenerate} disabled={!selectedRecipient || !selectedTemplate}>
                     {enableValidation ? <><ShieldCheck className="h-4 w-4 mr-2" />Soumettre pour validation</> : <><CheckCircle2 className="h-4 w-4 mr-2" />Générer & Archiver</>}
                   </Button>
@@ -1447,9 +1456,14 @@ export default function Correspondence() {
 
               {/* Print button for validated/signed */}
               {(previewRecord.status === "validated" || previewRecord.status === "signed") && (
-                <Button variant="outline" className="w-full" onClick={() => handlePrintPDF(previewRecord)}>
-                  <Download className="h-4 w-4 mr-2" />Exporter en PDF
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" className="flex-1" onClick={() => handlePrintPDF(previewRecord, true)}>
+                    <Download className="h-4 w-4 mr-2" />PDF avec en-tête
+                  </Button>
+                  <Button variant="outline" className="flex-1" onClick={() => handlePrintPDF(previewRecord, false)}>
+                    <Printer className="h-4 w-4 mr-2" />Sans en-tête
+                  </Button>
+                </div>
               )}
             </div>
           )}
