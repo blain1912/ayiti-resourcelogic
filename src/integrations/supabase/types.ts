@@ -1910,6 +1910,7 @@ export type Database = {
         | "avertissement"
         | "felicitations"
         | "autre"
+        | "contrat_service"
       employee_status:
         | "actif"
         | "conge_annuel"
@@ -2121,6 +2122,7 @@ export const Constants = {
         "avertissement",
         "felicitations",
         "autre",
+        "contrat_service",
       ],
       employee_status: [
         "actif",
