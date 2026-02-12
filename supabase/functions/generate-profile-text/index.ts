@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { profile, organizationName, positionName, unitName } = await req.json();
+    const { profile, organizationName, positionName, unitName, cvUrl } = await req.json();
 
     if (!profile) {
       throw new Error("Profile data is required");
@@ -38,10 +38,65 @@ serve(async (req) => {
     if (positionName) profileDetails.push(`Poste: ${positionName}`);
     if (unitName) profileDetails.push(`Unité: ${unitName}`);
 
-    const prompt = `Tu es un rédacteur professionnel RH. À partir des informations suivantes d'un employé, rédige un texte de profil professionnel en français, en 2-3 paragraphes. Le texte doit être formel, respectueux et mettre en valeur le parcours et le rôle de l'employé au sein de l'organisation. Ne mentionne pas les informations manquantes. Ne commence pas par "Voici" ou similaire, commence directement par le texte du profil.
+    // Try to extract text from CV if URL is provided
+    let cvText = "";
+    if (cvUrl) {
+      try {
+        console.log("Fetching CV from signed URL...");
+        const cvResponse = await fetch(cvUrl);
+        if (cvResponse.ok) {
+          const contentType = cvResponse.headers.get("content-type") || "";
+          
+          if (contentType.includes("text") || contentType.includes("json")) {
+            cvText = await cvResponse.text();
+          } else {
+            // For PDF/Word/images, we'll pass the URL to the AI model for analysis
+            const cvBytes = await cvResponse.arrayBuffer();
+            const base64Cv = btoa(String.fromCharCode(...new Uint8Array(cvBytes)));
+            
+            // Use the AI to extract CV content
+            const extractResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${Deno.env.get("LOVABLE_API_KEY")}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                model: "google/gemini-2.5-flash",
+                messages: [
+                  { role: "system", content: "Extrais le texte brut de ce document CV. Retourne uniquement le contenu textuel sans formatage." },
+                  { role: "user", content: [
+                    { type: "text", text: "Extrais tout le contenu textuel de ce CV :" },
+                    { type: "image_url", image_url: { url: `data:${contentType};base64,${base64Cv}` } }
+                  ]}
+                ],
+                max_tokens: 2000,
+                temperature: 0.1,
+              }),
+            });
 
-Informations de l'employé:
+            if (extractResponse.ok) {
+              const extractData = await extractResponse.json();
+              cvText = extractData.choices?.[0]?.message?.content || "";
+              console.log("CV text extracted successfully, length:", cvText.length);
+            }
+          }
+        }
+      } catch (cvError) {
+        console.error("Error extracting CV content:", cvError);
+        // Continue without CV content
+      }
+    }
+
+    let prompt = `Tu es un rédacteur professionnel RH. À partir des informations suivantes d'un employé, rédige un texte de profil professionnel en français, en 2-3 paragraphes. Le texte doit être formel, respectueux et mettre en valeur le parcours et le rôle de l'employé au sein de l'organisation. Ne mentionne pas les informations manquantes. Ne commence pas par "Voici" ou similaire, commence directement par le texte du profil.
+
+Informations de l'employé (source principale - inscription):
 ${profileDetails.join('\n')}`;
+
+    if (cvText) {
+      prompt += `\n\nInformations complémentaires extraites du CV de l'employé (utilise ces informations pour enrichir le profil, notamment les compétences, formations, expériences professionnelles et réalisations):
+${cvText.substring(0, 3000)}`;
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
