@@ -342,8 +342,14 @@ export default function Correspondence() {
   const handleSaveTemplate = async () => {
     if (!organizationId || !profileId) return;
     const detectedVars = VARIABLE_SUGGESTIONS.filter(v => body.includes(v.key)).map(v => v.key);
+    // Map categoryLabel to DB enum when it matches a valid correspondence_category
+    const DB_CATEGORY_ENUMS = [
+      "attestation_travail", "certificat_travail", "lettre_recommandation", "note_service",
+      "decision", "convocation", "mise_en_demeure", "avertissement", "felicitations", "contrat_service", "autre"
+    ];
+    const dbCategory = DB_CATEGORY_ENUMS.includes(categoryLabel) ? categoryLabel : "autre";
     const templateData = {
-      title, category: "autre", category_label: categoryLabel, document_type: documentType,
+      title, category: dbCategory, category_label: categoryLabel, document_type: documentType,
       subject: subject || null, body, variables: detectedVars, is_active: isActive,
       organization_id: organizationId, created_by: profileId,
     } as any;
