@@ -36,6 +36,7 @@ const CATEGORIES = [
   { value: "formation", label: "Formation" },
   { value: "evaluation", label: "Évaluation" },
   { value: "depart", label: "Départ" },
+  { value: "contrat_service", label: "Contrat de service" },
   { value: "autre", label: "Autre" },
 ];
 
@@ -56,7 +57,8 @@ const CATEGORY_COLORS: Record<string, string> = {
   carriere: "bg-purple-100 text-purple-800", administration: "bg-slate-100 text-slate-800",
   conges: "bg-green-100 text-green-800", remuneration: "bg-amber-100 text-amber-800",
   formation: "bg-cyan-100 text-cyan-800", evaluation: "bg-orange-100 text-orange-800",
-  depart: "bg-rose-100 text-rose-800", autre: "bg-gray-100 text-gray-800",
+  depart: "bg-rose-100 text-rose-800", contrat_service: "bg-violet-100 text-violet-800",
+  autre: "bg-gray-100 text-gray-800",
 };
 
 const TYPE_COLORS: Record<string, string> = {
