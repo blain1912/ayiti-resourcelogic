@@ -9,8 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
-import { Calendar, Download, Users, FileText } from "lucide-react";
+import { Calendar, Download, Users, FileText, FileDown } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { exportToPdf } from "@/lib/exportPdf";
 
 interface EmployeeLeaveData {
   id: string;
@@ -128,6 +129,7 @@ export const LeaveReport = () => {
             <SelectContent>{years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}</SelectContent>
           </Select>
           <Button onClick={exportToCSV} variant="outline"><Download className="h-4 w-4 mr-2" />CSV</Button>
+          <Button onClick={() => exportToPdf("leave-report", `rapport-conges-${selectedYear}`)} variant="outline"><FileDown className="h-4 w-4 mr-2" />PDF</Button>
         </div>
       </div>
 

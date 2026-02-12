@@ -3,7 +3,8 @@ import { MonthlyAttendanceReport } from "@/components/attendance/MonthlyAttendan
 import { LeaveReport } from "@/components/reports/LeaveReport";
 import { SeniorityReport } from "@/components/reports/SeniorityReport";
 import { StaffingReport } from "@/components/reports/StaffingReport";
-import { CheckSquare, Calendar, Award, Users, FileBarChart } from "lucide-react";
+import { DemographicsReport } from "@/components/reports/DemographicsReport";
+import { CheckSquare, Calendar, Award, Users, FileBarChart, UserCircle } from "lucide-react";
 
 const Reports = () => {
   return (
@@ -18,7 +19,7 @@ const Reports = () => {
         </div>
 
         <Tabs defaultValue="attendance" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-auto">
+          <TabsList className="grid w-full grid-cols-3 md:grid-cols-5 h-auto">
             <TabsTrigger value="attendance" className="gap-2 py-3">
               <CheckSquare className="h-4 w-4" />
               <span className="hidden sm:inline">Présences</span>
@@ -35,6 +36,10 @@ const Reports = () => {
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Effectifs</span>
             </TabsTrigger>
+            <TabsTrigger value="demographics" className="gap-2 py-3">
+              <UserCircle className="h-4 w-4" />
+              <span className="hidden sm:inline">Démographie</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="attendance">
@@ -48,6 +53,9 @@ const Reports = () => {
           </TabsContent>
           <TabsContent value="staffing">
             <StaffingReport />
+          </TabsContent>
+          <TabsContent value="demographics">
+            <DemographicsReport />
           </TabsContent>
         </Tabs>
       </main>

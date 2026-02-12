@@ -10,7 +10,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isWeekend, subMonths, getYear, getMonth } from "date-fns";
 import { fr } from "date-fns/locale";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { Users, UserCheck, UserX, Clock, TrendingUp, Calendar, Download, Building2 } from "lucide-react";
+import { Users, UserCheck, UserX, Clock, TrendingUp, Calendar, Download, Building2, FileDown } from "lucide-react";
+import { exportToPdf } from "@/lib/exportPdf";
 
 interface EmployeeAttendance {
   id: string;
@@ -266,7 +267,7 @@ export const MonthlyAttendanceReport = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" id="attendance-report">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -303,7 +304,11 @@ export const MonthlyAttendanceReport = () => {
 
           <Button onClick={exportToCSV} variant="outline">
             <Download className="h-4 w-4 mr-2" />
-            Exporter CSV
+            CSV
+          </Button>
+          <Button onClick={() => exportToPdf("attendance-report", `rapport-presence-${format(selectedMonth, "yyyy-MM")}`)} variant="outline">
+            <FileDown className="h-4 w-4 mr-2" />
+            PDF
           </Button>
         </div>
       </div>
