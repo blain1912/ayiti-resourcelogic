@@ -88,6 +88,7 @@ const VARIABLE_SUGGESTIONS = [
   { key: "{{adresse}}", label: "Adresse complète" }, { key: "{{annee_en_cours}}", label: "Année en cours" },
   { key: "{{nif_employe}}", label: "NIF de l'employé" },
   { key: "{{organisation_court}}", label: "Sigle/Nom court de l'org." },
+  { key: "{{organisation_avec_article}}", label: "Le/La/L' + Nom de l'org." },
   { key: "{{date_debut_contrat}}", label: "Date début contrat" },
   { key: "{{date_fin_contrat}}", label: "Date fin contrat" },
 ];
@@ -208,6 +209,7 @@ export default function Correspondence() {
   const [signatureCin, setSignatureCin] = useState("");
   const [signatureNif, setSignatureNif] = useState("");
   const [civiliteSignataire, setCiviliteSignataire] = useState("MONSIEUR");
+  const [articleOrganisation, setArticleOrganisation] = useState("L'");
   const [contractStartDate, setContractStartDate] = useState("");
   const [contractEndDate, setContractEndDate] = useState("");
   const [enableValidation, setEnableValidation] = useState(true);
@@ -434,6 +436,7 @@ export default function Correspondence() {
       .replace(/\{\{cin_signataire\}\}/g, `<strong>${signatureCin || "___________"}</strong>`)
       .replace(/\{\{nif_signataire\}\}/g, `<strong>${signatureNif || "___________"}</strong>`)
       .replace(/\{\{organisation_court\}\}/g, `<strong>${organizationName}</strong>`)
+      .replace(/\{\{organisation_avec_article\}\}/g, `<strong>${articleOrganisation}${organizationName}</strong>`)
       .replace(/\{\{date_debut_contrat\}\}/g, `<strong>${contractStartDate ? new Date(contractStartDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "___________"}</strong>`)
       .replace(/\{\{date_fin_contrat\}\}/g, `<strong>${contractEndDate ? new Date(contractEndDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "___________"}</strong>`);
   };
@@ -443,7 +446,7 @@ export default function Correspondence() {
     setWizardStep(tpl ? 2 : 1);
     setSelectedTemplate(tpl || null);
     setSelectedRecipient(""); setSendBody(tpl?.body || ""); setSendSubject(tpl?.subject || "");
-    setSignatureName(orgSignerName); setSignatureTitle(orgSignerTitle); setSignatureCin(""); setSignatureNif(""); setCiviliteSignataire("MONSIEUR"); setContractStartDate(""); setContractEndDate(""); setEnableValidation(true);
+    setSignatureName(orgSignerName); setSignatureTitle(orgSignerTitle); setSignatureCin(""); setSignatureNif(""); setCiviliteSignataire("MONSIEUR"); setArticleOrganisation("L'"); setContractStartDate(""); setContractEndDate(""); setEnableValidation(true);
     setWizardOpen(true);
   };
 
@@ -1191,6 +1194,14 @@ export default function Correspondence() {
               <p className="text-xs text-muted-foreground">
                 {enableValidation ? "La signature sera apposée après validation complète." : "La signature sera apposée immédiatement."}
               </p>
+              <div>
+                <Label>Article de l'organisation (Le / La / L')</Label>
+                <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={articleOrganisation} onChange={e => setArticleOrganisation(e.target.value)}>
+                  <option value="L'">L' (ex: L'Ecole Nationale des Arts)</option>
+                  <option value="Le ">Le (ex: Le Ministère des Finances)</option>
+                  <option value="La ">La (ex: La Direction Générale)</option>
+                </select>
+              </div>
               <div>
                 <Label>Civilité du signataire</Label>
                 <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={civiliteSignataire} onChange={e => setCiviliteSignataire(e.target.value)}>
