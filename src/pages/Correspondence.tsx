@@ -87,6 +87,8 @@ const VARIABLE_SUGGESTIONS = [
   { key: "{{adresse}}", label: "Adresse complète" }, { key: "{{annee_en_cours}}", label: "Année en cours" },
   { key: "{{nif_employe}}", label: "NIF de l'employé" },
   { key: "{{organisation_court}}", label: "Sigle/Nom court de l'org." },
+  { key: "{{date_debut_contrat}}", label: "Date début contrat" },
+  { key: "{{date_fin_contrat}}", label: "Date fin contrat" },
 ];
 
 const GENERATION_STEPS = [
@@ -204,6 +206,8 @@ export default function Correspondence() {
   const [signatureTitle, setSignatureTitle] = useState("");
   const [signatureCin, setSignatureCin] = useState("");
   const [signatureNif, setSignatureNif] = useState("");
+  const [contractStartDate, setContractStartDate] = useState("");
+  const [contractEndDate, setContractEndDate] = useState("");
   const [enableValidation, setEnableValidation] = useState(true);
   const [employees, setEmployees] = useState<any[]>([]);
   const [units, setUnits] = useState<any[]>([]);
@@ -426,7 +430,9 @@ export default function Correspondence() {
       .replace(/\{\{nif_employe\}\}/g, `<strong>${employee?.nif || ""}</strong>`)
       .replace(/\{\{cin_signataire\}\}/g, `<strong>${signatureCin || "___________"}</strong>`)
       .replace(/\{\{nif_signataire\}\}/g, `<strong>${signatureNif || "___________"}</strong>`)
-      .replace(/\{\{organisation_court\}\}/g, `<strong>${organizationName}</strong>`);
+      .replace(/\{\{organisation_court\}\}/g, `<strong>${organizationName}</strong>`)
+      .replace(/\{\{date_debut_contrat\}\}/g, `<strong>${contractStartDate ? new Date(contractStartDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "___________"}</strong>`)
+      .replace(/\{\{date_fin_contrat\}\}/g, `<strong>${contractEndDate ? new Date(contractEndDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "___________"}</strong>`);
   };
 
   // ──── Generation Wizard ────
@@ -434,7 +440,7 @@ export default function Correspondence() {
     setWizardStep(tpl ? 2 : 1);
     setSelectedTemplate(tpl || null);
     setSelectedRecipient(""); setSendBody(tpl?.body || ""); setSendSubject(tpl?.subject || "");
-    setSignatureName(orgSignerName); setSignatureTitle(orgSignerTitle); setSignatureCin(""); setSignatureNif(""); setEnableValidation(true);
+    setSignatureName(orgSignerName); setSignatureTitle(orgSignerTitle); setSignatureCin(""); setSignatureNif(""); setContractStartDate(""); setContractEndDate(""); setEnableValidation(true);
     setWizardOpen(true);
   };
 
@@ -1186,6 +1192,12 @@ export default function Correspondence() {
               <div><Label>Titre / Fonction</Label><Input value={signatureTitle} onChange={e => setSignatureTitle(e.target.value)} placeholder="Ex : Directeur des Ressources Humaines" /></div>
               <div><Label>CIN du signataire</Label><Input value={signatureCin} onChange={e => setSignatureCin(e.target.value)} placeholder="Ex : 01-01-99-1234-56" /></div>
               <div><Label>NIF du signataire</Label><Input value={signatureNif} onChange={e => setSignatureNif(e.target.value)} placeholder="Ex : 000-000-000-0" /></div>
+              <Separator />
+              <Label className="text-sm font-semibold">Dates du contrat</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div><Label>Date de début</Label><Input type="date" value={contractStartDate} onChange={e => setContractStartDate(e.target.value)} /></div>
+                <div><Label>Date de fin</Label><Input type="date" value={contractEndDate} onChange={e => setContractEndDate(e.target.value)} /></div>
+              </div>
             </div>
           )}
 
