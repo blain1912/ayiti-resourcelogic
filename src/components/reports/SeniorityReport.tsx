@@ -7,8 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, differenceInYears, differenceInMonths } from "date-fns";
 import { fr } from "date-fns/locale";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { Download, Users, Award, TrendingUp, Clock } from "lucide-react";
+import { Download, Users, Award, TrendingUp, Clock, FileDown } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { exportToPdf } from "@/lib/exportPdf";
 
 interface EmployeeSeniority {
   id: string;
@@ -115,6 +116,7 @@ export const SeniorityReport = () => {
           <p className="text-muted-foreground">{organizationName}</p>
         </div>
         <Button onClick={exportToCSV} variant="outline"><Download className="h-4 w-4 mr-2" />CSV</Button>
+        <Button onClick={() => exportToPdf("seniority-report", `rapport-anciennete-${format(new Date(), "yyyy-MM-dd")}`)} variant="outline"><FileDown className="h-4 w-4 mr-2" />PDF</Button>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

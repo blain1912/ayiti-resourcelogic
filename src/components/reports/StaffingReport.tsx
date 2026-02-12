@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { Download, Users, Building2, UserCheck, UserX } from "lucide-react";
+import { Download, Users, Building2, UserCheck, UserX, FileDown } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { exportToPdf } from "@/lib/exportPdf";
 
 interface UnitStats {
   id: string;
@@ -123,6 +124,7 @@ export const StaffingReport = () => {
           <p className="text-muted-foreground">{organizationName}</p>
         </div>
         <Button onClick={exportToCSV} variant="outline"><Download className="h-4 w-4 mr-2" />CSV</Button>
+        <Button onClick={() => exportToPdf("staffing-report", `rapport-effectifs-${format(new Date(), "yyyy-MM-dd")}`)} variant="outline"><FileDown className="h-4 w-4 mr-2" />PDF</Button>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
