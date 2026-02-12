@@ -1330,10 +1330,6 @@ export default function Correspondence() {
                 <div className="relative" style={{ zIndex: 1, padding: `${pdfMargin * 10}px`, minHeight: "100%", display: "flex", flexDirection: "column", justifyContent: pdfVerticalAlign === "top" ? "flex-start" : pdfVerticalAlign === "center" ? "center" : "flex-end" }}>
                   <div className="space-y-4">
                     <div className="text-center font-bold uppercase mt-6 mb-4">{getTypeLabel(selectedTemplate?.document_type || "lettre")}</div>
-                    <div className="flex justify-between text-muted-foreground" style={{ fontSize: `${Math.max(pdfFontSize - 2, 8)}px` }}>
-                      <span>Réf : CORR-{format(new Date(), "yyyyMMdd-HHmm")}</span>
-                      <span>{format(new Date(), "d MMMM yyyy", { locale: fr })}</span>
-                    </div>
                     {sendSubject && <div className="text-center font-bold underline">Objet : {sendSubject}</div>}
                     <div className="whitespace-pre-wrap" style={{ textAlign: "justify" }} dangerouslySetInnerHTML={{ __html: sendBody }} />
                     {signatureName && (
