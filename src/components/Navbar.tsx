@@ -199,6 +199,12 @@ export default function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to="/reports" className="flex items-center cursor-pointer">
+                        <FileBarChart className="h-4 w-4 mr-2" />
+                        Rapports RH
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/leaves" className="flex items-center cursor-pointer">
                         <Calendar className="h-4 w-4 mr-2" />
                         Congés

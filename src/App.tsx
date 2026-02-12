@@ -45,6 +45,7 @@ import EmployeeCardRequest from "./pages/EmployeeCardRequest";
 import SpecialSchedules from "./pages/SpecialSchedules";
 import Correspondence from "./pages/Correspondence";
 import About from "./pages/About";
+import Reports from "./pages/Reports";
 import Terms from "./pages/Terms";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
@@ -86,6 +87,7 @@ const App = () => (
             <Route path="/central-qr" element={<ProtectedRoute><CentralQRDisplay /></ProtectedRoute>} />
             <Route path="/realtime-attendance" element={<ProtectedRoute><RealtimeAttendance /></ProtectedRoute>} />
             <Route path="/monthly-report" element={<ProtectedRoute><MonthlyReport /></ProtectedRoute>} />
+            <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
             <Route path="/units" element={<ProtectedRoute><UnitsList /></ProtectedRoute>} />
             <Route path="/units" element={<ProtectedRoute><UnitsList /></ProtectedRoute>} />
             <Route path="/unit/:unitId/dashboard" element={<ProtectedRoute><UnitDashboard /></ProtectedRoute>} />
