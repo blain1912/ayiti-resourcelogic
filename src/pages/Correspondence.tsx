@@ -78,12 +78,15 @@ const VARIABLE_SUGGESTIONS = [
   { key: "{{organisation}}", label: "Nom de l'institution" }, { key: "{{en_tete}}", label: "En-tête document" },
   { key: "{{ville}}", label: "Ville" }, { key: "{{signataire}}", label: "Nom du signataire" },
   { key: "{{titre_signataire}}", label: "Titre du signataire" },
+  { key: "{{cin_signataire}}", label: "CIN du signataire" },
+  { key: "{{nif_signataire}}", label: "NIF du signataire" },
   { key: "{{email}}", label: "Email" },
   { key: "{{telephone}}", label: "Téléphone" }, { key: "{{nif}}", label: "NIF" },
   { key: "{{cin}}", label: "CIN" },
   { key: "{{salaire_mensuel}}", label: "Salaire mensuel" }, { key: "{{salaire_annuel}}", label: "Salaire annuel" },
   { key: "{{adresse}}", label: "Adresse complète" }, { key: "{{annee_en_cours}}", label: "Année en cours" },
   { key: "{{nif_employe}}", label: "NIF de l'employé" },
+  { key: "{{organisation_court}}", label: "Sigle/Nom court de l'org." },
 ];
 
 const GENERATION_STEPS = [
@@ -199,6 +202,8 @@ export default function Correspondence() {
   const [sendSubject, setSendSubject] = useState("");
   const [signatureName, setSignatureName] = useState("");
   const [signatureTitle, setSignatureTitle] = useState("");
+  const [signatureCin, setSignatureCin] = useState("");
+  const [signatureNif, setSignatureNif] = useState("");
   const [enableValidation, setEnableValidation] = useState(true);
   const [employees, setEmployees] = useState<any[]>([]);
   const [units, setUnits] = useState<any[]>([]);
@@ -418,7 +423,10 @@ export default function Correspondence() {
       .replace(/\{\{salaire_annuel\}\}/g, salaireAnnuel ? `<strong>${salaireAnnuel.toLocaleString("fr-FR")} HTG</strong>` : "N/A")
       .replace(/\{\{adresse\}\}/g, [employee?.adresse_rue, employee?.adresse_ville, employee?.adresse_departement].filter(Boolean).join(", ") || "N/A")
       .replace(/\{\{annee_en_cours\}\}/g, `<strong>${new Date().getFullYear()}</strong>`)
-      .replace(/\{\{nif_employe\}\}/g, `<strong>${employee?.nif || ""}</strong>`);
+      .replace(/\{\{nif_employe\}\}/g, `<strong>${employee?.nif || ""}</strong>`)
+      .replace(/\{\{cin_signataire\}\}/g, `<strong>${signatureCin || "___________"}</strong>`)
+      .replace(/\{\{nif_signataire\}\}/g, `<strong>${signatureNif || "___________"}</strong>`)
+      .replace(/\{\{organisation_court\}\}/g, `<strong>${organizationName}</strong>`);
   };
 
   // ──── Generation Wizard ────
@@ -426,7 +434,7 @@ export default function Correspondence() {
     setWizardStep(tpl ? 2 : 1);
     setSelectedTemplate(tpl || null);
     setSelectedRecipient(""); setSendBody(tpl?.body || ""); setSendSubject(tpl?.subject || "");
-    setSignatureName(orgSignerName); setSignatureTitle(orgSignerTitle); setEnableValidation(true);
+    setSignatureName(orgSignerName); setSignatureTitle(orgSignerTitle); setSignatureCin(""); setSignatureNif(""); setEnableValidation(true);
     setWizardOpen(true);
   };
 
@@ -1176,6 +1184,8 @@ export default function Correspondence() {
               </p>
               <div><Label>Nom du signataire</Label><Input value={signatureName} onChange={e => setSignatureName(e.target.value)} placeholder="Ex : Jean DUPONT" /></div>
               <div><Label>Titre / Fonction</Label><Input value={signatureTitle} onChange={e => setSignatureTitle(e.target.value)} placeholder="Ex : Directeur des Ressources Humaines" /></div>
+              <div><Label>CIN du signataire</Label><Input value={signatureCin} onChange={e => setSignatureCin(e.target.value)} placeholder="Ex : 01-01-99-1234-56" /></div>
+              <div><Label>NIF du signataire</Label><Input value={signatureNif} onChange={e => setSignatureNif(e.target.value)} placeholder="Ex : 000-000-000-0" /></div>
             </div>
           )}
 
