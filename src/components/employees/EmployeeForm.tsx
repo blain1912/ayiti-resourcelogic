@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
 import type { FieldErrors } from "react-hook-form";
@@ -69,6 +70,7 @@ const employeeFormSchema = z.object({
       path: ["professor_grade"],
     });
   }
+  // Position is required for non-professor types (even if also professor)
   if (data.employment_type !== "professeur" && !data.position_id) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -213,6 +215,14 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
   const dateEntreeFonction = form.watch("date_entree_fonction");
   const age = selectedBirthDate ? calculateAge(selectedBirthDate) : null;
   const isProfessor = employmentType === "professeur";
+  const [isAlsoProfessor, setIsAlsoProfessor] = useState(false);
+
+  // Initialize isAlsoProfessor from default values
+  useEffect(() => {
+    if (defaultValues?.professor_grade && defaultValues?.employment_type !== "professeur") {
+      setIsAlsoProfessor(true);
+    }
+  }, [defaultValues]);
 
   // Filtrer les directions (direction_generale, direction_technique)
   const directions = units.filter(unit => 
@@ -907,7 +917,7 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Poste {!isProfessor && "*"}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={isProfessor || positions.length === 0}>
+                  <Select onValueChange={field.onChange} value={field.value} disabled={isProfessor && !isAlsoProfessor || positions.length === 0}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder={positions.length === 0 ? "Aucun poste disponible" : "Sélectionner"} />
@@ -925,7 +935,7 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
                       )}
                     </SelectContent>
                   </Select>
-                  {isProfessor && (
+                  {isProfessor && !isAlsoProfessor && (
                     <p className="text-sm text-muted-foreground">
                       Non applicable pour les professeurs
                     </p>
@@ -964,7 +974,24 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
               )}
             />
 
-            {isProfessor && (
+            {!isProfessor && (
+              <div className="flex items-center gap-3 col-span-full">
+                <Switch
+                  checked={isAlsoProfessor}
+                  onCheckedChange={(checked) => {
+                    setIsAlsoProfessor(checked);
+                    if (!checked) {
+                      form.setValue("professor_grade", undefined);
+                    }
+                  }}
+                />
+                <label className="text-sm font-medium">
+                  Aussi professeur (cumul de poste)
+                </label>
+              </div>
+            )}
+
+            {(isProfessor || isAlsoProfessor) && (
               <FormField
                 control={form.control}
                 name="professor_grade"
