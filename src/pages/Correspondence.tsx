@@ -92,6 +92,12 @@ const VARIABLE_SUGGESTIONS = [
   { key: "{{organisation_avec_article}}", label: "Le/La/L' + Nom de l'org." },
   { key: "{{date_debut_contrat}}", label: "Date début contrat" },
   { key: "{{date_fin_contrat}}", label: "Date fin contrat" },
+  { key: "{{poste_cumule}}", label: "Poste cumulé (professeur)" },
+  { key: "{{code_budgetaire}}", label: "Code budgétaire principal" },
+  { key: "{{code_budgetaire_professeur}}", label: "Code budgétaire professeur" },
+  { key: "{{salaire_mensuel_total}}", label: "Salaire mensuel total (cumul)" },
+  { key: "{{salaire_annuel_total}}", label: "Salaire annuel total (cumul)" },
+  { key: "{{mention_cumul}}", label: "Mention complète du cumul de postes" },
 ];
 
 const GENERATION_STEPS = [
@@ -259,7 +265,7 @@ export default function Correspondence() {
         supabase.from("organizations").select("name, document_header_text, document_city, default_signer_name, default_signer_title, pdf_font_size, pdf_line_height, pdf_margin, pdf_vertical_align, letterhead_url").eq("id", profile.organization_id).maybeSingle(),
         (supabase.from("correspondence_templates") as any).select("*").eq("organization_id", profile.organization_id).order("created_at", { ascending: false }),
         (supabase.from("correspondence_records") as any).select("id, title, category, subject, body, sent_at, status, signature_name, signature_title, signed_at, document_type, category_label, recipient_id, is_locked, reference_number").eq("organization_id", profile.organization_id).order("sent_at", { ascending: false }),
-        supabase.from("profiles").select("id, full_name, prenom, nom, email, tel_1, nif, cin, date_entree_fonction, unit_id, position_id, sexe").eq("organization_id", profile.organization_id).eq("approval_status", "approved"),
+        supabase.from("profiles").select("id, full_name, prenom, nom, email, tel_1, nif, cin, date_entree_fonction, unit_id, position_id, sexe, code_budgetaire, professor_grade, professor_code_budgetaire, professor_salary, adresse_rue, adresse_ville, adresse_departement").eq("organization_id", profile.organization_id).eq("approval_status", "approved"),
         supabase.from("organizational_units").select("id, name").eq("organization_id", profile.organization_id),
         supabase.from("positions").select("id, name, salary").eq("organization_id", profile.organization_id),
         supabase.from("user_roles").select("role").eq("user_id", user.id).eq("organization_id", profile.organization_id),
@@ -409,6 +415,18 @@ export default function Correspondence() {
     const salaireMensuel = pos?.salary ? Number(pos.salary) : 0;
     const salaireAnnuel = salaireMensuel * 12;
     const civilite = employee?.sexe === "F" ? "Madame" : "Monsieur";
+
+    // Cumul de postes - professeur
+    const hasCumul = !!employee?.professor_grade;
+    const profSalaire = hasCumul && employee?.professor_salary ? Number(employee.professor_salary) : 0;
+    const salaireMensuelTotal = salaireMensuel + profSalaire;
+    const salaireAnnuelTotal = salaireMensuelTotal * 12;
+
+    // Mention cumul complète pour attestation
+    const mentionCumul = hasCumul
+      ? `occupant le poste de <strong>${posName}</strong> (Code budgétaire : <strong>${employee?.code_budgetaire || "N/A"}</strong>, Salaire mensuel : <strong>${salaireMensuel.toLocaleString("fr-FR")} HTG</strong>) et cumulativement le poste de <strong>Professeur – ${employee.professor_grade}</strong> (Code budgétaire : <strong>${employee?.professor_code_budgetaire || "N/A"}</strong>, Salaire mensuel : <strong>${profSalaire.toLocaleString("fr-FR")} HTG</strong>), pour un salaire mensuel total de <strong>${salaireMensuelTotal.toLocaleString("fr-FR")} HTG</strong>`
+      : `occupant le poste de <strong>${posName}</strong>`;
+
     return text
       .replace(/\{\{nom\}\}/g, `<strong>${employee?.prenom && employee?.nom ? `${employee.prenom} ${employee.nom}` : employee?.full_name || ""}</strong>`)
       .replace(/\{\{prenom\}\}/g, employee?.prenom || "")
@@ -439,7 +457,14 @@ export default function Correspondence() {
       .replace(/\{\{organisation_court\}\}/g, `<strong>${organizationName}</strong>`)
       .replace(/\{\{organisation_avec_article\}\}/g, `<strong>${articleOrganisation}${organizationName}</strong>`)
       .replace(/\{\{date_debut_contrat\}\}/g, `<strong>${contractStartDate ? new Date(contractStartDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "___________"}</strong>`)
-      .replace(/\{\{date_fin_contrat\}\}/g, `<strong>${contractEndDate ? new Date(contractEndDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "___________"}</strong>`);
+      .replace(/\{\{date_fin_contrat\}\}/g, `<strong>${contractEndDate ? new Date(contractEndDate).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "___________"}</strong>`)
+      // Variables cumul de postes
+      .replace(/\{\{poste_cumule\}\}/g, hasCumul ? `<strong>Professeur – ${employee.professor_grade}</strong>` : "N/A")
+      .replace(/\{\{code_budgetaire\}\}/g, `<strong>${employee?.code_budgetaire || "N/A"}</strong>`)
+      .replace(/\{\{code_budgetaire_professeur\}\}/g, hasCumul ? `<strong>${employee?.professor_code_budgetaire || "N/A"}</strong>` : "N/A")
+      .replace(/\{\{salaire_mensuel_total\}\}/g, `<strong>${salaireMensuelTotal.toLocaleString("fr-FR")} HTG</strong>`)
+      .replace(/\{\{salaire_annuel_total\}\}/g, `<strong>${salaireAnnuelTotal.toLocaleString("fr-FR")} HTG</strong>`)
+      .replace(/\{\{mention_cumul\}\}/g, mentionCumul);
   };
 
   // ──── Generation Wizard ────
