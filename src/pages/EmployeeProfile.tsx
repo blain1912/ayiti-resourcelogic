@@ -391,51 +391,29 @@ export default function EmployeeProfile() {
                 </Button>
                 <Button 
                   onClick={() => {
-                    const element = document.getElementById('employee-info-card');
-                    if (!element) return;
-                    
-                    import('html2canvas').then((html2canvas) => {
-                      html2canvas.default(element, {
-                        backgroundColor: '#ffffff',
-                        scale: 2
-                      }).then((canvas) => {
-                        const link = document.createElement('a');
-                        link.download = `fiche-employe-${profile.code_budgetaire || profile.id}.png`;
-                        link.href = canvas.toDataURL('image/png');
-                        link.click();
-                      });
+                    import('@/lib/exportPdf').then(({ exportToPdf }) => {
+                      exportToPdf('employee-info-card', `fiche-employe-${profile.code_budgetaire || profile.id}`);
                     });
                   }}
                   variant="outline" 
                   className="flex-1"
                 >
                   <Download className="h-4 w-4 mr-2" />
-                  Télécharger la fiche
+                  Exporter en PDF
                 </Button>
               </div>
 
-              <div id="employee-info-card" className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card className="lg:col-span-2">
-                  <CardHeader>
-                    <CardTitle>Informations complètes</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <Alert>
-                        <CheckCircle className="h-4 w-4" />
-                        <AlertTitle>Profil complet</AlertTitle>
-                        <AlertDescription>
-                          Votre fiche d'employé est complète et à jour.
-                        </AlertDescription>
-                      </Alert>
+              <div id="employee-info-card" className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <Card className="lg:col-span-2">
+                    <CardHeader>
+                      <CardTitle>Informations personnelles</CardTitle>
+                    </CardHeader>
+                    <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                           <p className="text-sm font-medium text-muted-foreground">Nom complet</p>
                           <p className="text-lg">{profile.full_name}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-muted-foreground">Code budgétaire</p>
-                          <p className="text-lg">{profile.code_budgetaire || "Non renseigné"}</p>
                         </div>
                         <div>
                           <p className="text-sm font-medium text-muted-foreground">Email</p>
@@ -445,70 +423,216 @@ export default function EmployeeProfile() {
                           <p className="text-sm font-medium text-muted-foreground">Téléphone</p>
                           <p className="text-lg">{profile.tel_1 || "Non renseigné"}</p>
                         </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Téléphone 2</p>
+                          <p className="text-lg">{profile.tel_2 || "Non renseigné"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">WhatsApp</p>
+                          <p className="text-lg">{profile.whatsapp || "Non renseigné"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Date de naissance</p>
+                          <p className="text-lg">{profile.date_naissance || "Non renseigné"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Lieu de naissance</p>
+                          <p className="text-lg">{profile.lieu_naissance || "Non renseigné"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Sexe</p>
+                          <p className="text-lg">{profile.sexe === 'M' ? 'Masculin' : profile.sexe === 'F' ? 'Féminin' : 'Non renseigné'}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Nationalité</p>
+                          <p className="text-lg">{profile.nationalite || "Non renseigné"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">État civil</p>
+                          <p className="text-lg">{profile.etat_civil || "Non renseigné"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Groupe sanguin</p>
+                          <p className="text-lg">{profile.groupe_sanguin || "Non renseigné"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Religion</p>
+                          <p className="text-lg">{profile.religion || "Non renseigné"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">NIF</p>
+                          <p className="text-lg">{profile.nif || "Non renseigné"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">CIN</p>
+                          <p className="text-lg">{profile.cin || "Non renseigné"}</p>
+                        </div>
                       </div>
-                      {(isOwner || isHR) && (
-                        <Button variant="outline" onClick={() => setShowForm(true)}>
-                          {isOwner ? "Modifier mes informations" : "Modifier les informations"}
-                        </Button>
-                      )}
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Photo & QR Code</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4 flex flex-col items-center">
+                        {profile.photo_url && (
+                          <img src={profile.photo_url} alt="Photo" className="w-32 h-40 object-cover rounded-lg border" crossOrigin="anonymous" />
+                        )}
+                        <div className="flex flex-col items-center justify-center p-4 bg-white rounded-lg">
+                          <QRCodeSVG
+                            value={JSON.stringify({
+                              id: profile.id,
+                              nom: profile.nom,
+                              prenom: profile.prenom,
+                              code_budgetaire: profile.code_budgetaire,
+                              email: profile.email,
+                              organization_id: profile.organization_id
+                            })}
+                            size={150}
+                            level="H"
+                            includeMargin={true}
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Adresse */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Adresse</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Rue</p>
+                        <p>{profile.adresse_rue || "Non renseigné"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Ville</p>
+                        <p>{profile.adresse_ville || "Non renseigné"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Département</p>
+                        <p>{profile.adresse_departement || "Non renseigné"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Code postal</p>
+                        <p>{profile.code_postal || "Non renseigné"}</p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
 
+                {/* Informations professionnelles - Poste principal */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>QR Code Employé</CardTitle>
+                    <CardTitle>Informations professionnelles — Poste principal</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex flex-col items-center justify-center p-6 bg-white rounded-lg">
-                        <QRCodeSVG
-                          value={JSON.stringify({
-                            id: profile.id,
-                            nom: profile.nom,
-                            prenom: profile.prenom,
-                            code_budgetaire: profile.code_budgetaire,
-                            email: profile.email,
-                            organization_id: profile.organization_id
-                          })}
-                          size={200}
-                          level="H"
-                          includeMargin={true}
-                        />
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Code budgétaire</p>
+                        <p className="text-lg font-semibold">{profile.code_budgetaire || "Non renseigné"}</p>
                       </div>
-                      <p className="text-sm text-muted-foreground text-center">
-                        Votre QR code personnel pour l'identification
-                      </p>
-                      <Button 
-                        variant="outline" 
-                        className="w-full"
-                        onClick={() => {
-                          const svg = document.querySelector('svg');
-                          if (svg) {
-                            const svgData = new XMLSerializer().serializeToString(svg);
-                            const canvas = document.createElement("canvas");
-                            const ctx = canvas.getContext("2d");
-                            const img = new Image();
-                            img.onload = () => {
-                              canvas.width = img.width;
-                              canvas.height = img.height;
-                              ctx?.drawImage(img, 0, 0);
-                              const pngFile = canvas.toDataURL("image/png");
-                              const downloadLink = document.createElement("a");
-                              downloadLink.download = `qrcode-${profile.code_budgetaire}.png`;
-                              downloadLink.href = pngFile;
-                              downloadLink.click();
-                            };
-                            img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
-                          }
-                        }}
-                      >
-                        <Download className="h-4 w-4 mr-2" />
-                        Télécharger le QR Code
-                      </Button>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Poste / Fonction</p>
+                        <p className="text-lg">{positions.find(p => p.id === profile.position_id)?.name || "Non renseigné"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Salaire (HTG)</p>
+                        <p className="text-lg">{positions.find(p => p.id === profile.position_id)?.salary?.toLocaleString('fr-HT') || "Non renseigné"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Direction / Unité</p>
+                        <p>{units.find(u => u.id === profile.unit_id)?.name || "Non renseigné"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Type d'emploi</p>
+                        <p>{profile.employment_type || "Non renseigné"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Statut</p>
+                        <p>{profile.employee_status || "Non renseigné"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Date d'entrée en fonction</p>
+                        <p>{profile.date_entree_fonction || "Non renseigné"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Catégorie</p>
+                        <p>{profile.employee_category || "Non renseigné"}</p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* Poste professeur en cumul */}
+                {profile.professor_grade && (
+                  <Card className="border-accent/30 bg-accent/5">
+                    <CardHeader>
+                      <CardTitle>Poste cumulé — Professeur</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Grade professeur</p>
+                          <p className="text-lg font-semibold">{profile.professor_grade}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Code budgétaire (professeur)</p>
+                          <p className="text-lg font-semibold">{profile.professor_code_budgetaire || "Non renseigné"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Salaire professeur (HTG)</p>
+                          <p className="text-lg">{profile.professor_salary?.toLocaleString('fr-HT') || "Non renseigné"}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Contact d'urgence */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Contact d'urgence</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Nom</p>
+                        <p>{profile.contact_urgence_nom || "Non renseigné"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Prénom</p>
+                        <p>{profile.contact_urgence_prenom || "Non renseigné"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Lien</p>
+                        <p>{profile.contact_urgence_lien || "Non renseigné"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Téléphone</p>
+                        <p>{profile.contact_urgence_tel || "Non renseigné"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">WhatsApp</p>
+                        <p>{profile.contact_urgence_whatsapp || "Non renseigné"}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {(isOwner || isHR) && (
+                  <div className="print:hidden">
+                    <Button variant="outline" onClick={() => setShowForm(true)}>
+                      {isOwner ? "Modifier mes informations" : "Modifier les informations"}
+                    </Button>
+                  </div>
+                )}
               </div>
               </>
               )}
