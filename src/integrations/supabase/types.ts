@@ -1530,7 +1530,9 @@ export type Database = {
           photo_url: string | null
           position_id: string | null
           prenom: string | null
+          professor_code_budgetaire: string | null
           professor_grade: Database["public"]["Enums"]["professor_grade"] | null
+          professor_salary: number | null
           profile_completed: boolean | null
           religion: string | null
           sexe: string | null
@@ -1577,9 +1579,11 @@ export type Database = {
           photo_url?: string | null
           position_id?: string | null
           prenom?: string | null
+          professor_code_budgetaire?: string | null
           professor_grade?:
             | Database["public"]["Enums"]["professor_grade"]
             | null
+          professor_salary?: number | null
           profile_completed?: boolean | null
           religion?: string | null
           sexe?: string | null
@@ -1626,9 +1630,11 @@ export type Database = {
           photo_url?: string | null
           position_id?: string | null
           prenom?: string | null
+          professor_code_budgetaire?: string | null
           professor_grade?:
             | Database["public"]["Enums"]["professor_grade"]
             | null
+          professor_salary?: number | null
           profile_completed?: boolean | null
           religion?: string | null
           sexe?: string | null

@@ -62,6 +62,8 @@ const employeeFormSchema = z.object({
   employment_type: z.enum(["permanent", "contractuel", "journalier", "professeur"], { required_error: "Type d'employé requis" }),
   employee_status: z.enum(["actif", "conge_annuel", "conge_maladie", "conge_maternite", "conge_etudes", "mis_a_disposition", "transfere", "renvoye", "decede"], { required_error: "Statut requis" }),
   professor_grade: z.enum(["assistant", "adjoint", "associe", "titulaire", "emerite"]).optional(),
+  professor_code_budgetaire: z.string().optional(),
+  professor_salary: z.coerce.number().optional(),
 }).superRefine((data, ctx) => {
   if (data.employment_type === "professeur" && !data.professor_grade) {
     ctx.addIssue({
@@ -982,6 +984,8 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
                     setIsAlsoProfessor(checked);
                     if (!checked) {
                       form.setValue("professor_grade", undefined);
+                      form.setValue("professor_code_budgetaire", undefined);
+                      form.setValue("professor_salary", undefined);
                     }
                   }}
                 />
@@ -992,30 +996,69 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
             )}
 
             {(isProfessor || isAlsoProfessor) && (
-              <FormField
-                control={form.control}
-                name="professor_grade"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Grade de professeur *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner un grade" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {professorGrades.map((grade) => (
-                          <SelectItem key={grade.id} value={grade.grade}>
-                            {GRADE_LABELS[grade.grade]} - {grade.salary.toLocaleString()} HTG
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
+              <>
+                <FormField
+                  control={form.control}
+                  name="professor_grade"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Grade de professeur *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner un grade" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {professorGrades.map((grade) => (
+                            <SelectItem key={grade.id} value={grade.grade}>
+                              {GRADE_LABELS[grade.grade]} - {grade.salary.toLocaleString()} HTG
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {isAlsoProfessor && (
+                  <>
+                    <FormField
+                      control={form.control}
+                      name="professor_code_budgetaire"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Code budgétaire (poste professeur)</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="Code budgétaire du poste cumulé" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="professor_salary"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Salaire professeur (HTG)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              {...field}
+                              placeholder="Salaire du poste cumulé"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </>
                 )}
-              />
+              </>
             )}
 
             <FormField
