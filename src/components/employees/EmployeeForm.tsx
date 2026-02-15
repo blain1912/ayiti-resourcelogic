@@ -54,7 +54,8 @@ const employeeFormSchema = z.object({
     "Personnel d'encadrement",
     "Personnel Professionnel certifié ou diplômé",
     "Personnel administratif",
-    "Personnel de soutien"
+    "Personnel de soutien",
+    "Professeur"
   ]).optional(),
   position_id: z.string().optional(),
   employment_type: z.enum(["permanent", "contractuel", "journalier", "professeur"], { required_error: "Type d'employé requis" }),
@@ -892,6 +893,7 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
                       <SelectItem value="Personnel Professionnel certifié ou diplômé">Personnel Professionnel certifié ou diplômé</SelectItem>
                       <SelectItem value="Personnel administratif">Personnel administratif</SelectItem>
                       <SelectItem value="Personnel de soutien">Personnel de soutien</SelectItem>
+                      <SelectItem value="Professeur">Professeur</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
