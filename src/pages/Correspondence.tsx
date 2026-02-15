@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RichTextEditor } from "@/components/correspondence/RichTextEditor";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -731,7 +732,7 @@ export default function Correspondence() {
                   </div>
                   <div>
                     <Label>Contenu du modèle <span className="text-destructive">*</span></Label>
-                    <Textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Rédigez le contenu du modèle..." className="min-h-[250px] font-mono text-sm" />
+                    <RichTextEditor value={body} onChange={setBody} placeholder="Rédigez le contenu du modèle..." minHeight="250px" />
                   </div>
                   <div className="border rounded-lg p-4 bg-muted/30">
                     <Label className="text-sm font-semibold mb-2 block">Variables dynamiques</Label>
@@ -1152,7 +1153,7 @@ export default function Correspondence() {
               <Label className="text-base font-semibold">3. Ajuster le contenu</Label>
               <p className="text-sm text-muted-foreground">Les variables ont été remplacées automatiquement.</p>
               <div><Label>Objet</Label><Input value={sendSubject} onChange={e => setSendSubject(e.target.value)} /></div>
-              <div><Label>Contenu</Label><Textarea value={sendBody} onChange={e => setSendBody(e.target.value)} className="min-h-[300px] font-mono text-sm" /></div>
+              <div><Label>Contenu</Label><RichTextEditor value={sendBody} onChange={setSendBody} minHeight="300px" /></div>
             </div>
           )}
 
