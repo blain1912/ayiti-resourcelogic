@@ -571,7 +571,7 @@ export default function EmployeeProfile() {
                 </Card>
 
                 {/* Poste professeur en cumul */}
-                {profile.professor_grade && (
+                {(profile.professor_grade || profile.professor_code_budgetaire || profile.professor_salary) && (
                   <Card className="border-accent/30 bg-accent/5">
                     <CardHeader>
                       <CardTitle>Poste cumulé — Professeur</CardTitle>
