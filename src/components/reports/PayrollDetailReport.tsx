@@ -195,9 +195,12 @@ export const PayrollDetailReport = () => {
         brut += pos.salary;
         poste = pos.name;
       }
-      if (profile.professor_grade && gradeMap.has(profile.professor_grade)) {
-        brut += profile.professor_salary || gradeMap.get(profile.professor_grade)!;
-        poste = poste ? `${poste} / Professeur (${profile.professor_grade})` : `Professeur (${profile.professor_grade})`;
+      const hasProfessorRole = profile.professor_salary || profile.professor_code_budgetaire || (profile.professor_grade && gradeMap.has(profile.professor_grade));
+      if (hasProfessorRole) {
+        const profSalary = profile.professor_salary || (profile.professor_grade ? gradeMap.get(profile.professor_grade) || 0 : 0);
+        brut += profSalary;
+        const gradeLabel = profile.professor_grade ? ` (${profile.professor_grade})` : "";
+        poste = poste ? `${poste} / Professeur${gradeLabel}` : `Professeur${gradeLabel}`;
       }
 
       const deductions = calculateDeductions(brut);
