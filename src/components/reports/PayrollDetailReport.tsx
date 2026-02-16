@@ -224,6 +224,8 @@ export const PayrollDetailReport = () => {
 
     activeProfiles.forEach(p => {
       const payroll = buildPayroll(p);
+      // Exclure les profils sans salaire (doublons ou profils incomplets)
+      if (payroll.brut === 0) return;
       if (p.employment_type === "contractuel") {
         conts.push(payroll);
       } else {
