@@ -13,7 +13,9 @@ import { exportToPdf } from "@/lib/exportPdf";
 
 interface EmployeeSeniority {
   id: string;
+  key: string;
   name: string;
+  poste: string;
   unitName: string | null;
   dateEntree: string | null;
   years: number;
@@ -53,29 +55,60 @@ export const SeniorityReport = () => {
 
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("id, full_name, unit_id, date_entree_fonction, organizational_units(name)")
+      .select("id, full_name, unit_id, date_entree_fonction, professor_grade, professor_salary, position_id, organizational_units(name), positions(name)")
       .eq("organization_id", organizationId)
       .eq("approval_status", "approved");
 
     if (!profiles) { setLoading(false); return; }
 
     const now = new Date();
-    const data: EmployeeSeniority[] = profiles.map(p => {
+    const data: EmployeeSeniority[] = [];
+
+    for (const p of profiles) {
       const dateEntree = p.date_entree_fonction;
       const years = dateEntree ? differenceInYears(now, new Date(dateEntree)) : 0;
       const totalMonths = dateEntree ? differenceInMonths(now, new Date(dateEntree)) : 0;
       const months = totalMonths % 12;
+      const seniorityLabel = dateEntree ? `${years} an${years > 1 ? "s" : ""} ${months} mois` : "Non renseigné";
+      const unitName = (p as any).organizational_units?.name || null;
+      const positionName = (p as any).positions?.name || null;
+      const hasProfessor = !!p.professor_grade || !!p.professor_salary;
 
-      return {
+      // Administrative position entry
+      data.push({
         id: p.id,
+        key: `${p.id}-admin`,
         name: p.full_name || "Sans nom",
-        unitName: (p as any).organizational_units?.name || null,
+        poste: positionName || "Poste administratif",
+        unitName,
         dateEntree,
         years,
         months,
-        label: dateEntree ? `${years} an${years > 1 ? "s" : ""} ${months} mois` : "Non renseigné",
-      };
-    });
+        label: seniorityLabel,
+      });
+
+      // Professor cumul entry
+      if (hasProfessor) {
+        const gradeLabels: Record<string, string> = {
+          assistant: "Professeur Assistant",
+          adjoint: "Professeur Adjoint",
+          associe: "Professeur Associé",
+          titulaire: "Professeur Titulaire",
+          emerite: "Professeur Émérite",
+        };
+        data.push({
+          id: p.id,
+          key: `${p.id}-prof`,
+          name: p.full_name || "Sans nom",
+          poste: p.professor_grade ? gradeLabels[p.professor_grade] || "Professeur" : "Professeur",
+          unitName,
+          dateEntree,
+          years,
+          months,
+          label: seniorityLabel,
+        });
+      }
+    }
 
     data.sort((a, b) => b.years * 12 + b.months - (a.years * 12 + a.months));
     setEmployees(data);
@@ -94,8 +127,8 @@ export const SeniorityReport = () => {
   const maxSeniority = employees.length > 0 ? employees[0] : null;
 
   const exportToCSV = () => {
-    const headers = ["Employé", "Unité", "Date d'entrée", "Ancienneté"];
-    const rows = employees.map(e => [e.name, e.unitName || "-", e.dateEntree ? format(new Date(e.dateEntree), "dd/MM/yyyy") : "-", e.label]);
+    const headers = ["Employé", "Poste", "Unité", "Date d'entrée", "Ancienneté"];
+    const rows = employees.map(e => [e.name, e.poste, e.unitName || "-", e.dateEntree ? format(new Date(e.dateEntree), "dd/MM/yyyy") : "-", e.label]);
     const csv = [`Rapport d'Ancienneté - ${organizationName}`, `Date: ${format(new Date(), "dd/MM/yyyy")}`, "", headers.join(","), ...rows.map(r => r.join(","))].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
@@ -171,6 +204,7 @@ export const SeniorityReport = () => {
                 <TableRow>
                   <TableHead>#</TableHead>
                   <TableHead>Employé</TableHead>
+                  <TableHead>Poste</TableHead>
                   <TableHead>Unité</TableHead>
                   <TableHead>Date d'entrée</TableHead>
                   <TableHead>Ancienneté</TableHead>
@@ -178,9 +212,10 @@ export const SeniorityReport = () => {
               </TableHeader>
               <TableBody>
                 {employees.map((emp, i) => (
-                  <TableRow key={emp.id}>
+                  <TableRow key={emp.key}>
                     <TableCell>{i + 1}</TableCell>
                     <TableCell className="font-medium">{emp.name}</TableCell>
+                    <TableCell><Badge variant="secondary">{emp.poste}</Badge></TableCell>
                     <TableCell>{emp.unitName ? <Badge variant="outline">{emp.unitName}</Badge> : <span className="text-muted-foreground">-</span>}</TableCell>
                     <TableCell>{emp.dateEntree ? format(new Date(emp.dateEntree), "dd MMM yyyy", { locale: fr }) : <span className="text-muted-foreground">Non renseigné</span>}</TableCell>
                     <TableCell>
@@ -190,7 +225,7 @@ export const SeniorityReport = () => {
                     </TableCell>
                   </TableRow>
                 ))}
-                {employees.length === 0 && <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Aucune donnée</TableCell></TableRow>}
+                {employees.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Aucune donnée</TableCell></TableRow>}
               </TableBody>
             </Table>
           </ScrollArea>
