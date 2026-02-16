@@ -55,7 +55,7 @@ export const SeniorityReport = () => {
 
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("id, full_name, unit_id, date_entree_fonction, professor_grade, professor_salary, position_id, organizational_units(name), positions(name)")
+      .select("id, full_name, unit_id, date_entree_fonction, professor_date_entree_fonction, professor_grade, professor_salary, position_id, organizational_units(name), positions(name)")
       .eq("organization_id", organizationId)
       .eq("approval_status", "approved");
 
@@ -96,16 +96,21 @@ export const SeniorityReport = () => {
           titulaire: "Professeur Titulaire",
           emerite: "Professeur Émérite",
         };
+        const profDateEntree = p.professor_date_entree_fonction || dateEntree;
+        const profYears = profDateEntree ? differenceInYears(now, new Date(profDateEntree)) : 0;
+        const profTotalMonths = profDateEntree ? differenceInMonths(now, new Date(profDateEntree)) : 0;
+        const profMonths = profTotalMonths % 12;
+        const profLabel = profDateEntree ? `${profYears} an${profYears > 1 ? "s" : ""} ${profMonths} mois` : "Non renseigné";
         data.push({
           id: p.id,
           key: `${p.id}-prof`,
           name: p.full_name || "Sans nom",
           poste: p.professor_grade ? gradeLabels[p.professor_grade] || "Professeur" : "Professeur",
           unitName,
-          dateEntree,
-          years,
-          months,
-          label: seniorityLabel,
+          dateEntree: profDateEntree,
+          years: profYears,
+          months: profMonths,
+          label: profLabel,
         });
       }
     }
