@@ -1,14 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { Download, FileDown, Users, Briefcase } from "lucide-react";
+import { Download, FileDown, Users, Briefcase, Upload, Loader2, FileText, Trash2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { exportToPdf } from "@/lib/exportPdf";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface EmployeePayroll {
   id: string;
@@ -149,6 +153,12 @@ export const PayrollDetailReport = () => {
   const [contractuels, setContractuels] = useState<EmployeePayroll[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [documents, setDocuments] = useState<{ id: string; file_name: string; file_url: string; created_at: string; period_label: string | null }[]>([]);
+  const [periodLabel, setPeriodLabel] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     const init = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -164,8 +174,84 @@ export const PayrollDetailReport = () => {
   }, []);
 
   useEffect(() => {
-    if (organizationId) fetchData();
+    if (organizationId) {
+      fetchData();
+      fetchDocuments();
+    }
   }, [organizationId]);
+
+  const fetchDocuments = async () => {
+    if (!organizationId) return;
+    const { data } = await supabase
+      .from("emargement_documents")
+      .select("id, file_name, file_url, created_at, period_label")
+      .eq("organization_id", organizationId)
+      .order("created_at", { ascending: false });
+    if (data) setDocuments(data);
+  };
+
+  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !organizationId) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: "Erreur", description: "Le fichier doit faire moins de 10 Mo", variant: "destructive" });
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Non authentifié");
+
+      const fileName = `${organizationId}/${Date.now()}-${file.name}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("emargement-documents")
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("emargement-documents")
+        .getPublicUrl(uploadData.path);
+
+      const { error: insertError } = await supabase.from("emargement_documents").insert({
+        organization_id: organizationId,
+        uploaded_by: user.id,
+        file_name: file.name,
+        file_url: publicUrl,
+        file_size: file.size,
+        period_label: periodLabel || null,
+      });
+
+      if (insertError) throw insertError;
+
+      toast({ title: "Succès", description: "Document d'émargement téléversé" });
+      setPeriodLabel("");
+      setUploadDialogOpen(false);
+      fetchDocuments();
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      toast({ title: "Erreur", description: error.message || "Erreur lors du téléversement", variant: "destructive" });
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDeleteDocument = async (docId: string, fileUrl: string) => {
+    try {
+      const path = fileUrl.split("/emargement-documents/")[1];
+      if (path) {
+        await supabase.storage.from("emargement-documents").remove([decodeURIComponent(path)]);
+      }
+      await supabase.from("emargement_documents").delete().eq("id", docId);
+      toast({ title: "Supprimé", description: "Document supprimé" });
+      fetchDocuments();
+    } catch (error) {
+      toast({ title: "Erreur", description: "Erreur lors de la suppression", variant: "destructive" });
+    }
+  };
 
   const fetchData = async () => {
     if (!organizationId) return;
@@ -307,7 +393,47 @@ export const PayrollDetailReport = () => {
           <h2 className="text-2xl font-bold">État d'Émargement</h2>
           <p className="text-muted-foreground">{organizationName} — {format(new Date(), "dd/MM/yyyy")}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="default"><Upload className="h-4 w-4 mr-2" />Téléverser un émargement</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Téléverser un document d'émargement</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="period">Période (optionnel)</Label>
+                  <Input
+                    id="period"
+                    placeholder="Ex: Février 2026"
+                    value={periodLabel}
+                    onChange={(e) => setPeriodLabel(e.target.value)}
+                  />
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                  onChange={handleUpload}
+                  className="hidden"
+                  disabled={uploading}
+                />
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                  className="w-full"
+                >
+                  {uploading ? (
+                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Téléversement...</>
+                  ) : (
+                    <><Upload className="h-4 w-4 mr-2" />Choisir un fichier</>
+                  )}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Button onClick={exportAllCSV} variant="outline"><Download className="h-4 w-4 mr-2" />CSV</Button>
           <Button onClick={() => exportToPdf("payroll-detail-report", `etat-emargement-${format(new Date(), "yyyy-MM-dd")}`)} variant="outline"><FileDown className="h-4 w-4 mr-2" />PDF</Button>
         </div>
@@ -384,6 +510,41 @@ export const PayrollDetailReport = () => {
           />
         </TabsContent>
       </Tabs>
+
+      {/* Uploaded emargement documents */}
+      {documents.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              Documents d'émargement téléversés
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {documents.map((doc) => (
+                <div key={doc.id} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-4 w-4 text-muted-foreground" />
+                    <div>
+                      <a href={doc.file_url} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
+                        {doc.file_name}
+                      </a>
+                      <p className="text-xs text-muted-foreground">
+                        {doc.period_label && <span className="mr-2">{doc.period_label} —</span>}
+                        {format(new Date(doc.created_at), "dd/MM/yyyy HH:mm")}
+                      </p>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" onClick={() => handleDeleteDocument(doc.id, doc.file_url)}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
