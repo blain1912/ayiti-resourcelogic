@@ -196,7 +196,7 @@ export const PayrollDetailReport = () => {
 
       return {
         id: profile.id,
-        nif: profile.nif || profile.code_budgetaire || "—",
+        nif: [profile.code_budgetaire, profile.nif].filter(Boolean).join(" / ") || "—",
         fullName: profile.full_name || "Sans nom",
         poste,
         brut,
