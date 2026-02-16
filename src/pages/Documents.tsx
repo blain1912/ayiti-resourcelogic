@@ -3,7 +3,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, FileText, Download, Loader2, Trash2 } from "lucide-react";
+import { Upload, FileText, Download, Loader2, Trash2, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -220,6 +220,15 @@ export default function Documents() {
             Documents partagés de l'organisation (lecture seule)
           </p>
         </div>
+        <Button
+          variant="outline"
+          onClick={() => organizationId && fetchDocuments(organizationId)}
+          disabled={loading}
+          className="gap-2"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Actualiser
+        </Button>
       </section>
 
       {isAdmin && (
