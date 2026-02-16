@@ -140,6 +140,9 @@ export default function EmployeeProfile() {
           date_entree_fonction: formData.date_entree_fonction instanceof Date 
             ? formData.date_entree_fonction.toISOString().split('T')[0]
             : formData.date_entree_fonction,
+          professor_date_entree_fonction: formData.professor_date_entree_fonction instanceof Date 
+            ? formData.professor_date_entree_fonction.toISOString().split('T')[0]
+            : formData.professor_date_entree_fonction,
           full_name: `${formData.prenom} ${formData.nom}`,
           profile_completed: true,
         })
@@ -301,6 +304,7 @@ export default function EmployeeProfile() {
                   employment_type: profile?.employment_type ?? "permanent",
                   employee_status: profile?.employee_status ?? "actif",
                   professor_grade: profile?.professor_grade ?? undefined,
+                  professor_date_entree_fonction: profile?.professor_date_entree_fonction ? new Date(profile.professor_date_entree_fonction) : undefined,
                 }}
               />
             </CardContent>
@@ -378,6 +382,7 @@ export default function EmployeeProfile() {
                         employment_type: profile?.employment_type ?? "permanent",
                         employee_status: profile?.employee_status ?? "actif",
                         professor_grade: profile?.professor_grade ?? undefined,
+                        professor_date_entree_fonction: profile?.professor_date_entree_fonction ? new Date(profile.professor_date_entree_fonction) : undefined,
                       }}
                     />
                   </CardContent>
@@ -589,6 +594,10 @@ export default function EmployeeProfile() {
                         <div>
                           <p className="text-sm font-medium text-muted-foreground">Salaire professeur (HTG)</p>
                           <p className="text-lg">{profile.professor_salary?.toLocaleString('fr-HT') || "Non renseigné"}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Date d'entrée en fonction (poste cumulé)</p>
+                          <p className="text-lg">{profile.professor_date_entree_fonction ? new Date(profile.professor_date_entree_fonction).toLocaleDateString('fr-FR') : "Non renseigné"}</p>
                         </div>
                       </div>
                     </CardContent>

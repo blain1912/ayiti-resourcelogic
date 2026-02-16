@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN professor_date_entree_fonction DATE;
