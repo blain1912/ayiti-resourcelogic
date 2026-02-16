@@ -1575,6 +1575,7 @@ export type Database = {
           position_id: string | null
           prenom: string | null
           professor_code_budgetaire: string | null
+          professor_date_entree_fonction: string | null
           professor_grade: Database["public"]["Enums"]["professor_grade"] | null
           professor_salary: number | null
           profile_completed: boolean | null
@@ -1624,6 +1625,7 @@ export type Database = {
           position_id?: string | null
           prenom?: string | null
           professor_code_budgetaire?: string | null
+          professor_date_entree_fonction?: string | null
           professor_grade?:
             | Database["public"]["Enums"]["professor_grade"]
             | null
@@ -1675,6 +1677,7 @@ export type Database = {
           position_id?: string | null
           prenom?: string | null
           professor_code_budgetaire?: string | null
+          professor_date_entree_fonction?: string | null
           professor_grade?:
             | Database["public"]["Enums"]["professor_grade"]
             | null

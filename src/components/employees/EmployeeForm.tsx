@@ -64,6 +64,7 @@ const employeeFormSchema = z.object({
   professor_grade: z.enum(["assistant", "adjoint", "associe", "titulaire", "emerite"]).optional(),
   professor_code_budgetaire: z.string().optional(),
   professor_salary: z.coerce.number().optional(),
+  professor_date_entree_fonction: z.date().optional(),
 }).superRefine((data, ctx) => {
   if (data.employment_type === "professeur" && !data.professor_grade) {
     ctx.addIssue({
@@ -174,6 +175,64 @@ function DateEntreeFonctionField({ form }: { form: ReturnType<typeof useForm<Emp
     />
   );
 }
+
+// Composant pour la date d'entrée en fonction du poste cumulé (professeur)
+function ProfessorDateEntreeFonctionField({ form }: { form: ReturnType<typeof useForm<EmployeeFormData>> }) {
+  const dateValue = form.watch("professor_date_entree_fonction");
+  const [dayInput, setDayInput] = useState(dateValue ? dateValue.getDate().toString().padStart(2, '0') : '');
+  const [monthInput, setMonthInput] = useState(dateValue ? (dateValue.getMonth() + 1).toString().padStart(2, '0') : '');
+  const [yearInput, setYearInput] = useState(dateValue ? dateValue.getFullYear().toString() : '');
+
+  useEffect(() => {
+    if (dateValue) {
+      setDayInput(dateValue.getDate().toString().padStart(2, '0'));
+      setMonthInput((dateValue.getMonth() + 1).toString().padStart(2, '0'));
+      setYearInput(dateValue.getFullYear().toString());
+    }
+  }, [dateValue]);
+
+  const tryUpdateDate = (day: string, month: string, year: string) => {
+    const d = parseInt(day, 10);
+    const m = parseInt(month, 10);
+    const y = parseInt(year, 10);
+    if (!isNaN(d) && !isNaN(m) && !isNaN(y) && d >= 1 && d <= 31 && m >= 1 && m <= 12 && y >= 1960 && y <= new Date().getFullYear()) {
+      const newDate = new Date(y, m - 1, d);
+      if (newDate.getDate() === d && newDate.getMonth() === m - 1 && newDate <= new Date()) {
+        form.setValue("professor_date_entree_fonction", newDate);
+      }
+    }
+  };
+
+  return (
+    <FormField
+      control={form.control}
+      name="professor_date_entree_fonction"
+      render={() => (
+        <FormItem className="flex flex-col">
+          <FormLabel>Date d'entrée en fonction (poste cumulé)</FormLabel>
+          <div className="flex gap-2">
+            <FormControl>
+              <Input type="text" placeholder="JJ" maxLength={2} className="w-16 text-center" value={dayInput}
+                onChange={(e) => { const value = e.target.value.replace(/\D/g, ''); setDayInput(value); tryUpdateDate(value, monthInput, yearInput); }} />
+            </FormControl>
+            <span className="flex items-center text-muted-foreground">/</span>
+            <FormControl>
+              <Input type="text" placeholder="MM" maxLength={2} className="w-16 text-center" value={monthInput}
+                onChange={(e) => { const value = e.target.value.replace(/\D/g, ''); setMonthInput(value); tryUpdateDate(dayInput, value, yearInput); }} />
+            </FormControl>
+            <span className="flex items-center text-muted-foreground">/</span>
+            <FormControl>
+              <Input type="text" placeholder="AAAA" maxLength={4} className="w-20 text-center" value={yearInput}
+                onChange={(e) => { const value = e.target.value.replace(/\D/g, ''); setYearInput(value); tryUpdateDate(dayInput, monthInput, value); }} />
+            </FormControl>
+          </div>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
 
 interface EmployeeFormProps {
   onSubmit: (data: EmployeeFormData) => Promise<void>;
@@ -986,6 +1045,7 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
                       form.setValue("professor_grade", undefined);
                       form.setValue("professor_code_budgetaire", undefined);
                       form.setValue("professor_salary", undefined);
+                      form.setValue("professor_date_entree_fonction", undefined);
                     }
                   }}
                 />
@@ -1056,6 +1116,8 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
                         </FormItem>
                       )}
                     />
+
+                    <ProfessorDateEntreeFonctionField form={form} />
                   </>
                 )}
               </>
