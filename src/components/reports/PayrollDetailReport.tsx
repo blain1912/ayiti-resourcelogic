@@ -186,39 +186,58 @@ export const PayrollDetailReport = () => {
     const positionMap = new Map((positions || []).map(p => [p.id, { name: p.name, salary: p.salary }]));
     const gradeMap = new Map((professorGrades || []).map(g => [g.grade, g.salary]));
 
-    const buildPayroll = (profile: any): EmployeePayroll => {
-      let brut = 0;
-      let poste = "";
+    const buildPayrollEntries = (profile: any): EmployeePayroll[] => {
+      const entries: EmployeePayroll[] = [];
 
+      // Entry 1: Administrative position
       if (profile.position_id && positionMap.has(profile.position_id)) {
         const pos = positionMap.get(profile.position_id)!;
-        brut += pos.salary;
-        poste = pos.name;
+        const deductions = calculateDeductions(pos.salary);
+        entries.push({
+          id: profile.id + "-admin",
+          nif: [profile.code_budgetaire, profile.nif].filter(Boolean).join(" / ") || "—",
+          nifSecondary: "",
+          fullName: profile.full_name || "Sans nom",
+          poste: pos.name,
+          brut: pos.salary,
+          ...deductions,
+          employmentType: profile.employment_type || "permanent",
+        });
       }
+
+      // Entry 2: Professor position
       const hasProfessorRole = profile.professor_salary || profile.professor_code_budgetaire || (profile.professor_grade && gradeMap.has(profile.professor_grade));
       if (hasProfessorRole) {
         const profSalary = profile.professor_salary || (profile.professor_grade ? gradeMap.get(profile.professor_grade) || 0 : 0);
-        brut += profSalary;
+        const deductions = calculateDeductions(profSalary);
         const gradeLabel = profile.professor_grade ? ` (${profile.professor_grade})` : "";
-        poste = poste ? `${poste} / Professeur${gradeLabel}` : `Professeur${gradeLabel}`;
+        entries.push({
+          id: profile.id + "-prof",
+          nif: [profile.professor_code_budgetaire, profile.nif].filter(Boolean).join(" / ") || "—",
+          nifSecondary: "",
+          fullName: profile.full_name || "Sans nom",
+          poste: `Professeur${gradeLabel}`,
+          brut: profSalary,
+          ...deductions,
+          employmentType: profile.employment_type || "permanent",
+        });
       }
 
-      const deductions = calculateDeductions(brut);
+      // Fallback: no position at all
+      if (entries.length === 0) {
+        entries.push({
+          id: profile.id,
+          nif: [profile.code_budgetaire, profile.nif].filter(Boolean).join(" / ") || "—",
+          nifSecondary: "",
+          fullName: profile.full_name || "Sans nom",
+          poste: "",
+          brut: 0,
+          isr: 0, casFdu: 0, pension: 0, cfgdct: 0, net: 0,
+          employmentType: profile.employment_type || "permanent",
+        });
+      }
 
-      // Build secondary code/NIF for professor cumul
-      const primaryCode = [profile.code_budgetaire, profile.nif].filter(Boolean).join(" / ") || "—";
-      const secondaryCode = profile.professor_code_budgetaire || "";
-
-      return {
-        id: profile.id,
-        nif: primaryCode,
-        nifSecondary: secondaryCode,
-        fullName: profile.full_name || "Sans nom",
-        poste,
-        brut,
-        ...deductions,
-        employmentType: profile.employment_type || "permanent",
-      };
+      return entries;
     };
 
     const activeProfiles = profiles.filter(p => p.employee_status === "actif" || !p.employee_status);
@@ -226,14 +245,15 @@ export const PayrollDetailReport = () => {
     const conts: EmployeePayroll[] = [];
 
     activeProfiles.forEach(p => {
-      const payroll = buildPayroll(p);
-      // Exclure les profils sans salaire (doublons ou profils incomplets)
-      if (payroll.brut === 0) return;
-      if (p.employment_type === "contractuel") {
-        conts.push(payroll);
-      } else {
-        perms.push(payroll);
-      }
+      const entries = buildPayrollEntries(p);
+      entries.forEach(payroll => {
+        if (payroll.brut === 0) return;
+        if (p.employment_type === "contractuel") {
+          conts.push(payroll);
+        } else {
+          perms.push(payroll);
+        }
+      });
     });
 
     perms.sort((a, b) => a.fullName.localeCompare(b.fullName));
