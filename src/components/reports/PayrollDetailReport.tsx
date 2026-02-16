@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 interface EmployeePayroll {
   id: string;
   nif: string;
+  nifSecondary: string;
   fullName: string;
   poste: string;
   brut: number;
@@ -97,9 +98,16 @@ const PayrollTable = ({ employees, title, icon }: { employees: EmployeePayroll[]
               {employees.map((e, idx) => (
                 <TableRow key={e.id}>
                   <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
-                  <TableCell className="font-mono text-xs">{e.nif || "—"}</TableCell>
+                  <TableCell className="font-mono text-xs">
+                    <div>{e.nif || "—"}</div>
+                    {e.nifSecondary && <div className="text-muted-foreground mt-1">{e.nifSecondary}</div>}
+                  </TableCell>
                   <TableCell className="font-medium">{e.fullName}</TableCell>
-                  <TableCell className="text-sm">{e.poste || "—"}</TableCell>
+                  <TableCell className="text-sm">
+                    {e.poste ? e.poste.split(" / ").map((p, i) => (
+                      <div key={i} className={i > 0 ? "text-muted-foreground mt-1" : ""}>{p}</div>
+                    )) : "—"}
+                  </TableCell>
                   <TableCell className="text-right">{formatCurrency(e.brut)}</TableCell>
                   <TableCell className="text-right">{formatCurrency(e.isr)}</TableCell>
                   <TableCell className="text-right">{formatCurrency(e.casFdu)}</TableCell>
@@ -194,9 +202,14 @@ export const PayrollDetailReport = () => {
 
       const deductions = calculateDeductions(brut);
 
+      // Build secondary code/NIF for professor cumul
+      const primaryCode = [profile.code_budgetaire, profile.nif].filter(Boolean).join(" / ") || "—";
+      const secondaryCode = profile.professor_code_budgetaire || "";
+
       return {
         id: profile.id,
-        nif: [profile.code_budgetaire, profile.nif].filter(Boolean).join(" / ") || "—",
+        nif: primaryCode,
+        nifSecondary: secondaryCode,
         fullName: profile.full_name || "Sans nom",
         poste,
         brut,
