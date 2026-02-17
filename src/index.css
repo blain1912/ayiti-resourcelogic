@@ -91,8 +91,8 @@ All colors MUST be HSL.
 /* Print styles for employee badge */
 @media print {
   @page {
-    size: A6 portrait;
-    margin: 0;
+    size: 8.5in 11in;
+    margin: 0 2.5cm 2.5cm 2.5cm;
   }
   
   body * {
@@ -109,5 +109,18 @@ All colors MUST be HSL.
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
+  }
+
+  #staff-status-report,
+  #staff-status-report * {
+    visibility: visible;
+  }
+
+  #staff-status-report {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 0 !important;
   }
 }

@@ -281,7 +281,7 @@ export const StaffStatusReport = () => {
 
       {/* Report Document */}
       <ScrollArea className="h-[70vh] print:h-auto print:overflow-visible">
-        <div id="staff-status-report" className="bg-white text-black p-8 md:p-12 space-y-2 max-w-[210mm] mx-auto shadow-lg print:shadow-none print:max-w-none" style={{ fontFamily: "Georgia, serif", fontSize: "13px", lineHeight: "1.7" }}>
+        <div id="staff-status-report" className="bg-white text-black space-y-2 mx-auto shadow-lg print:shadow-none print:max-w-none" style={{ fontFamily: "Georgia, serif", fontSize: "13px", lineHeight: "1.7", width: "215.9mm", maxWidth: "215.9mm", paddingLeft: "2.5cm", paddingRight: "2.5cm", paddingBottom: "2.5cm", paddingTop: "2cm" }}>
 
           {/* 1. PAGE DE GARDE */}
           <div className="text-center py-16 space-y-6 border-b-2 border-primary" style={{ pageBreakAfter: "always" }}>
