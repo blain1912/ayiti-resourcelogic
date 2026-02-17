@@ -421,8 +421,11 @@ export const StaffStatusReport = () => {
               </TableBody>
             </Table>
             <p className="mt-3 italic text-muted-foreground">{statusAnalysis}</p>
+          </div>
 
-            <p className="font-semibold mb-2 mt-6">Tableau 3 – Répartition par sexe</p>
+          {/* RÉPARTITION PAR SEXE */}
+          <div data-pdf-section style={{ paddingLeft: "2.5cm", paddingRight: "2.5cm", paddingBottom: "2.5cm", paddingTop: "2cm", pageBreakAfter: "always" }}>
+            <p className="font-semibold mb-2">Tableau 3 – Répartition par sexe</p>
             <Table>
               <TableHeader>
                 <TableRow>
