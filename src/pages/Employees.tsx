@@ -4,7 +4,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, Plus, MoreVertical, Eye } from "lucide-react";
+import { Search, Plus, MoreVertical, Eye, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "@/hooks/useOrganization";
 import {
@@ -26,6 +26,16 @@ import {
 import { EmployeeForm } from "@/components/employees/EmployeeForm";
 import { toast } from "@/hooks/use-toast";
 import { useProfessorGrades } from "@/hooks/useProfessorGrades";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Employee {
   id: string;
@@ -46,6 +56,8 @@ export default function Employees() {
   const [units, setUnits] = useState<Array<{ id: string; name: string; type?: string; parent_id?: string | null }>>([]);
   const [positions, setPositions] = useState<Array<{ id: string; name: string; salary: number }>>([]);
   const { grades: professorGrades } = useProfessorGrades(organization?.id);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
 
   useEffect(() => {
     if (organization?.id) {
@@ -138,6 +150,33 @@ export default function Employees() {
       toast({
         title: "Erreur",
         description: error.message || "Une erreur est survenue",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteEmployee = async () => {
+    if (!employeeToDelete) return;
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", employeeToDelete.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Employé supprimé",
+        description: `${employeeToDelete.full_name || "L'employé"} a été supprimé avec succès`,
+      });
+      setDeleteDialogOpen(false);
+      setEmployeeToDelete(null);
+      fetchEmployees();
+    } catch (error: any) {
+      console.error("Error deleting employee:", error);
+      toast({
+        title: "Erreur",
+        description: error.message || "Impossible de supprimer cet employé",
         variant: "destructive",
       });
     }
@@ -244,6 +283,16 @@ export default function Employees() {
                             <Eye className="mr-2 h-4 w-4" />
                             Voir le profil
                           </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => {
+                              setEmployeeToDelete(employee);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Supprimer
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -254,6 +303,25 @@ export default function Employees() {
           </Table>
         </CardContent>
       </Card>
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer <strong>{employeeToDelete?.full_name}</strong> ? Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteEmployee}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
