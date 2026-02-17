@@ -360,11 +360,12 @@ export const StaffStatusReport = () => {
           <div data-pdf-section style={{ paddingLeft: "2.5cm", paddingRight: "2.5cm", paddingBottom: "2.5cm", paddingTop: "2cm", pageBreakAfter: "always" }}>
             <SectionTitle num="1" title="Introduction" />
             <div className="space-y-2">
-              <Textarea
+              <textarea
                 value={introText}
-                onChange={e => setIntroText(e.target.value)}
-                className="min-h-[100px] border-dashed print:border-none print:p-0 print:resize-none bg-transparent text-black"
-                style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit" }}
+                onChange={e => { setIntroText(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+                ref={el => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }}
+                className="flex w-full rounded-md border border-dashed bg-transparent px-3 py-2 text-sm text-black print:border-none print:p-0 print:resize-none whitespace-pre-wrap break-words overflow-hidden resize-none"
+                style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit", minHeight: "80px" }}
               />
             </div>
 
@@ -553,40 +554,44 @@ export const StaffStatusReport = () => {
           {/* 8. PROBLÈMES + 9. RECOMMANDATIONS */}
           <div data-pdf-section style={{ paddingLeft: "2.5cm", paddingRight: "2.5cm", paddingBottom: "2.5cm", paddingTop: "2cm", pageBreakAfter: "always" }}>
             <SectionTitle num="7" title="Problèmes identifiés" />
-            <Textarea
+            <textarea
               value={problemsText}
-              onChange={e => setProblemsText(e.target.value)}
-              className="min-h-[80px] border-dashed print:border-none print:p-0 print:resize-none bg-transparent text-black"
-              style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit" }}
+              onChange={e => { setProblemsText(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+              ref={el => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }}
+              className="flex w-full rounded-md border border-dashed bg-transparent px-3 py-2 text-sm text-black print:border-none print:p-0 print:resize-none whitespace-pre-wrap break-words overflow-hidden resize-none"
+              style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit", minHeight: "80px" }}
             />
 
             <SectionTitle num="8" title="Recommandations" />
             <div className="space-y-4">
               <div>
                 <p className="font-semibold mb-1">Court terme</p>
-                <Textarea
+                <textarea
                   value={recoCourtTerme}
-                  onChange={e => setRecoCourtTerme(e.target.value)}
-                  className="min-h-[60px] border-dashed print:border-none print:p-0 print:resize-none bg-transparent text-black"
-                  style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit" }}
+                  onChange={e => { setRecoCourtTerme(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+                  ref={el => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }}
+                  className="flex w-full rounded-md border border-dashed bg-transparent px-3 py-2 text-sm text-black print:border-none print:p-0 print:resize-none whitespace-pre-wrap break-words overflow-hidden resize-none"
+                  style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit", minHeight: "60px" }}
                 />
               </div>
               <div>
                 <p className="font-semibold mb-1">Moyen terme</p>
-                <Textarea
+                <textarea
                   value={recoMoyenTerme}
-                  onChange={e => setRecoMoyenTerme(e.target.value)}
-                  className="min-h-[60px] border-dashed print:border-none print:p-0 print:resize-none bg-transparent text-black"
-                  style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit" }}
+                  onChange={e => { setRecoMoyenTerme(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+                  ref={el => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }}
+                  className="flex w-full rounded-md border border-dashed bg-transparent px-3 py-2 text-sm text-black print:border-none print:p-0 print:resize-none whitespace-pre-wrap break-words overflow-hidden resize-none"
+                  style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit", minHeight: "60px" }}
                 />
               </div>
               <div>
                 <p className="font-semibold mb-1">Long terme</p>
-                <Textarea
+                <textarea
                   value={recoLongTerme}
-                  onChange={e => setRecoLongTerme(e.target.value)}
-                  className="min-h-[60px] border-dashed print:border-none print:p-0 print:resize-none bg-transparent text-black"
-                  style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit" }}
+                  onChange={e => { setRecoLongTerme(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+                  ref={el => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }}
+                  className="flex w-full rounded-md border border-dashed bg-transparent px-3 py-2 text-sm text-black print:border-none print:p-0 print:resize-none whitespace-pre-wrap break-words overflow-hidden resize-none"
+                  style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit", minHeight: "60px" }}
                 />
               </div>
             </div>
@@ -595,12 +600,12 @@ export const StaffStatusReport = () => {
           {/* 10. CONCLUSION */}
           <div data-pdf-section style={{ paddingLeft: "2.5cm", paddingRight: "2.5cm", paddingBottom: "2.5cm", paddingTop: "2cm" }}>
             <SectionTitle num="9" title="Conclusion" />
-            <Textarea
+            <textarea
               value={conclusionText}
-              onChange={e => setConclusionText(e.target.value)}
-              className="min-h-[120px] border-dashed print:border-none print:p-0 print:resize-none bg-transparent text-black whitespace-pre-wrap break-words overflow-visible"
-              style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit", height: "auto" }}
-              rows={6}
+              onChange={e => { setConclusionText(e.target.value); e.target.style.height = 'auto'; e.target.style.height = e.target.scrollHeight + 'px'; }}
+              ref={el => { if (el) { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; } }}
+              className="flex w-full rounded-md border border-dashed bg-transparent px-3 py-2 text-sm text-black print:border-none print:p-0 print:resize-none whitespace-pre-wrap break-words overflow-hidden resize-none"
+              style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit", minHeight: "80px" }}
             />
 
             <div className="pt-12 mt-8 border-t text-center text-xs text-muted-foreground">
