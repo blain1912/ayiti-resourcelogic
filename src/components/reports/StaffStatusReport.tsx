@@ -26,6 +26,8 @@ interface EmployeeData {
   professorGrade: string | null;
   professorDateEntree: string | null;
   professorSeniority: number | null;
+  employmentType: string;
+  isProfessor: boolean;
 }
 
 interface CategoryStat {
@@ -87,7 +89,7 @@ export const StaffStatusReport = () => {
 
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("id, full_name, sexe, date_naissance, date_entree_fonction, employee_category, position_id, unit_id, professor_grade, professor_date_entree_fonction, organizational_units(name), positions(name, employee_categories(name))")
+      .select("id, full_name, sexe, date_naissance, date_entree_fonction, employee_category, employment_type, position_id, unit_id, professor_grade, professor_date_entree_fonction, organizational_units(name), positions(name, employee_categories(name))")
       .eq("organization_id", orgId)
       .eq("approval_status", "approved");
 
@@ -97,6 +99,7 @@ export const StaffStatusReport = () => {
       const age = p.date_naissance ? differenceInYears(now, new Date(p.date_naissance)) : null;
       const seniority = p.date_entree_fonction ? differenceInYears(now, new Date(p.date_entree_fonction)) : null;
       const professorSeniority = p.professor_date_entree_fonction ? differenceInYears(now, new Date(p.professor_date_entree_fonction)) : null;
+      const isProfessor = !!p.professor_grade || p.employment_type === "professeur";
       return {
         id: p.id,
         fullName: p.full_name || "Sans nom",
@@ -111,6 +114,8 @@ export const StaffStatusReport = () => {
         professorGrade: p.professor_grade,
         professorDateEntree: p.professor_date_entree_fonction,
         professorSeniority,
+        employmentType: p.employment_type || "permanent",
+        isProfessor,
       };
     });
 
@@ -152,6 +157,59 @@ export const StaffStatusReport = () => {
     const map: Record<string, number> = {};
     employees.forEach(e => { map[e.category] = (map[e.category] || 0) + 1; });
     return Object.entries(map).map(([name, count]) => ({ name, count, percent: total ? Math.round(count / total * 100) : 0 })).sort((a, b) => b.count - a.count);
+  })();
+
+  // Employment status stats
+  const statusStats: CategoryStat[] = (() => {
+    const statusLabels: Record<string, string> = {
+      permanent: "Permanent",
+      contractuel: "Contractuel",
+      journalier: "Journalier",
+      professeur: "Professeur",
+    };
+    const map: Record<string, number> = {};
+    employees.forEach(e => {
+      const label = statusLabels[e.employmentType] || e.employmentType;
+      map[label] = (map[label] || 0) + 1;
+    });
+    // Add professors (those with professor_grade who aren't already typed as professeur)
+    const professorCount = employees.filter(e => e.isProfessor && e.employmentType !== "professeur").length;
+    if (professorCount > 0) {
+      map["Professeur (cumul)"] = professorCount;
+    }
+    return Object.entries(map).map(([name, count]) => ({ name, count, percent: total ? Math.round(count / total * 100) : 0 })).sort((a, b) => b.count - a.count);
+  })();
+
+  // Gender stats
+  const genderStats: CategoryStat[] = (() => {
+    const labels: Record<string, string> = { M: "Masculin", F: "Féminin" };
+    const map: Record<string, number> = {};
+    employees.forEach(e => {
+      const label = labels[e.sexe] || "Non renseigné";
+      map[label] = (map[label] || 0) + 1;
+    });
+    return Object.entries(map).map(([name, count]) => ({ name, count, percent: total ? Math.round(count / total * 100) : 0 })).sort((a, b) => b.count - a.count);
+  })();
+
+  // Gender analysis text
+  const genderAnalysis = (() => {
+    const m = employees.filter(e => e.sexe === "M").length;
+    const f = employees.filter(e => e.sexe === "F").length;
+    const mPct = total ? Math.round(m / total * 100) : 0;
+    const fPct = total ? Math.round(f / total * 100) : 0;
+    if (m > f) return `Le personnel est majoritairement masculin (${mPct}%) avec ${fPct}% de femmes.`;
+    if (f > m) return `Le personnel est majoritairement féminin (${fPct}%) avec ${mPct}% d'hommes.`;
+    return `La répartition par sexe est équilibrée : ${mPct}% d'hommes et ${fPct}% de femmes.`;
+  })();
+
+  // Status analysis text
+  const statusAnalysis = (() => {
+    const permanent = employees.filter(e => e.employmentType === "permanent").length;
+    const pct = total ? Math.round(permanent / total * 100) : 0;
+    const profCount = employees.filter(e => e.isProfessor).length;
+    let text = `${pct}% du personnel est permanent.`;
+    if (profCount > 0) text += ` L'institution compte ${profCount} professeur(s) dans ses effectifs.`;
+    return text;
   })();
 
   const seniorityBuckets: BucketStat[] = (() => {
@@ -336,18 +394,72 @@ export const StaffStatusReport = () => {
               </TableBody>
             </Table>
             <p className="mt-3 italic text-muted-foreground">{categoryAnalysis}</p>
+
+            <p className="font-semibold mb-2 mt-6">Tableau 2 – Répartition par statut</p>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-black font-bold">Statut</TableHead>
+                  <TableHead className="text-black font-bold text-center">Nombre</TableHead>
+                  <TableHead className="text-black font-bold text-center">%</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {statusStats.map(s => (
+                  <TableRow key={s.name}>
+                    <TableCell>{s.name}</TableCell>
+                    <TableCell className="text-center">{s.count}</TableCell>
+                    <TableCell className="text-center">{s.percent}%</TableCell>
+                  </TableRow>
+                ))}
+                <TableRow className="font-bold bg-muted/20">
+                  <TableCell>Total</TableCell>
+                  <TableCell className="text-center">{total}</TableCell>
+                  <TableCell className="text-center">100%</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+            <p className="mt-3 italic text-muted-foreground">{statusAnalysis}</p>
+
+            <p className="font-semibold mb-2 mt-6">Tableau 3 – Répartition par sexe</p>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-black font-bold">Sexe</TableHead>
+                  <TableHead className="text-black font-bold text-center">Nombre</TableHead>
+                  <TableHead className="text-black font-bold text-center">%</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {genderStats.map(g => (
+                  <TableRow key={g.name}>
+                    <TableCell>{g.name}</TableCell>
+                    <TableCell className="text-center">{g.count}</TableCell>
+                    <TableCell className="text-center">{g.percent}%</TableCell>
+                  </TableRow>
+                ))}
+                <TableRow className="font-bold bg-muted/20">
+                  <TableCell>Total</TableCell>
+                  <TableCell className="text-center">{total}</TableCell>
+                  <TableCell className="text-center">100%</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+            <p className="mt-3 italic text-muted-foreground">{genderAnalysis}</p>
           </div>
 
           {/* 4. PARCOURS PROFESSIONNEL */}
           <div data-pdf-section style={{ paddingLeft: "2.5cm", paddingRight: "2.5cm", paddingBottom: "2.5cm", paddingTop: "2cm", pageBreakAfter: "always" }}>
             <SectionTitle num="3" title="Parcours professionnel des employés" />
-            <p className="font-semibold mb-2">Tableau 2 – Situation professionnelle actuelle</p>
+            <p className="font-semibold mb-2">Tableau 4 – Situation professionnelle actuelle</p>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="text-black font-bold">Nom</TableHead>
                   <TableHead className="text-black font-bold">Poste actuel</TableHead>
                   <TableHead className="text-black font-bold">Unité</TableHead>
+                  <TableHead className="text-black font-bold text-center">Statut</TableHead>
+                  <TableHead className="text-black font-bold text-center">Sexe</TableHead>
                   <TableHead className="text-black font-bold text-center">Année d'entrée</TableHead>
                   <TableHead className="text-black font-bold text-center">Ancienneté</TableHead>
                 </TableRow>
@@ -358,6 +470,8 @@ export const StaffStatusReport = () => {
                     <TableCell>{emp.fullName}</TableCell>
                     <TableCell>{emp.positionName}</TableCell>
                     <TableCell>{emp.unitName}</TableCell>
+                    <TableCell className="text-center">{emp.employmentType === "permanent" ? "Permanent" : emp.employmentType === "contractuel" ? "Contractuel" : emp.employmentType === "professeur" ? "Professeur" : emp.employmentType === "journalier" ? "Journalier" : emp.employmentType}</TableCell>
+                    <TableCell className="text-center">{emp.sexe === "M" ? "M" : emp.sexe === "F" ? "F" : "NR"}</TableCell>
                     <TableCell className="text-center">{emp.dateEntree ? format(new Date(emp.dateEntree), "yyyy") : "N/A"}</TableCell>
                     <TableCell className="text-center">{emp.seniority !== null ? `${emp.seniority} ans` : "N/A"}</TableCell>
                   </TableRow>
@@ -369,7 +483,7 @@ export const StaffStatusReport = () => {
           {/* 5. ANCIENNETÉ + 6. ANALYSE PAR ÂGE */}
           <div data-pdf-section style={{ paddingLeft: "2.5cm", paddingRight: "2.5cm", paddingBottom: "2.5cm", paddingTop: "2cm", pageBreakAfter: "always" }}>
             <SectionTitle num="4" title="Ancienneté du personnel" />
-            <p className="font-semibold mb-2">Tableau 3 – Répartition par ancienneté</p>
+            <p className="font-semibold mb-2">Tableau 5 – Répartition par ancienneté</p>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -391,7 +505,7 @@ export const StaffStatusReport = () => {
             <p className="mt-3 italic text-muted-foreground">{seniorityAnalysis}</p>
 
             <SectionTitle num="5" title="Analyse par âge" />
-            <p className="font-semibold mb-2">Tableau 4 – Répartition par âge</p>
+            <p className="font-semibold mb-2">Tableau 6 – Répartition par âge</p>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -416,7 +530,7 @@ export const StaffStatusReport = () => {
           {/* 7. ANALYSE CROISÉE */}
           <div data-pdf-section style={{ paddingLeft: "2.5cm", paddingRight: "2.5cm", paddingBottom: "2.5cm", paddingTop: "2cm", pageBreakAfter: "always" }}>
             <SectionTitle num="6" title="Analyse croisée" />
-            <p className="font-semibold mb-2">Tableau 5 – Matrice Âge × Ancienneté</p>
+            <p className="font-semibold mb-2">Tableau 7 – Matrice Âge × Ancienneté</p>
             <Table>
               <TableHeader>
                 <TableRow>
