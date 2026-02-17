@@ -21,32 +21,32 @@ const Reports = () => {
         </div>
 
         <Tabs defaultValue="attendance" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 md:grid-cols-7 h-auto">
-            <TabsTrigger value="attendance" className="gap-2 py-3">
+          <TabsList className="flex w-full overflow-x-auto h-auto flex-nowrap justify-start md:justify-center gap-1">
+            <TabsTrigger value="attendance" className="gap-2 py-3 flex-shrink-0">
               <CheckSquare className="h-4 w-4" />
               <span className="hidden sm:inline">Présences</span>
             </TabsTrigger>
-            <TabsTrigger value="leaves" className="gap-2 py-3">
+            <TabsTrigger value="leaves" className="gap-2 py-3 flex-shrink-0">
               <Calendar className="h-4 w-4" />
               <span className="hidden sm:inline">Congés</span>
             </TabsTrigger>
-            <TabsTrigger value="seniority" className="gap-2 py-3">
+            <TabsTrigger value="seniority" className="gap-2 py-3 flex-shrink-0">
               <Award className="h-4 w-4" />
               <span className="hidden sm:inline">Ancienneté</span>
             </TabsTrigger>
-            <TabsTrigger value="staffing" className="gap-2 py-3">
+            <TabsTrigger value="staffing" className="gap-2 py-3 flex-shrink-0">
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Effectifs</span>
             </TabsTrigger>
-            <TabsTrigger value="payroll" className="gap-2 py-3">
+            <TabsTrigger value="payroll" className="gap-2 py-3 flex-shrink-0">
               <DollarSign className="h-4 w-4" />
               <span className="hidden sm:inline">Masse Salariale</span>
             </TabsTrigger>
-            <TabsTrigger value="demographics" className="gap-2 py-3">
+            <TabsTrigger value="demographics" className="gap-2 py-3 flex-shrink-0">
               <UserCircle className="h-4 w-4" />
               <span className="hidden sm:inline">Démographie</span>
             </TabsTrigger>
-            <TabsTrigger value="emargement" className="gap-2 py-3">
+            <TabsTrigger value="emargement" className="gap-2 py-3 flex-shrink-0">
               <Receipt className="h-4 w-4" />
               <span className="hidden sm:inline">Émargement</span>
             </TabsTrigger>
