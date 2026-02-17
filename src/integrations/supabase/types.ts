@@ -1613,6 +1613,7 @@ export type Database = {
           lieu_naissance: string | null
           nationalite: string | null
           nif: string | null
+          niveau_etudes: string | null
           nom: string | null
           organization_id: string | null
           photo_url: string | null
@@ -1663,6 +1664,7 @@ export type Database = {
           lieu_naissance?: string | null
           nationalite?: string | null
           nif?: string | null
+          niveau_etudes?: string | null
           nom?: string | null
           organization_id?: string | null
           photo_url?: string | null
@@ -1715,6 +1717,7 @@ export type Database = {
           lieu_naissance?: string | null
           nationalite?: string | null
           nif?: string | null
+          niveau_etudes?: string | null
           nom?: string | null
           organization_id?: string | null
           photo_url?: string | null

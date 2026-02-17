@@ -62,6 +62,7 @@ const employeeFormSchema = z.object({
   employment_type: z.enum(["permanent", "contractuel", "journalier", "professeur"], { required_error: "Type d'employé requis" }),
   employee_status: z.enum(["actif", "conge_annuel", "conge_maladie", "conge_maternite", "conge_etudes", "mis_a_disposition", "transfere", "renvoye", "decede"], { required_error: "Statut requis" }),
   professor_grade: z.enum(["assistant", "adjoint", "associe", "titulaire", "emerite"]).optional(),
+  niveau_etudes: z.enum(["Universitaire", "Professionnel", "Secondaire", "Fondamental 1er cycle", "Fondamental 2ème cycle", "Fondamental 3ème cycle", "Primaire"]).optional(),
   professor_code_budgetaire: z.string().optional(),
   professor_salary: z.coerce.number().optional(),
   professor_date_entree_fonction: z.date().optional(),
@@ -965,6 +966,33 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
                       <SelectItem value="Personnel administratif">Personnel administratif</SelectItem>
                       <SelectItem value="Personnel de soutien">Personnel de soutien</SelectItem>
                       <SelectItem value="Professeur">Professeur</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="niveau_etudes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Niveau d'études</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Universitaire">Universitaire</SelectItem>
+                      <SelectItem value="Professionnel">Professionnel</SelectItem>
+                      <SelectItem value="Secondaire">Secondaire</SelectItem>
+                      <SelectItem value="Fondamental 1er cycle">Fondamental 1er cycle</SelectItem>
+                      <SelectItem value="Fondamental 2ème cycle">Fondamental 2ème cycle</SelectItem>
+                      <SelectItem value="Fondamental 3ème cycle">Fondamental 3ème cycle</SelectItem>
+                      <SelectItem value="Primaire">Primaire</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

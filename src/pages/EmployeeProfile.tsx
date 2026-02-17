@@ -305,6 +305,7 @@ export default function EmployeeProfile() {
                   employee_status: profile?.employee_status ?? "actif",
                   professor_grade: profile?.professor_grade ?? undefined,
                   professor_date_entree_fonction: profile?.professor_date_entree_fonction ? new Date(profile.professor_date_entree_fonction) : undefined,
+                  niveau_etudes: profile?.niveau_etudes ?? undefined,
                 }}
               />
             </CardContent>
@@ -381,9 +382,10 @@ export default function EmployeeProfile() {
                         position_id: profile?.position_id || "",
                         employment_type: profile?.employment_type ?? "permanent",
                         employee_status: profile?.employee_status ?? "actif",
-                        professor_grade: profile?.professor_grade ?? undefined,
-                        professor_date_entree_fonction: profile?.professor_date_entree_fonction ? new Date(profile.professor_date_entree_fonction) : undefined,
-                      }}
+                      professor_grade: profile?.professor_grade ?? undefined,
+                      professor_date_entree_fonction: profile?.professor_date_entree_fonction ? new Date(profile.professor_date_entree_fonction) : undefined,
+                      niveau_etudes: profile?.niveau_etudes ?? undefined,
+                    }}
                     />
                   </CardContent>
                 </Card>
@@ -570,6 +572,10 @@ export default function EmployeeProfile() {
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Catégorie</p>
                         <p>{profile.employee_category || "Non renseigné"}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-muted-foreground">Niveau d'études</p>
+                        <p>{profile.niveau_etudes || "Non renseigné"}</p>
                       </div>
                     </div>
                   </CardContent>
