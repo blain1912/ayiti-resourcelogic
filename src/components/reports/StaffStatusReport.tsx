@@ -598,8 +598,9 @@ export const StaffStatusReport = () => {
             <Textarea
               value={conclusionText}
               onChange={e => setConclusionText(e.target.value)}
-              className="min-h-[80px] border-dashed print:border-none print:p-0 print:resize-none bg-transparent text-black"
-              style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit" }}
+              className="min-h-[120px] border-dashed print:border-none print:p-0 print:resize-none bg-transparent text-black whitespace-pre-wrap break-words overflow-visible"
+              style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit", height: "auto" }}
+              rows={6}
             />
 
             <div className="pt-12 mt-8 border-t text-center text-xs text-muted-foreground">
