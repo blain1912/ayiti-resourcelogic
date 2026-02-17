@@ -281,12 +281,12 @@ export const StaffStatusReport = () => {
 
       {/* Report Document */}
       <ScrollArea className="h-[70vh] print:h-auto print:overflow-visible">
-        <div id="staff-status-report" className="bg-white text-black space-y-2 mx-auto shadow-lg print:shadow-none print:max-w-none" style={{ fontFamily: "Georgia, serif", fontSize: "13px", lineHeight: "1.7", width: "215.9mm", maxWidth: "215.9mm", paddingLeft: "2.5cm", paddingRight: "2.5cm", paddingBottom: "2.5cm", paddingTop: "2cm" }}>
+        <div id="staff-status-report" className="bg-white text-black mx-auto shadow-lg print:shadow-none print:max-w-none" style={{ fontFamily: "Georgia, serif", fontSize: "13px", lineHeight: "1.7", width: "215.9mm", maxWidth: "215.9mm" }}>
 
           {/* 1. PAGE DE GARDE */}
-          <div className="text-center py-16 space-y-6 border-b-2 border-primary" style={{ pageBreakAfter: "always" }}>
+          <div data-pdf-section className="text-center space-y-6 border-b-2 border-primary flex flex-col items-center justify-center" style={{ paddingLeft: "2.5cm", paddingRight: "2.5cm", paddingBottom: "2.5cm", paddingTop: "2cm", minHeight: "279.4mm", boxSizing: "border-box", pageBreakAfter: "always" }}>
             <p className="text-lg font-semibold uppercase tracking-wide">{orgName}</p>
-            <p className="text-sm text-gray-600">Direction des Ressources Humaines</p>
+            <p className="text-sm text-muted-foreground">Direction des Ressources Humaines</p>
             <div className="py-8">
               <h1 className="text-3xl font-bold uppercase tracking-wider">{reportTitle}</h1>
             </div>
@@ -298,192 +298,200 @@ export const StaffStatusReport = () => {
             </div>
           </div>
 
-          {/* 2. INTRODUCTION */}
-          <SectionTitle num="1" title="Introduction" />
-          <div className="space-y-2">
-            <Textarea
-              value={introText}
-              onChange={e => setIntroText(e.target.value)}
-              className="min-h-[100px] border-dashed print:border-none print:p-0 print:resize-none bg-transparent text-black"
-              style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit" }}
-            />
+          {/* 2. INTRODUCTION + 3. EFFECTIF GLOBAL */}
+          <div data-pdf-section style={{ paddingLeft: "2.5cm", paddingRight: "2.5cm", paddingBottom: "2.5cm", paddingTop: "2cm", pageBreakAfter: "always" }}>
+            <SectionTitle num="1" title="Introduction" />
+            <div className="space-y-2">
+              <Textarea
+                value={introText}
+                onChange={e => setIntroText(e.target.value)}
+                className="min-h-[100px] border-dashed print:border-none print:p-0 print:resize-none bg-transparent text-black"
+                style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit" }}
+              />
+            </div>
+
+            <SectionTitle num="2" title="Effectif global" />
+            <p className="font-semibold mb-2">Tableau 1 – Répartition par catégorie</p>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-black font-bold">Catégorie</TableHead>
+                  <TableHead className="text-black font-bold text-center">Nombre</TableHead>
+                  <TableHead className="text-black font-bold text-center">%</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {categoryStats.map(cat => (
+                  <TableRow key={cat.name}>
+                    <TableCell>{cat.name}</TableCell>
+                    <TableCell className="text-center">{cat.count}</TableCell>
+                    <TableCell className="text-center">{cat.percent}%</TableCell>
+                  </TableRow>
+                ))}
+                <TableRow className="font-bold bg-muted/20">
+                  <TableCell>Total</TableCell>
+                  <TableCell className="text-center">{total}</TableCell>
+                  <TableCell className="text-center">100%</TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+            <p className="mt-3 italic text-muted-foreground">{categoryAnalysis}</p>
           </div>
 
-          {/* 3. EFFECTIF GLOBAL */}
-          <SectionTitle num="2" title="Effectif global" />
-          <p className="font-semibold mb-2">Tableau 1 – Répartition par catégorie</p>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-black font-bold">Catégorie</TableHead>
-                <TableHead className="text-black font-bold text-center">Nombre</TableHead>
-                <TableHead className="text-black font-bold text-center">%</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {categoryStats.map(cat => (
-                <TableRow key={cat.name}>
-                  <TableCell>{cat.name}</TableCell>
-                  <TableCell className="text-center">{cat.count}</TableCell>
-                  <TableCell className="text-center">{cat.percent}%</TableCell>
-                </TableRow>
-              ))}
-              <TableRow className="font-bold bg-muted/20">
-                <TableCell>Total</TableCell>
-                <TableCell className="text-center">{total}</TableCell>
-                <TableCell className="text-center">100%</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-          <p className="mt-3 italic text-gray-700">{categoryAnalysis}</p>
-
           {/* 4. PARCOURS PROFESSIONNEL */}
-          <SectionTitle num="3" title="Parcours professionnel des employés" />
-          <p className="font-semibold mb-2">Tableau 2 – Situation professionnelle actuelle</p>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-black font-bold">Nom</TableHead>
-                <TableHead className="text-black font-bold">Poste actuel</TableHead>
-                <TableHead className="text-black font-bold">Unité</TableHead>
-                <TableHead className="text-black font-bold text-center">Année d'entrée</TableHead>
-                <TableHead className="text-black font-bold text-center">Ancienneté</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {employees.sort((a, b) => (b.seniority ?? 0) - (a.seniority ?? 0)).map(emp => (
-                <TableRow key={emp.id}>
-                  <TableCell>{emp.fullName}</TableCell>
-                  <TableCell>{emp.positionName}</TableCell>
-                  <TableCell>{emp.unitName}</TableCell>
-                  <TableCell className="text-center">{emp.dateEntree ? format(new Date(emp.dateEntree), "yyyy") : "N/A"}</TableCell>
-                  <TableCell className="text-center">{emp.seniority !== null ? `${emp.seniority} ans` : "N/A"}</TableCell>
+          <div data-pdf-section style={{ paddingLeft: "2.5cm", paddingRight: "2.5cm", paddingBottom: "2.5cm", paddingTop: "2cm", pageBreakAfter: "always" }}>
+            <SectionTitle num="3" title="Parcours professionnel des employés" />
+            <p className="font-semibold mb-2">Tableau 2 – Situation professionnelle actuelle</p>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-black font-bold">Nom</TableHead>
+                  <TableHead className="text-black font-bold">Poste actuel</TableHead>
+                  <TableHead className="text-black font-bold">Unité</TableHead>
+                  <TableHead className="text-black font-bold text-center">Année d'entrée</TableHead>
+                  <TableHead className="text-black font-bold text-center">Ancienneté</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {employees.sort((a, b) => (b.seniority ?? 0) - (a.seniority ?? 0)).map(emp => (
+                  <TableRow key={emp.id}>
+                    <TableCell>{emp.fullName}</TableCell>
+                    <TableCell>{emp.positionName}</TableCell>
+                    <TableCell>{emp.unitName}</TableCell>
+                    <TableCell className="text-center">{emp.dateEntree ? format(new Date(emp.dateEntree), "yyyy") : "N/A"}</TableCell>
+                    <TableCell className="text-center">{emp.seniority !== null ? `${emp.seniority} ans` : "N/A"}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
 
-          {/* 5. ANCIENNETÉ */}
-          <SectionTitle num="4" title="Ancienneté du personnel" />
-          <p className="font-semibold mb-2">Tableau 3 – Répartition par ancienneté</p>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-black font-bold">Tranche d'ancienneté</TableHead>
-                <TableHead className="text-black font-bold text-center">Nombre</TableHead>
-                <TableHead className="text-black font-bold text-center">%</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {seniorityBuckets.map(b => (
-                <TableRow key={b.label}>
-                  <TableCell>{b.label}</TableCell>
-                  <TableCell className="text-center">{b.count}</TableCell>
-                  <TableCell className="text-center">{b.percent}%</TableCell>
+          {/* 5. ANCIENNETÉ + 6. ANALYSE PAR ÂGE */}
+          <div data-pdf-section style={{ paddingLeft: "2.5cm", paddingRight: "2.5cm", paddingBottom: "2.5cm", paddingTop: "2cm", pageBreakAfter: "always" }}>
+            <SectionTitle num="4" title="Ancienneté du personnel" />
+            <p className="font-semibold mb-2">Tableau 3 – Répartition par ancienneté</p>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-black font-bold">Tranche d'ancienneté</TableHead>
+                  <TableHead className="text-black font-bold text-center">Nombre</TableHead>
+                  <TableHead className="text-black font-bold text-center">%</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <p className="mt-3 italic text-gray-700">{seniorityAnalysis}</p>
+              </TableHeader>
+              <TableBody>
+                {seniorityBuckets.map(b => (
+                  <TableRow key={b.label}>
+                    <TableCell>{b.label}</TableCell>
+                    <TableCell className="text-center">{b.count}</TableCell>
+                    <TableCell className="text-center">{b.percent}%</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <p className="mt-3 italic text-muted-foreground">{seniorityAnalysis}</p>
 
-          {/* 6. ANALYSE PAR ÂGE */}
-          <SectionTitle num="5" title="Analyse par âge" />
-          <p className="font-semibold mb-2">Tableau 4 – Répartition par âge</p>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-black font-bold">Tranche d'âge</TableHead>
-                <TableHead className="text-black font-bold text-center">Nombre</TableHead>
-                <TableHead className="text-black font-bold text-center">%</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {ageBuckets.map(b => (
-                <TableRow key={b.label}>
-                  <TableCell>{b.label}</TableCell>
-                  <TableCell className="text-center">{b.count}</TableCell>
-                  <TableCell className="text-center">{b.percent}%</TableCell>
+            <SectionTitle num="5" title="Analyse par âge" />
+            <p className="font-semibold mb-2">Tableau 4 – Répartition par âge</p>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-black font-bold">Tranche d'âge</TableHead>
+                  <TableHead className="text-black font-bold text-center">Nombre</TableHead>
+                  <TableHead className="text-black font-bold text-center">%</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <p className="mt-3 italic text-gray-700">{ageAnalysis}</p>
+              </TableHeader>
+              <TableBody>
+                {ageBuckets.map(b => (
+                  <TableRow key={b.label}>
+                    <TableCell>{b.label}</TableCell>
+                    <TableCell className="text-center">{b.count}</TableCell>
+                    <TableCell className="text-center">{b.percent}%</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <p className="mt-3 italic text-muted-foreground">{ageAnalysis}</p>
+          </div>
 
           {/* 7. ANALYSE CROISÉE */}
-          <SectionTitle num="6" title="Analyse croisée" />
-          <p className="font-semibold mb-2">Tableau 5 – Matrice Âge × Ancienneté</p>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-black font-bold">Âge \ Ancienneté</TableHead>
-                {senRangeHeaders.map(h => <TableHead key={h} className="text-black font-bold text-center">{h}</TableHead>)}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {crossAgeSeniority.map(row => (
-                <TableRow key={row.ageLabel}>
-                  <TableCell className="font-medium">{row.ageLabel}</TableCell>
-                  {row.values.map((v, i) => <TableCell key={i} className="text-center">{v || "-"}</TableCell>)}
+          <div data-pdf-section style={{ paddingLeft: "2.5cm", paddingRight: "2.5cm", paddingBottom: "2.5cm", paddingTop: "2cm", pageBreakAfter: "always" }}>
+            <SectionTitle num="6" title="Analyse croisée" />
+            <p className="font-semibold mb-2">Tableau 5 – Matrice Âge × Ancienneté</p>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-black font-bold">Âge \ Ancienneté</TableHead>
+                  {senRangeHeaders.map(h => <TableHead key={h} className="text-black font-bold text-center">{h}</TableHead>)}
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <p className="mt-3 italic text-gray-700">{crossAnalysis}</p>
+              </TableHeader>
+              <TableBody>
+                {crossAgeSeniority.map(row => (
+                  <TableRow key={row.ageLabel}>
+                    <TableCell className="font-medium">{row.ageLabel}</TableCell>
+                    {row.values.map((v, i) => <TableCell key={i} className="text-center">{v || "-"}</TableCell>)}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <p className="mt-3 italic text-muted-foreground">{crossAnalysis}</p>
+          </div>
 
-          {/* 8. PROBLÈMES IDENTIFIÉS */}
-          <SectionTitle num="7" title="Problèmes identifiés" />
-          <Textarea
-            value={problemsText}
-            onChange={e => setProblemsText(e.target.value)}
-            className="min-h-[80px] border-dashed print:border-none print:p-0 print:resize-none bg-transparent text-black"
-            style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit" }}
-          />
+          {/* 8. PROBLÈMES + 9. RECOMMANDATIONS */}
+          <div data-pdf-section style={{ paddingLeft: "2.5cm", paddingRight: "2.5cm", paddingBottom: "2.5cm", paddingTop: "2cm", pageBreakAfter: "always" }}>
+            <SectionTitle num="7" title="Problèmes identifiés" />
+            <Textarea
+              value={problemsText}
+              onChange={e => setProblemsText(e.target.value)}
+              className="min-h-[80px] border-dashed print:border-none print:p-0 print:resize-none bg-transparent text-black"
+              style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit" }}
+            />
 
-          {/* 9. RECOMMANDATIONS */}
-          <SectionTitle num="8" title="Recommandations" />
-          <div className="space-y-4">
-            <div>
-              <p className="font-semibold mb-1">Court terme</p>
-              <Textarea
-                value={recoCourtTerme}
-                onChange={e => setRecoCourtTerme(e.target.value)}
-                className="min-h-[60px] border-dashed print:border-none print:p-0 print:resize-none bg-transparent text-black"
-                style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit" }}
-              />
-            </div>
-            <div>
-              <p className="font-semibold mb-1">Moyen terme</p>
-              <Textarea
-                value={recoMoyenTerme}
-                onChange={e => setRecoMoyenTerme(e.target.value)}
-                className="min-h-[60px] border-dashed print:border-none print:p-0 print:resize-none bg-transparent text-black"
-                style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit" }}
-              />
-            </div>
-            <div>
-              <p className="font-semibold mb-1">Long terme</p>
-              <Textarea
-                value={recoLongTerme}
-                onChange={e => setRecoLongTerme(e.target.value)}
-                className="min-h-[60px] border-dashed print:border-none print:p-0 print:resize-none bg-transparent text-black"
-                style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit" }}
-              />
+            <SectionTitle num="8" title="Recommandations" />
+            <div className="space-y-4">
+              <div>
+                <p className="font-semibold mb-1">Court terme</p>
+                <Textarea
+                  value={recoCourtTerme}
+                  onChange={e => setRecoCourtTerme(e.target.value)}
+                  className="min-h-[60px] border-dashed print:border-none print:p-0 print:resize-none bg-transparent text-black"
+                  style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit" }}
+                />
+              </div>
+              <div>
+                <p className="font-semibold mb-1">Moyen terme</p>
+                <Textarea
+                  value={recoMoyenTerme}
+                  onChange={e => setRecoMoyenTerme(e.target.value)}
+                  className="min-h-[60px] border-dashed print:border-none print:p-0 print:resize-none bg-transparent text-black"
+                  style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit" }}
+                />
+              </div>
+              <div>
+                <p className="font-semibold mb-1">Long terme</p>
+                <Textarea
+                  value={recoLongTerme}
+                  onChange={e => setRecoLongTerme(e.target.value)}
+                  className="min-h-[60px] border-dashed print:border-none print:p-0 print:resize-none bg-transparent text-black"
+                  style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit" }}
+                />
+              </div>
             </div>
           </div>
 
           {/* 10. CONCLUSION */}
-          <SectionTitle num="9" title="Conclusion" />
-          <Textarea
-            value={conclusionText}
-            onChange={e => setConclusionText(e.target.value)}
-            className="min-h-[80px] border-dashed print:border-none print:p-0 print:resize-none bg-transparent text-black"
-            style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit" }}
-          />
+          <div data-pdf-section style={{ paddingLeft: "2.5cm", paddingRight: "2.5cm", paddingBottom: "2.5cm", paddingTop: "2cm" }}>
+            <SectionTitle num="9" title="Conclusion" />
+            <Textarea
+              value={conclusionText}
+              onChange={e => setConclusionText(e.target.value)}
+              className="min-h-[80px] border-dashed print:border-none print:p-0 print:resize-none bg-transparent text-black"
+              style={{ fontFamily: "inherit", fontSize: "inherit", lineHeight: "inherit" }}
+            />
 
-          {/* Footer */}
-          <div className="pt-12 mt-8 border-t text-center text-xs text-gray-500">
-            <p>Document généré le {format(now, "dd/MM/yyyy à HH:mm", { locale: fr })}</p>
-            <p>{orgName} — Direction des Ressources Humaines</p>
+            <div className="pt-12 mt-8 border-t text-center text-xs text-muted-foreground">
+              <p>Document généré le {format(now, "dd/MM/yyyy à HH:mm", { locale: fr })}</p>
+              <p>{orgName} — Direction des Ressources Humaines</p>
+            </div>
           </div>
         </div>
       </ScrollArea>
