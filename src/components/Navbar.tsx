@@ -507,6 +507,12 @@ export default function Navbar() {
                     Rapport Mensuel
                   </Button>
                 </Link>
+                <Link to="/reports" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <FileBarChart className="h-4 w-4" />
+                    Rapports RH
+                  </Button>
+                </Link>
                 <Link to="/leaves" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                     <Calendar className="h-4 w-4" />
@@ -535,6 +541,12 @@ export default function Navbar() {
                   <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                     <Cake className="h-4 w-4" />
                     Anniversaires
+                  </Button>
+                </Link>
+                <Link to="/greeting-cards" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <Gift className="h-4 w-4" />
+                    Cartes de vœux
                   </Button>
                 </Link>
                 <Link to="/special-schedules" onClick={() => setMobileMenuOpen(false)}>
