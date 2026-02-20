@@ -7,7 +7,8 @@ import { DemographicsReport } from "@/components/reports/DemographicsReport";
 import { PayrollReport } from "@/components/reports/PayrollReport";
 import { PayrollDetailReport } from "@/components/reports/PayrollDetailReport";
 import { StaffStatusReport } from "@/components/reports/StaffStatusReport";
-import { CheckSquare, Calendar, Award, Users, FileBarChart, UserCircle, DollarSign, Receipt, ClipboardList } from "lucide-react";
+import { StaffMovementReport } from "@/components/reports/StaffMovementReport";
+import { CheckSquare, Calendar, Award, Users, FileBarChart, UserCircle, DollarSign, Receipt, ClipboardList, ArrowRightLeft } from "lucide-react";
 
 const Reports = () => {
   return (
@@ -55,6 +56,10 @@ const Reports = () => {
               <ClipboardList className="h-4 w-4" />
               <span className="hidden sm:inline">État du Personnel</span>
             </TabsTrigger>
+            <TabsTrigger value="staff-movement" className="gap-2 py-3 flex-shrink-0">
+              <ArrowRightLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Mouvement</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="attendance">
@@ -80,6 +85,9 @@ const Reports = () => {
           </TabsContent>
           <TabsContent value="staff-status">
             <StaffStatusReport />
+          </TabsContent>
+          <TabsContent value="staff-movement">
+            <StaffMovementReport />
           </TabsContent>
         </Tabs>
       </main>
