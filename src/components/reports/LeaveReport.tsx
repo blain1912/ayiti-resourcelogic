@@ -12,6 +12,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis
 import { Calendar, Download, Users, FileText, FileDown } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { exportToPdf } from "@/lib/exportPdf";
+import { ReportAnalysis } from "@/components/reports/ReportAnalysis";
 
 interface EmployeeLeaveData {
   id: string;
@@ -221,6 +222,17 @@ export const LeaveReport = () => {
           </ScrollArea>
         </CardContent>
       </Card>
+      <ReportAnalysis
+        reportType="leaves"
+        reportData={{
+          totalEmployees: employeeLeaves.length,
+          totalAnnualUsed,
+          totalSickUsed,
+          totalPending,
+          year: selectedYear,
+        }}
+        organizationName={organizationName}
+      />
     </div>
   );
 };

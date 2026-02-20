@@ -9,6 +9,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Download, Users, Building2, UserCheck, UserX, FileDown } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { exportToPdf } from "@/lib/exportPdf";
+import { ReportAnalysis } from "@/components/reports/ReportAnalysis";
 
 interface UnitStats {
   id: string;
@@ -201,6 +202,16 @@ export const StaffingReport = () => {
           </ScrollArea>
         </CardContent>
       </Card>
+      <ReportAnalysis
+        reportType="staffing"
+        reportData={{
+          totalEmployees,
+          units: unitStats.map(u => ({ name: u.name, total: u.totalEmployees, active: u.active, inactive: u.inactive })),
+          genderStats,
+          statusStats,
+        }}
+        organizationName={organizationName}
+      />
     </div>
   );
 };

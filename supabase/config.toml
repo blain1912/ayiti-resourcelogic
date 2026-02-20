@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.send-correspondence-notification]
 verify_jwt = false
+
+[functions.analyze-report]
+verify_jwt = false

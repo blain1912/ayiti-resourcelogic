@@ -10,6 +10,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Download, Users, Award, TrendingUp, Clock, FileDown } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { exportToPdf } from "@/lib/exportPdf";
+import { ReportAnalysis } from "@/components/reports/ReportAnalysis";
 
 interface EmployeeSeniority {
   id: string;
@@ -236,6 +237,17 @@ export const SeniorityReport = () => {
           </ScrollArea>
         </CardContent>
       </Card>
+      <ReportAnalysis
+        reportType="seniority"
+        reportData={{
+          totalEmployees: employees.length,
+          avgYears,
+          maxSeniority: maxSeniority?.label,
+          seniorityBuckets,
+          missingDates: employees.filter(e => !e.dateEntree).length,
+        }}
+        organizationName={organizationName}
+      />
     </div>
   );
 };

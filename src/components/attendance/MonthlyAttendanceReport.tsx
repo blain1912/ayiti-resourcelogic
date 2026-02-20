@@ -12,6 +12,7 @@ import { fr } from "date-fns/locale";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Users, UserCheck, UserX, Clock, TrendingUp, Calendar, Download, Building2, FileDown } from "lucide-react";
 import { exportToPdf } from "@/lib/exportPdf";
+import { ReportAnalysis } from "@/components/reports/ReportAnalysis";
 
 interface EmployeeAttendance {
   id: string;
@@ -524,6 +525,20 @@ export const MonthlyAttendanceReport = () => {
           </ScrollArea>
         </CardContent>
       </Card>
+      <ReportAnalysis
+        reportType="attendance"
+        reportData={{
+          totalEmployees: monthlyStats?.totalEmployees,
+          workingDays: monthlyStats?.workingDays,
+          avgPresenceRate: monthlyStats?.avgPresenceRate,
+          totalPresent: monthlyStats?.totalPresent,
+          totalAbsent: monthlyStats?.totalAbsent,
+          totalLate: monthlyStats?.totalLate,
+          totalLeave: monthlyStats?.totalLeave,
+          month: format(selectedMonth, "MMMM yyyy", { locale: fr }),
+        }}
+        organizationName={organizationName}
+      />
     </div>
   );
 };
