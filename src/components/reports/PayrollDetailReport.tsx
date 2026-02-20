@@ -16,9 +16,11 @@ import { Label } from "@/components/ui/label";
 
 interface EmployeePayroll {
   id: string;
+  codeBudgetaire: string;
   nif: string;
   nifSecondary: string;
   fullName: string;
+  category: string;
   poste: string;
   brut: number;
   isr: number;
@@ -55,7 +57,40 @@ const calculateDeductions = (brut: number) => {
   return { isr, casFdu, pension, cfgdct, net: Math.round(net * 100) / 100 };
 };
 
-const PayrollTable = ({ employees, title, icon }: { employees: EmployeePayroll[]; title: string; icon: React.ReactNode }) => {
+const EditableCell = ({ value, onChange, type = "text", className = "" }: { value: string | number; onChange: (val: string) => void; type?: string; className?: string }) => {
+  const [editing, setEditing] = useState(false);
+  const [localVal, setLocalVal] = useState(String(value));
+
+  useEffect(() => {
+    setLocalVal(String(value));
+  }, [value]);
+
+  if (editing) {
+    return (
+      <Input
+        type={type}
+        value={localVal}
+        onChange={e => setLocalVal(e.target.value)}
+        onBlur={() => { setEditing(false); onChange(localVal); }}
+        onKeyDown={e => { if (e.key === "Enter") { setEditing(false); onChange(localVal); } }}
+        className={`h-7 text-xs px-1 ${className}`}
+        autoFocus
+      />
+    );
+  }
+
+  return (
+    <span
+      onClick={() => setEditing(true)}
+      className={`cursor-pointer hover:bg-muted/50 rounded px-1 py-0.5 inline-block min-w-[2rem] ${className}`}
+      title="Cliquer pour modifier"
+    >
+      {value || "—"}
+    </span>
+  );
+};
+
+const PayrollTable = ({ employees, title, icon, onUpdate }: { employees: EmployeePayroll[]; title: string; icon: React.ReactNode; onUpdate: (id: string, field: keyof EmployeePayroll, value: string) => void }) => {
   const totals = employees.reduce(
     (acc, e) => ({
       brut: acc.brut + e.brut,
@@ -87,8 +122,10 @@ const PayrollTable = ({ employees, title, icon }: { employees: EmployeePayroll[]
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[50px]">#</TableHead>
-                <TableHead>Code / NIF</TableHead>
+                <TableHead>Code Employé</TableHead>
+                <TableHead>NIF</TableHead>
                 <TableHead>Nom et Prénom</TableHead>
+                <TableHead>Catégorie</TableHead>
                 <TableHead>Poste</TableHead>
                 <TableHead className="text-right">Brut</TableHead>
                 <TableHead className="text-right">ISR</TableHead>
@@ -103,16 +140,23 @@ const PayrollTable = ({ employees, title, icon }: { employees: EmployeePayroll[]
                 <TableRow key={e.id}>
                   <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
                   <TableCell className="font-mono text-xs">
-                    <div>{e.nif || "—"}</div>
-                    {e.nifSecondary && <div className="text-muted-foreground mt-1">{e.nifSecondary}</div>}
+                    <EditableCell value={e.codeBudgetaire} onChange={val => onUpdate(e.id, "codeBudgetaire", val)} />
                   </TableCell>
-                  <TableCell className="font-medium">{e.fullName}</TableCell>
+                  <TableCell className="font-mono text-xs">
+                    <EditableCell value={e.nif} onChange={val => onUpdate(e.id, "nif", val)} />
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    <EditableCell value={e.fullName} onChange={val => onUpdate(e.id, "fullName", val)} />
+                  </TableCell>
                   <TableCell className="text-sm">
-                    {e.poste ? e.poste.split(" / ").map((p, i) => (
-                      <div key={i} className={i > 0 ? "text-muted-foreground mt-1" : ""}>{p}</div>
-                    )) : "—"}
+                    <EditableCell value={e.category} onChange={val => onUpdate(e.id, "category", val)} />
                   </TableCell>
-                  <TableCell className="text-right">{formatCurrency(e.brut)}</TableCell>
+                  <TableCell className="text-sm">
+                    <EditableCell value={e.poste} onChange={val => onUpdate(e.id, "poste", val)} />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <EditableCell value={e.brut} type="number" onChange={val => onUpdate(e.id, "brut", val)} className="text-right" />
+                  </TableCell>
                   <TableCell className="text-right">{formatCurrency(e.isr)}</TableCell>
                   <TableCell className="text-right">{formatCurrency(e.casFdu)}</TableCell>
                   <TableCell className="text-right">{formatCurrency(e.pension)}</TableCell>
@@ -122,7 +166,7 @@ const PayrollTable = ({ employees, title, icon }: { employees: EmployeePayroll[]
               ))}
               {employees.length > 0 && (
                 <TableRow className="bg-muted/50 font-bold border-t-2">
-                  <TableCell colSpan={4}>TOTAL</TableCell>
+                  <TableCell colSpan={6}>TOTAL</TableCell>
                   <TableCell className="text-right">{formatCurrency(totals.brut)}</TableCell>
                   <TableCell className="text-right">{formatCurrency(totals.isr)}</TableCell>
                   <TableCell className="text-right">{formatCurrency(totals.casFdu)}</TableCell>
@@ -133,7 +177,7 @@ const PayrollTable = ({ employees, title, icon }: { employees: EmployeePayroll[]
               )}
               {employees.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
                     Aucun employé dans cette catégorie
                   </TableCell>
                 </TableRow>
@@ -145,7 +189,6 @@ const PayrollTable = ({ employees, title, icon }: { employees: EmployeePayroll[]
     </Card>
   );
 };
-
 export const PayrollDetailReport = () => {
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [organizationName, setOrganizationName] = useState("");
@@ -257,19 +300,21 @@ export const PayrollDetailReport = () => {
     if (!organizationId) return;
     setLoading(true);
 
-    const [{ data: profiles }, { data: positions }, { data: professorGrades }, { data: units }] = await Promise.all([
+    const [{ data: profiles }, { data: positions }, { data: professorGrades }, { data: units }, { data: categories }] = await Promise.all([
       supabase.from("profiles")
-        .select("id, full_name, nif, code_budgetaire, professor_code_budgetaire, position_id, professor_grade, professor_salary, employment_type, employee_status, unit_id")
+        .select("id, full_name, nif, code_budgetaire, professor_code_budgetaire, position_id, professor_grade, professor_salary, employment_type, employee_status, unit_id, employee_category")
         .eq("organization_id", organizationId)
         .eq("approval_status", "approved"),
-      supabase.from("positions").select("id, name, salary").eq("organization_id", organizationId),
+      supabase.from("positions").select("id, name, salary, category_id").eq("organization_id", organizationId),
       supabase.from("professor_grades").select("grade, salary").eq("organization_id", organizationId),
       supabase.from("organizational_units").select("id, name").eq("organization_id", organizationId),
+      supabase.from("employee_categories").select("id, name").eq("organization_id", organizationId),
     ]);
 
     if (!profiles) { setLoading(false); return; }
 
-    const positionMap = new Map((positions || []).map(p => [p.id, { name: p.name, salary: p.salary }]));
+    const positionMap = new Map((positions || []).map(p => [p.id, { name: p.name, salary: p.salary, category_id: (p as any).category_id }]));
+    const categoryMap = new Map((categories || []).map((c: any) => [c.id, c.name]));
     const gradeMap = new Map((professorGrades || []).map(g => [g.grade, g.salary]));
 
     const buildPayrollEntries = (profile: any): EmployeePayroll[] => {
@@ -278,12 +323,15 @@ export const PayrollDetailReport = () => {
       // Entry 1: Administrative position
       if (profile.position_id && positionMap.has(profile.position_id)) {
         const pos = positionMap.get(profile.position_id)!;
+        const catName = pos.category_id ? (categoryMap.get(pos.category_id) || "") : (profile.employee_category || "");
         const deductions = calculateDeductions(pos.salary);
         entries.push({
           id: profile.id + "-admin",
-          nif: [profile.code_budgetaire, profile.nif].filter(Boolean).join(" / ") || "—",
+          codeBudgetaire: profile.code_budgetaire || "",
+          nif: profile.nif || "",
           nifSecondary: "",
           fullName: profile.full_name || "Sans nom",
+          category: catName,
           poste: pos.name,
           brut: pos.salary,
           ...deductions,
@@ -299,9 +347,11 @@ export const PayrollDetailReport = () => {
         const gradeLabel = profile.professor_grade ? ` (${profile.professor_grade})` : "";
         entries.push({
           id: profile.id + "-prof",
-          nif: [profile.professor_code_budgetaire, profile.nif].filter(Boolean).join(" / ") || "—",
+          codeBudgetaire: profile.professor_code_budgetaire || "",
+          nif: profile.nif || "",
           nifSecondary: "",
           fullName: profile.full_name || "Sans nom",
+          category: "Professeur",
           poste: `Professeur${gradeLabel}`,
           brut: profSalary,
           ...deductions,
@@ -313,9 +363,11 @@ export const PayrollDetailReport = () => {
       if (entries.length === 0) {
         entries.push({
           id: profile.id,
-          nif: [profile.code_budgetaire, profile.nif].filter(Boolean).join(" / ") || "—",
+          codeBudgetaire: profile.code_budgetaire || "",
+          nif: profile.nif || "",
           nifSecondary: "",
           fullName: profile.full_name || "Sans nom",
+          category: profile.employee_category || "Non classé",
           poste: "",
           brut: 0,
           isr: 0, casFdu: 0, pension: 0, cfgdct: 0, net: 0,
@@ -350,15 +402,28 @@ export const PayrollDetailReport = () => {
     setLoading(false);
   };
 
+  const handleUpdateEmployee = (list: EmployeePayroll[], setList: React.Dispatch<React.SetStateAction<EmployeePayroll[]>>) =>
+    (id: string, field: keyof EmployeePayroll, value: string) => {
+      setList(prev => prev.map(e => {
+        if (e.id !== id) return e;
+        if (field === "brut") {
+          const newBrut = parseFloat(value) || 0;
+          const deductions = calculateDeductions(newBrut);
+          return { ...e, brut: newBrut, ...deductions };
+        }
+        return { ...e, [field]: value };
+      }));
+    };
+
   const exportAllCSV = () => {
-    const headers = ["Type", "NIF", "Nom et Prénom", "Poste", "Brut", "ISR", "CAS/FDU", "Pension", "CFGDCT", "Net"];
+    const headers = ["Type", "Code Employé", "NIF", "Nom et Prénom", "Catégorie", "Poste", "Brut", "ISR", "CAS/FDU", "Pension", "CFGDCT", "Net"];
     const allEmployees = [
-      ...permanents.map(e => ["Permanent", e.nif, e.fullName, e.poste, e.brut, e.isr, e.casFdu, e.pension, e.cfgdct, e.net]),
-      ...contractuels.map(e => ["Contractuel", e.nif, e.fullName, e.poste, e.brut, e.isr, e.casFdu, e.pension, e.cfgdct, e.net]),
+      ...permanents.map(e => ["Permanent", e.codeBudgetaire, e.nif, e.fullName, e.category, e.poste, e.brut, e.isr, e.casFdu, e.pension, e.cfgdct, e.net]),
+      ...contractuels.map(e => ["Contractuel", e.codeBudgetaire, e.nif, e.fullName, e.category, e.poste, e.brut, e.isr, e.casFdu, e.pension, e.cfgdct, e.net]),
     ];
     const totalBrut = [...permanents, ...contractuels].reduce((s, e) => s + e.brut, 0);
     const totalNet = [...permanents, ...contractuels].reduce((s, e) => s + e.net, 0);
-    allEmployees.push(["TOTAL", "", "", "", totalBrut, "", "", "", "", totalNet]);
+    allEmployees.push(["TOTAL", "", "", "", "", "", totalBrut, "", "", "", "", totalNet]);
 
     const csv = [
       `État d'Émargement - ${organizationName}`,
@@ -499,6 +564,7 @@ export const PayrollDetailReport = () => {
             employees={permanents}
             title="Personnel Permanent — État d'Émargement"
             icon={<Users className="h-5 w-5 text-primary" />}
+            onUpdate={handleUpdateEmployee(permanents, setPermanents)}
           />
         </TabsContent>
 
@@ -507,6 +573,7 @@ export const PayrollDetailReport = () => {
             employees={contractuels}
             title="Personnel Contractuel — État d'Émargement"
             icon={<Briefcase className="h-5 w-5 text-accent" />}
+            onUpdate={handleUpdateEmployee(contractuels, setContractuels)}
           />
         </TabsContent>
       </Tabs>
