@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Download, ArrowRightLeft, UserCheck, UserMinus, ArrowUpCircle, Send, Plus, Trash2 } from "lucide-react";
+import { Download, ArrowRightLeft, UserCheck, UserMinus, ArrowUpCircle, Send, Plus, Trash2, FileText } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { exportToPdf } from "@/lib/exportPdf";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -63,6 +64,7 @@ export const StaffMovementReport = () => {
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [movements, setMovements] = useState<StaffMovement[]>([]);
   const [loading, setLoading] = useState(true);
+  const [exportingPdf, setExportingPdf] = useState(false);
   const [profiles, setProfiles] = useState<{ id: string; full_name: string; code_budgetaire: string }[]>([]);
   const [units, setUnits] = useState<{ id: string; name: string }[]>([]);
   const [positions, setPositions] = useState<{ id: string; name: string }[]>([]);
@@ -208,6 +210,19 @@ export const StaffMovementReport = () => {
     link.href = URL.createObjectURL(blob);
     link.download = `mouvements-personnel-${format(new Date(), "yyyy-MM-dd")}.csv`;
     link.click();
+  };
+
+  const exportPDF = async () => {
+    setExportingPdf(true);
+    try {
+      await exportToPdf(
+        "staff-movement-report",
+        `mouvements-personnel-${format(new Date(), "yyyy-MM-dd")}`,
+        "Registre des mouvements du personnel"
+      );
+    } finally {
+      setExportingPdf(false);
+    }
   };
 
   const stats = {
@@ -368,11 +383,15 @@ export const StaffMovementReport = () => {
             <Download className="h-4 w-4" />
             CSV
           </Button>
+          <Button variant="outline" onClick={exportPDF} className="gap-2" disabled={filteredMovements.length === 0 || exportingPdf}>
+            <FileText className="h-4 w-4" />
+            PDF
+          </Button>
         </div>
       </div>
 
       {/* Table */}
-      <Card>
+      <Card id="staff-movement-report">
         <CardHeader>
           <div className="flex items-center gap-2">
             <ArrowRightLeft className="h-5 w-5 text-primary" />
