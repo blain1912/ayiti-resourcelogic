@@ -92,11 +92,9 @@ export const ReportAnalysis = ({ reportType, reportData, organizationName }: Rep
               <Brain className="h-4 w-4 text-primary" />
               <span className="text-sm font-semibold text-primary">Analyse IA</span>
             </div>
-            <ScrollArea className="max-h-[400px]">
-              <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap text-sm leading-relaxed">
-                {aiAnalysis}
-              </div>
-            </ScrollArea>
+            <div className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap text-sm leading-relaxed">
+              {aiAnalysis}
+            </div>
           </div>
         )}
 
