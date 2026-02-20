@@ -9,6 +9,7 @@ import { fr } from "date-fns/locale";
 import { Download, ArrowRightLeft, UserCheck, UserMinus, ArrowUpCircle, Send, Plus, Trash2, FileText } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { exportToPdf } from "@/lib/exportPdf";
+import { ReportAnalysis } from "@/components/reports/ReportAnalysis";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -454,6 +455,18 @@ export const StaffMovementReport = () => {
           </ScrollArea>
         </CardContent>
       </Card>
+      <ReportAnalysis
+        reportType="staff-movement"
+        reportData={{
+          total: stats.total,
+          affectations: stats.affectations,
+          promotions: stats.promotions,
+          detachements: stats.detachements,
+          transferts: stats.transferts,
+          autres: stats.autres,
+        }}
+        organizationName=""
+      />
     </div>
   );
 };

@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { Download, FileDown, Users, Briefcase, Upload, Loader2, FileText, Trash2 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { exportToPdf } from "@/lib/exportPdf";
+import { ReportAnalysis } from "@/components/reports/ReportAnalysis";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -606,6 +607,16 @@ export const PayrollDetailReport = () => {
           </CardContent>
         </Card>
       )}
+      <ReportAnalysis
+        reportType="emargement"
+        reportData={{
+          permanentsCount: permanents.length,
+          contractuelsCount: contractuels.length,
+          grandTotalBrut,
+          grandTotalNet,
+        }}
+        organizationName={organizationName}
+      />
     </div>
   );
 };

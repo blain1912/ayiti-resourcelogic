@@ -9,6 +9,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Download, Users, FileDown, UserCircle, Calendar } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { exportToPdf } from "@/lib/exportPdf";
+import { ReportAnalysis } from "@/components/reports/ReportAnalysis";
 
 interface EmployeeDemo {
   id: string;
@@ -207,6 +208,16 @@ export const DemographicsReport = () => {
           </ScrollArea>
         </CardContent>
       </Card>
+      <ReportAnalysis
+        reportType="demographics"
+        reportData={{
+          totalEmployees: employees.length,
+          genderStats,
+          ageBuckets,
+          avgAge,
+        }}
+        organizationName={organizationName}
+      />
     </div>
   );
 };

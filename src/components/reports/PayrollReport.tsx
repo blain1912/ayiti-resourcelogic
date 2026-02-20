@@ -10,6 +10,7 @@ import { Download, DollarSign, Users, Building2, FileDown, Layers, Briefcase } f
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { exportToPdf } from "@/lib/exportPdf";
+import { ReportAnalysis } from "@/components/reports/ReportAnalysis";
 
 interface PayrollRow {
   id: string;
@@ -269,6 +270,16 @@ export const PayrollReport = () => {
           </TabsContent>
         ))}
       </Tabs>
+      <ReportAnalysis
+        reportType="payroll"
+        reportData={{
+          totalEmployees,
+          totalSalary,
+          byUnit: unitPayrolls.map(u => ({ name: u.name, employees: u.employeeCount, salary: u.totalSalary, pct: u.percentage.toFixed(1) })),
+          byCategory: categoryPayrolls.map(c => ({ name: c.name, employees: c.employeeCount, salary: c.totalSalary, pct: c.percentage.toFixed(1) })),
+        }}
+        organizationName={organizationName}
+      />
     </div>
   );
 };
