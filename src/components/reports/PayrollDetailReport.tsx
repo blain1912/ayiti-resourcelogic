@@ -128,9 +128,6 @@ const PayrollTable = ({ employees, title, icon, onUpdate }: { employees: Employe
                 <TableHead>Catégorie</TableHead>
                 <TableHead>Poste</TableHead>
                 <TableHead className="text-right">Brut</TableHead>
-                <TableHead className="text-right">ISR</TableHead>
-                <TableHead className="text-right">CAS/FDU</TableHead>
-                <TableHead className="text-right">Pension</TableHead>
                 <TableHead className="text-right">CFGDCT</TableHead>
                 <TableHead className="text-right">Net</TableHead>
               </TableRow>
@@ -157,9 +154,6 @@ const PayrollTable = ({ employees, title, icon, onUpdate }: { employees: Employe
                   <TableCell className="text-right">
                     <EditableCell value={e.brut} type="number" onChange={val => onUpdate(e.id, "brut", val)} className="text-right" />
                   </TableCell>
-                  <TableCell className="text-right">{formatCurrency(e.isr)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(e.casFdu)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(e.pension)}</TableCell>
                   <TableCell className="text-right">{formatCurrency(e.cfgdct)}</TableCell>
                   <TableCell className="text-right font-bold">{formatCurrency(e.net)}</TableCell>
                 </TableRow>
@@ -168,16 +162,13 @@ const PayrollTable = ({ employees, title, icon, onUpdate }: { employees: Employe
                 <TableRow className="bg-muted/50 font-bold border-t-2">
                   <TableCell colSpan={6}>TOTAL</TableCell>
                   <TableCell className="text-right">{formatCurrency(totals.brut)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(totals.isr)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(totals.casFdu)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(totals.pension)}</TableCell>
                   <TableCell className="text-right">{formatCurrency(totals.cfgdct)}</TableCell>
                   <TableCell className="text-right">{formatCurrency(totals.net)}</TableCell>
                 </TableRow>
               )}
               {employees.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={12} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                     Aucun employé dans cette catégorie
                   </TableCell>
                 </TableRow>
@@ -416,14 +407,14 @@ export const PayrollDetailReport = () => {
     };
 
   const exportAllCSV = () => {
-    const headers = ["Type", "Code Employé", "NIF", "Nom et Prénom", "Catégorie", "Poste", "Brut", "ISR", "CAS/FDU", "Pension", "CFGDCT", "Net"];
+    const headers = ["Type", "Code Employé", "NIF", "Nom et Prénom", "Catégorie", "Poste", "Brut", "CFGDCT", "Net"];
     const allEmployees = [
-      ...permanents.map(e => ["Permanent", e.codeBudgetaire, e.nif, e.fullName, e.category, e.poste, e.brut, e.isr, e.casFdu, e.pension, e.cfgdct, e.net]),
-      ...contractuels.map(e => ["Contractuel", e.codeBudgetaire, e.nif, e.fullName, e.category, e.poste, e.brut, e.isr, e.casFdu, e.pension, e.cfgdct, e.net]),
+      ...permanents.map(e => ["Permanent", e.codeBudgetaire, e.nif, e.fullName, e.category, e.poste, e.brut, e.cfgdct, e.net]),
+      ...contractuels.map(e => ["Contractuel", e.codeBudgetaire, e.nif, e.fullName, e.category, e.poste, e.brut, e.cfgdct, e.net]),
     ];
     const totalBrut = [...permanents, ...contractuels].reduce((s, e) => s + e.brut, 0);
     const totalNet = [...permanents, ...contractuels].reduce((s, e) => s + e.net, 0);
-    allEmployees.push(["TOTAL", "", "", "", "", "", totalBrut, "", "", "", "", totalNet]);
+    allEmployees.push(["TOTAL", "", "", "", "", "", totalBrut, "", totalNet]);
 
     const csv = [
       `État d'Émargement - ${organizationName}`,
