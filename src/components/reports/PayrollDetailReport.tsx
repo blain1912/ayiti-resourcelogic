@@ -22,6 +22,7 @@ interface EmployeePayroll {
   fullName: string;
   category: string;
   poste: string;
+  unite: string;
   brut: number;
   isr: number;
   casFdu: number;
@@ -127,6 +128,7 @@ const PayrollTable = ({ employees, title, icon, onUpdate }: { employees: Employe
                 <TableHead>Nom et Prénom</TableHead>
                 <TableHead>Catégorie</TableHead>
                 <TableHead>Poste</TableHead>
+                <TableHead>Unité</TableHead>
                 <TableHead className="text-right">Brut</TableHead>
               </TableRow>
             </TableHeader>
@@ -149,6 +151,9 @@ const PayrollTable = ({ employees, title, icon, onUpdate }: { employees: Employe
                   <TableCell className="text-sm">
                     <EditableCell value={e.poste} onChange={val => onUpdate(e.id, "poste", val)} />
                   </TableCell>
+                  <TableCell className="text-sm">
+                    <EditableCell value={e.unite} onChange={val => onUpdate(e.id, "unite", val)} />
+                  </TableCell>
                   <TableCell className="text-right">
                     <EditableCell value={e.brut} type="number" onChange={val => onUpdate(e.id, "brut", val)} className="text-right" />
                   </TableCell>
@@ -156,13 +161,13 @@ const PayrollTable = ({ employees, title, icon, onUpdate }: { employees: Employe
               ))}
               {employees.length > 0 && (
                 <TableRow className="bg-muted/50 font-bold border-t-2">
-                  <TableCell colSpan={6}>TOTAL</TableCell>
+                  <TableCell colSpan={7}>TOTAL</TableCell>
                   <TableCell className="text-right">{formatCurrency(totals.brut)}</TableCell>
                 </TableRow>
               )}
               {employees.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                     Aucun employé dans cette catégorie
                   </TableCell>
                 </TableRow>
@@ -301,9 +306,11 @@ export const PayrollDetailReport = () => {
     const positionMap = new Map((positions || []).map(p => [p.id, { name: p.name, salary: p.salary, category_id: (p as any).category_id }]));
     const categoryMap = new Map((categories || []).map((c: any) => [c.id, c.name]));
     const gradeMap = new Map((professorGrades || []).map(g => [g.grade, g.salary]));
+    const unitMap = new Map((units || []).map(u => [u.id, u.name]));
 
     const buildPayrollEntries = (profile: any): EmployeePayroll[] => {
       const entries: EmployeePayroll[] = [];
+      const uniteName = profile.unit_id ? (unitMap.get(profile.unit_id) || "") : "";
 
       // Entry 1: Administrative position
       if (profile.position_id && positionMap.has(profile.position_id)) {
@@ -318,6 +325,7 @@ export const PayrollDetailReport = () => {
           fullName: profile.full_name || "Sans nom",
           category: catName,
           poste: pos.name,
+          unite: uniteName,
           brut: pos.salary,
           ...deductions,
           employmentType: profile.employment_type || "permanent",
@@ -338,6 +346,7 @@ export const PayrollDetailReport = () => {
           fullName: profile.full_name || "Sans nom",
           category: "Professeur",
           poste: `Professeur${gradeLabel}`,
+          unite: uniteName,
           brut: profSalary,
           ...deductions,
           employmentType: profile.employment_type || "permanent",
@@ -354,6 +363,7 @@ export const PayrollDetailReport = () => {
           fullName: profile.full_name || "Sans nom",
           category: profile.employee_category || "Non classé",
           poste: "",
+          unite: uniteName,
           brut: 0,
           isr: 0, casFdu: 0, pension: 0, cfgdct: 0, net: 0,
           employmentType: profile.employment_type || "permanent",
@@ -401,13 +411,13 @@ export const PayrollDetailReport = () => {
     };
 
   const exportAllCSV = () => {
-    const headers = ["Type", "Code Employé", "NIF", "Nom et Prénom", "Catégorie", "Poste", "Brut"];
+    const headers = ["Type", "Code Employé", "NIF", "Nom et Prénom", "Catégorie", "Poste", "Unité", "Brut"];
     const allEmployees = [
-      ...permanents.map(e => ["Permanent", e.codeBudgetaire, e.nif, e.fullName, e.category, e.poste, e.brut]),
-      ...contractuels.map(e => ["Contractuel", e.codeBudgetaire, e.nif, e.fullName, e.category, e.poste, e.brut]),
+      ...permanents.map(e => ["Permanent", e.codeBudgetaire, e.nif, e.fullName, e.category, e.poste, e.unite, e.brut]),
+      ...contractuels.map(e => ["Contractuel", e.codeBudgetaire, e.nif, e.fullName, e.category, e.poste, e.unite, e.brut]),
     ];
     const totalBrut = [...permanents, ...contractuels].reduce((s, e) => s + e.brut, 0);
-    allEmployees.push(["TOTAL", "", "", "", "", "", totalBrut]);
+    allEmployees.push(["TOTAL", "", "", "", "", "", "", totalBrut]);
 
     const csv = [
       `État d'Émargement - ${organizationName}`,
