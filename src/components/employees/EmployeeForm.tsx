@@ -68,14 +68,7 @@ const employeeFormSchema = z.object({
       path: ["professor_grade"],
     });
   }
-  // Position is required for non-professor types (even if also professor)
-  if (data.employment_type !== "professeur" && !data.position_id) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Veuillez sélectionner un poste",
-      path: ["position_id"],
-    });
-  }
+  // Position is now optional for all employment types
 });
 
 type EmployeeFormData = z.infer<typeof employeeFormSchema>;
