@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import type { FieldErrors } from "react-hook-form";
 import type { ProfessorGradeData } from "@/hooks/useProfessorGrades";
@@ -50,14 +51,7 @@ const employeeFormSchema = z.object({
   contact_urgence_whatsapp: z.string().optional(),
   date_entree_fonction: z.date().optional(),
   unit_id: z.string().min(1, "Direction/Service requis"),
-  employee_category: z.enum([
-    "Personnel de décision",
-    "Personnel d'encadrement",
-    "Personnel Professionnel certifié ou diplômé",
-    "Personnel administratif",
-    "Personnel de soutien",
-    "Professeur"
-  ]).optional(),
+  employee_category: z.string().optional(),
   position_id: z.string().optional(),
   employment_type: z.enum(["permanent", "contractuel", "journalier", "professeur"], { required_error: "Type d'employé requis" }),
   employee_status: z.enum(["actif", "conge_annuel", "conge_maladie", "conge_maternite", "conge_etudes", "mis_a_disposition", "transfere", "renvoye", "decede"], { required_error: "Statut requis" }),
@@ -247,7 +241,20 @@ interface EmployeeFormProps {
 export function EmployeeForm({ onSubmit, defaultValues, units, positions, professorGrades = [], isLoading }: EmployeeFormProps) {
   const [selectedDirectionId, setSelectedDirectionId] = useState<string>("");
   const [anneesService, setAnneesService] = useState<number | null>(null);
+  const [employeeCategories, setEmployeeCategories] = useState<Array<{ id: string; name: string }>>([]);
   const { user } = useAuth();
+
+  // Fetch employee categories from DB
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const { data } = await supabase
+        .from("employee_categories")
+        .select("id, name")
+        .order("name");
+      if (data) setEmployeeCategories(data);
+    };
+    fetchCategories();
+  }, []);
   
   const form = useForm<EmployeeFormData>({
     resolver: zodResolver(employeeFormSchema),
@@ -960,12 +967,11 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Personnel de décision">Personnel de décision</SelectItem>
-                      <SelectItem value="Personnel d'encadrement">Personnel d'encadrement</SelectItem>
-                      <SelectItem value="Personnel Professionnel certifié ou diplômé">Personnel Professionnel certifié ou diplômé</SelectItem>
-                      <SelectItem value="Personnel administratif">Personnel administratif</SelectItem>
-                      <SelectItem value="Personnel de soutien">Personnel de soutien</SelectItem>
-                      <SelectItem value="Professeur">Professeur</SelectItem>
+                      {employeeCategories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.name}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
