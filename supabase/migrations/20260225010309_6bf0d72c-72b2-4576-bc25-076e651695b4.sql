@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_employee_category_check;
