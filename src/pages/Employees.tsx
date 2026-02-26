@@ -4,7 +4,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, Plus, MoreVertical, Eye, Trash2 } from "lucide-react";
+import { Search, Plus, MoreVertical, Eye, Trash2, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "@/hooks/useOrganization";
 import {
@@ -26,6 +26,7 @@ import {
 import { EmployeeForm } from "@/components/employees/EmployeeForm";
 import { toast } from "@/hooks/use-toast";
 import { useProfessorGrades } from "@/hooks/useProfessorGrades";
+import { generateBlankEmployeeForm } from "@/lib/generateBlankEmployeeForm";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -237,6 +238,14 @@ export default function Employees() {
             </div>
             <Button variant="outline">{t("filter")}</Button>
             <Button variant="outline">{t("export")}</Button>
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => generateBlankEmployeeForm(organization?.name)}
+            >
+              <FileText className="h-4 w-4" />
+              Fiche vierge PDF
+            </Button>
           </div>
         </CardHeader>
         
