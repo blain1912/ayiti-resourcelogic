@@ -64,7 +64,7 @@ export default function Navbar() {
         .maybeSingle();
       
       if (data) {
-        setIsRH(["admin", "directeur_rh", "directeur_general", "directeur_administratif"].includes(data.role));
+        setIsRH(["admin", "directeur_rh", "directeur_general", "directeur_administratif", "secretaire"].includes(data.role));
         setIsSuperAdmin(data.role === "admin");
       }
     };
