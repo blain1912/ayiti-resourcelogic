@@ -1972,6 +1972,10 @@ export type Database = {
         Args: { _organization_id: string; _user_id: string }
         Returns: boolean
       }
+      has_hr_access: {
+        Args: { _organization_id: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _organization_id: string
