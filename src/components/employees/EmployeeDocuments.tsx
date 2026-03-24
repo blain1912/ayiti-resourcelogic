@@ -190,11 +190,18 @@ export function EmployeeDocuments({ profileId, organizationId, userId, isOwner =
     try {
       const { data, error } = await supabase.storage
         .from('employee-documents')
-        .createSignedUrl(doc.file_url, 60); // 60 seconds validity
+        .download(doc.file_url);
 
       if (error) throw error;
 
-      window.open(data.signedUrl, '_blank');
+      const url = URL.createObjectURL(data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = doc.file_name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     } catch (error: any) {
       console.error('Error downloading document:', error);
       toast({
@@ -209,14 +216,34 @@ export function EmployeeDocuments({ profileId, organizationId, userId, isOwner =
     try {
       const { data, error } = await supabase.storage
         .from('employee-documents')
-        .createSignedUrl(doc.file_url, 60);
+        .download(doc.file_url);
 
       if (error) throw error;
 
-      const printWindow = window.open(data.signedUrl, '_blank');
+      const blob = new Blob([data], { type: data.type });
+      const url = URL.createObjectURL(blob);
+
+      const printWindow = window.open(url, '_blank');
       if (printWindow) {
         printWindow.addEventListener('load', () => {
-          printWindow.print();
+          setTimeout(() => {
+            printWindow.print();
+          }, 500);
+        });
+      } else {
+        // Fallback: use hidden iframe
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = url;
+        document.body.appendChild(iframe);
+        iframe.addEventListener('load', () => {
+          setTimeout(() => {
+            iframe.contentWindow?.print();
+            setTimeout(() => {
+              document.body.removeChild(iframe);
+              URL.revokeObjectURL(url);
+            }, 1000);
+          }, 500);
         });
       }
     } catch (error: any) {
