@@ -9,6 +9,7 @@ import { toast } from "@/hooks/use-toast";
 import { Upload, Trash2, Download, FileText, Loader2, AlertCircle, Printer } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import jsPDF from "jspdf";
 
 interface EmployeeDocumentsProps {
   profileId: string;
@@ -197,14 +198,62 @@ export function EmployeeDocuments({ profileId, organizationId, userId, isOwner =
     return data.signedUrl;
   };
 
+  const downloadBlob = (blob: Blob, fileName: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const convertImageToPdf = async (blob: Blob, fileName: string): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const pdf = new jsPDF({
+          orientation: img.width > img.height ? 'l' : 'p',
+          unit: 'px',
+          format: [img.width, img.height],
+        });
+        pdf.addImage(img, 'JPEG', 0, 0, img.width, img.height);
+        const pdfBlob = pdf.output('blob');
+        resolve(pdfBlob);
+        URL.revokeObjectURL(img.src);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(img.src);
+        reject(new Error('Impossible de charger l\'image'));
+      };
+      img.src = URL.createObjectURL(blob);
+    });
+  };
+
   const handleDownload = async (doc: Document) => {
     try {
-      const url = await getSignedUrl(doc.file_url);
-      if (!url) throw new Error('Could not generate download URL');
+      const { data, error } = await supabase.storage
+        .from('employee-documents')
+        .download(doc.file_url);
 
-      // Use signed URL with download parameter
-      const downloadUrl = `${url}&download=${encodeURIComponent(doc.file_name)}`;
-      window.open(downloadUrl, '_blank');
+      if (error || !data) throw error || new Error('Fichier introuvable');
+
+      const isImage = /\.(jpg|jpeg|png)$/i.test(doc.file_name);
+      const isPdf = /\.pdf$/i.test(doc.file_name);
+
+      if (isPdf) {
+        downloadBlob(data, doc.file_name);
+      } else if (isImage) {
+        const pdfBlob = await convertImageToPdf(data, doc.file_name);
+        const pdfName = doc.file_name.replace(/\.[^.]+$/, '.pdf');
+        downloadBlob(pdfBlob, pdfName);
+      } else {
+        // Word docs etc. - convert to PDF not possible client-side, download as-is
+        downloadBlob(data, doc.file_name);
+      }
+
+      toast({ title: "Succès", description: "Document téléchargé" });
     } catch (error: any) {
       console.error('Error downloading document:', error);
       toast({
@@ -217,16 +266,39 @@ export function EmployeeDocuments({ profileId, organizationId, userId, isOwner =
 
   const handlePrint = async (doc: Document) => {
     try {
-      const url = await getSignedUrl(doc.file_url);
-      if (!url) throw new Error('Could not generate URL');
+      const { data, error } = await supabase.storage
+        .from('employee-documents')
+        .download(doc.file_url);
 
-      // Open the document in a new tab - user can print from there
+      if (error || !data) throw error || new Error('Fichier introuvable');
+
+      const isImage = /\.(jpg|jpeg|png)$/i.test(doc.file_name);
+      let printBlob: Blob;
+
+      if (isImage) {
+        printBlob = await convertImageToPdf(data, doc.file_name);
+      } else {
+        printBlob = data;
+      }
+
+      const url = URL.createObjectURL(printBlob);
       const printWindow = window.open(url, '_blank');
-      if (!printWindow) {
-        toast({
-          title: "Info",
-          description: "Veuillez autoriser les popups pour imprimer",
-          variant: "default",
+      if (printWindow) {
+        printWindow.addEventListener('load', () => {
+          printWindow.print();
+        });
+      } else {
+        // Fallback: iframe
+        const iframe = document.createElement('iframe');
+        iframe.style.display = 'none';
+        iframe.src = url;
+        document.body.appendChild(iframe);
+        iframe.addEventListener('load', () => {
+          iframe.contentWindow?.print();
+          setTimeout(() => {
+            document.body.removeChild(iframe);
+            URL.revokeObjectURL(url);
+          }, 1000);
         });
       }
     } catch (error: any) {
