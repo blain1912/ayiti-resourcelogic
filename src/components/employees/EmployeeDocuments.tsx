@@ -186,22 +186,25 @@ export function EmployeeDocuments({ profileId, organizationId, userId, isOwner =
     }
   };
 
+  const getSignedUrl = async (filePath: string): Promise<string | null> => {
+    const { data, error } = await supabase.storage
+      .from('employee-documents')
+      .createSignedUrl(filePath, 300); // 5 minutes
+    if (error) {
+      console.error('Error creating signed URL:', error);
+      return null;
+    }
+    return data.signedUrl;
+  };
+
   const handleDownload = async (doc: Document) => {
     try {
-      const { data, error } = await supabase.storage
-        .from('employee-documents')
-        .download(doc.file_url);
+      const url = await getSignedUrl(doc.file_url);
+      if (!url) throw new Error('Could not generate download URL');
 
-      if (error) throw error;
-
-      const url = URL.createObjectURL(data);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = doc.file_name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // Use signed URL with download parameter
+      const downloadUrl = `${url}&download=${encodeURIComponent(doc.file_name)}`;
+      window.open(downloadUrl, '_blank');
     } catch (error: any) {
       console.error('Error downloading document:', error);
       toast({
@@ -214,36 +217,16 @@ export function EmployeeDocuments({ profileId, organizationId, userId, isOwner =
 
   const handlePrint = async (doc: Document) => {
     try {
-      const { data, error } = await supabase.storage
-        .from('employee-documents')
-        .download(doc.file_url);
+      const url = await getSignedUrl(doc.file_url);
+      if (!url) throw new Error('Could not generate URL');
 
-      if (error) throw error;
-
-      const blob = new Blob([data], { type: data.type });
-      const url = URL.createObjectURL(blob);
-
+      // Open the document in a new tab - user can print from there
       const printWindow = window.open(url, '_blank');
-      if (printWindow) {
-        printWindow.addEventListener('load', () => {
-          setTimeout(() => {
-            printWindow.print();
-          }, 500);
-        });
-      } else {
-        // Fallback: use hidden iframe
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        iframe.src = url;
-        document.body.appendChild(iframe);
-        iframe.addEventListener('load', () => {
-          setTimeout(() => {
-            iframe.contentWindow?.print();
-            setTimeout(() => {
-              document.body.removeChild(iframe);
-              URL.revokeObjectURL(url);
-            }, 1000);
-          }, 500);
+      if (!printWindow) {
+        toast({
+          title: "Info",
+          description: "Veuillez autoriser les popups pour imprimer",
+          variant: "default",
         });
       }
     } catch (error: any) {
