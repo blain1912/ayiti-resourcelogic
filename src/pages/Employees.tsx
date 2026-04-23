@@ -4,7 +4,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, Plus, MoreVertical, Eye, Trash2, FileText } from "lucide-react";
+import { Search, Plus, MoreVertical, Eye, Trash2, FileText, Upload } from "lucide-react";
+import enartsPayload from "@/data/enartsImportPayload.json";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "@/hooks/useOrganization";
 import {
