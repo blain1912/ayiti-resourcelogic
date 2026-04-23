@@ -4,7 +4,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, Plus, MoreVertical, Eye, Trash2, FileText } from "lucide-react";
+import { Search, Plus, MoreVertical, Eye, Trash2, FileText, Upload } from "lucide-react";
+import enartsPayload from "@/data/enartsImportPayload.json";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "@/hooks/useOrganization";
 import {
@@ -246,6 +247,30 @@ export default function Employees() {
               <FileText className="h-4 w-4" />
               Fiche vierge PDF
             </Button>
+            {organization?.id === "9883dcad-2f7b-4fcb-9644-0f35c0fe1141" && (
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={async () => {
+                  toast({ title: "Import en cours...", description: "Création de 76 employés" });
+                  const { data, error } = await supabase.functions.invoke("import-employees-bulk", {
+                    body: enartsPayload,
+                  });
+                  if (error) {
+                    toast({ title: "Erreur", description: error.message, variant: "destructive" });
+                    return;
+                  }
+                  toast({
+                    title: "Import terminé",
+                    description: `${data.created} créés, ${data.skipped} ignorés (déjà existants), ${data.errors?.length || 0} erreurs`,
+                  });
+                  fetchEmployees();
+                }}
+              >
+                <Upload className="h-4 w-4" />
+                Importer ENARTS (PDF)
+              </Button>
+            )}
           </div>
         </CardHeader>
         
