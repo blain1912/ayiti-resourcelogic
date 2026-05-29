@@ -44,12 +44,20 @@ const Settings = () => {
 
       console.log("✅ Settings: User found:", user.id);
 
+      // Super Admin n'est pas rattaché à une organisation : rediriger
+      const { data: isSuperAdmin } = await supabase.rpc("is_super_admin", { _user_id: user.id });
+      if (isSuperAdmin) {
+        console.log("👑 Settings: Super admin -> /super-admin");
+        navigate("/super-admin");
+        return;
+      }
+
       // Get user profile and organization
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("organization_id")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (profileError) {
         console.error("❌ Settings: Error getting profile", profileError);
