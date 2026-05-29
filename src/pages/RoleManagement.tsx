@@ -73,6 +73,28 @@ const RoleManagement = () => {
         return;
       }
 
+      // Check if super admin first
+      const { data: superAdmin } = await supabase.rpc("is_super_admin", { _user_id: user.id });
+
+      if (superAdmin) {
+        // Super admin: load all approved organizations and let them pick
+        const { data: orgs, error: orgsError } = await supabase
+          .from("organizations")
+          .select("id, name")
+          .eq("approval_status", "approved")
+          .order("name");
+        if (orgsError) throw orgsError;
+
+        setIsSuperAdmin(true);
+        setIsAdmin(true);
+        setOrganizations(orgs || []);
+        if (orgs && orgs.length > 0) {
+          setOrganizationId(orgs[0].id);
+          await loadUsers(orgs[0].id);
+        }
+        return;
+      }
+
       // Get user's profile and organization
       const { data: profile } = await supabase
         .from("profiles")
@@ -113,6 +135,7 @@ const RoleManagement = () => {
     } finally {
       setLoading(false);
     }
+
   };
 
   const loadUsers = async (orgId: string) => {
