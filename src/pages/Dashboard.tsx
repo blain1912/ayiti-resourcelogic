@@ -76,13 +76,6 @@ export default function Dashboard() {
           <p className="text-xl text-white/90 max-w-2xl mb-4">
             {t("welcomeSubtitle")}
           </p>
-          <div className="space-x-4">
-            <Link to="/employee-profile">
-              <Button variant="secondary" size="lg">
-                🧪 Test Profil Employé
-              </Button>
-            </Link>
-          </div>
         </div>
       </div>
 
