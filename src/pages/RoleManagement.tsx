@@ -16,10 +16,6 @@ interface UserWithRole {
   id: string;
   full_name: string;
   email: string;
-interface UserWithRole {
-  id: string;
-  full_name: string;
-  email: string;
   user_id: string;
   role?: AppRole;
   role_id?: string;
@@ -41,6 +37,9 @@ const RoleManagement = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const roleLabels: Record<AppRole, string> = {
+    admin: "Administrateur",
+    directeur_general: "Directeur Général",
     directeur_administratif: "Directeur Administratif",
     directeur_rh: "Directeur RH",
     secretaire: "Secrétaire",
@@ -48,6 +47,7 @@ const RoleManagement = () => {
     employe: "Employé",
     user: "Utilisateur",
   };
+
 
   const roleColors: Record<AppRole, string> = {
     admin: "bg-red-500",
