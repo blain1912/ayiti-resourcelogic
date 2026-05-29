@@ -1,10 +1,11 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { supabase } from "@/integrations/supabase/client";
 import StatCard from "@/components/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Calendar, UserCheck, UserX, TrendingUp } from "lucide-react";
-import { Link } from "react-router-dom";
 import { format, formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
 import heroImage from "@/assets/hero-admin.jpg";
@@ -19,6 +20,20 @@ export default function Dashboard() {
   const { t } = useLanguage();
   const { stats, loading } = useDashboardStats();
   const { organization } = useOrganization();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkSuperAdmin = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: isSuperAdmin } = await supabase.rpc("is_super_admin", { _user_id: user.id });
+        if (isSuperAdmin) {
+          navigate("/super-admin", { replace: true });
+        }
+      }
+    };
+    checkSuperAdmin();
+  }, [navigate]);
 
   const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
