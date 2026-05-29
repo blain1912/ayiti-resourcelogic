@@ -272,9 +272,13 @@ const Auth = () => {
       });
 
       if (error) {
+        const message = error.message.toLowerCase().includes("invalid login credentials")
+          ? "Email ou mot de passe incorrect. Si le compte est déjà approuvé, utilisez “Mot de passe oublié ?” pour définir un nouveau mot de passe."
+          : error.message;
+
         toast({
           title: "Erreur de connexion",
-          description: "Email ou mot de passe incorrect.",
+          description: message,
           variant: "destructive",
         });
       } else {
