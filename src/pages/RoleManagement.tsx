@@ -21,10 +21,17 @@ interface UserWithRole {
   role_id?: string;
 }
 
+interface OrgOption {
+  id: string;
+  name: string;
+}
+
 const RoleManagement = () => {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [organizations, setOrganizations] = useState<OrgOption[]>([]);
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [updating, setUpdating] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -40,6 +47,7 @@ const RoleManagement = () => {
     employe: "Employé",
     user: "Utilisateur",
   };
+
 
   const roleColors: Record<AppRole, string> = {
     admin: "bg-red-500",
@@ -62,6 +70,28 @@ const RoleManagement = () => {
       
       if (!user) {
         navigate("/auth");
+        return;
+      }
+
+      // Check if super admin first
+      const { data: superAdmin } = await supabase.rpc("is_super_admin", { _user_id: user.id });
+
+      if (superAdmin) {
+        // Super admin: load all approved organizations and let them pick
+        const { data: orgs, error: orgsError } = await supabase
+          .from("organizations")
+          .select("id, name")
+          .eq("approval_status", "approved")
+          .order("name");
+        if (orgsError) throw orgsError;
+
+        setIsSuperAdmin(true);
+        setIsAdmin(true);
+        setOrganizations(orgs || []);
+        if (orgs && orgs.length > 0) {
+          setOrganizationId(orgs[0].id);
+          await loadUsers(orgs[0].id);
+        }
         return;
       }
 
@@ -105,6 +135,7 @@ const RoleManagement = () => {
     } finally {
       setLoading(false);
     }
+
   };
 
   const loadUsers = async (orgId: string) => {
@@ -215,6 +246,38 @@ const RoleManagement = () => {
             </p>
           </div>
         </div>
+
+        {isSuperAdmin && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Sélectionner une organisation</CardTitle>
+              <CardDescription>
+                En tant que Super Admin, choisissez l'organisation dont vous voulez gérer les rôles.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Select
+                value={organizationId || ""}
+                onValueChange={async (value) => {
+                  setOrganizationId(value);
+                  await loadUsers(value);
+                }}
+              >
+                <SelectTrigger className="w-full md:w-[400px]">
+                  <SelectValue placeholder="Choisir une organisation" />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  {organizations.map((org) => (
+                    <SelectItem key={org.id} value={org.id}>
+                      {org.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+        )}
+
 
         <Card>
           <CardHeader>
