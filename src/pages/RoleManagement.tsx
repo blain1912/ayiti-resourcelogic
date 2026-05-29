@@ -247,6 +247,38 @@ const RoleManagement = () => {
           </div>
         </div>
 
+        {isSuperAdmin && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Sélectionner une organisation</CardTitle>
+              <CardDescription>
+                En tant que Super Admin, choisissez l'organisation dont vous voulez gérer les rôles.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Select
+                value={organizationId || ""}
+                onValueChange={async (value) => {
+                  setOrganizationId(value);
+                  await loadUsers(value);
+                }}
+              >
+                <SelectTrigger className="w-full md:w-[400px]">
+                  <SelectValue placeholder="Choisir une organisation" />
+                </SelectTrigger>
+                <SelectContent className="bg-background z-50">
+                  {organizations.map((org) => (
+                    <SelectItem key={org.id} value={org.id}>
+                      {org.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+        )}
+
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
