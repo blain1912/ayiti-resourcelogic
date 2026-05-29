@@ -16,23 +16,31 @@ interface UserWithRole {
   id: string;
   full_name: string;
   email: string;
+interface UserWithRole {
+  id: string;
+  full_name: string;
+  email: string;
   user_id: string;
   role?: AppRole;
   role_id?: string;
+}
+
+interface OrgOption {
+  id: string;
+  name: string;
 }
 
 const RoleManagement = () => {
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [organizations, setOrganizations] = useState<OrgOption[]>([]);
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [updating, setUpdating] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const roleLabels: Record<AppRole, string> = {
-    admin: "Administrateur",
-    directeur_general: "Directeur Général",
     directeur_administratif: "Directeur Administratif",
     directeur_rh: "Directeur RH",
     secretaire: "Secrétaire",
