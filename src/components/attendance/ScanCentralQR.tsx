@@ -7,6 +7,13 @@ import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import {
+  getQrEmployeeId,
+  getQrOrganizationId,
+  isCentralAttendanceQr,
+  isEmployeeAttendanceQr,
+  parseAttendanceQrPayload,
+} from "@/lib/attendanceQr";
 
 export const ScanCentralQR = () => {
   const [isScanning, setIsScanning] = useState(false);
@@ -66,29 +73,26 @@ export const ScanCentralQR = () => {
     try {
       const today = format(new Date(), "yyyy-MM-dd");
 
-      // Tenter de parser comme JSON (QR central ou personnel)
-      let data: any = null;
-      try {
-        data = JSON.parse(decodedText);
-      } catch {
-        throw new Error("Code QR non reconnu. Scannez le QR de pointage officiel.");
-      }
-
-      // Accepter deux formats : central-attendance OU QR personnel (employeeId)
-      const isCentral = data?.type === "central-attendance";
-      const isPersonal = !!data?.employeeId && !data?.type;
+      const data = parseAttendanceQrPayload(decodedText);
+      const isCentral = isCentralAttendanceQr(data);
+      const isPersonal = isEmployeeAttendanceQr(data) && !isCentral;
 
       if (!isCentral && !isPersonal) {
         throw new Error("Format de QR code non reconnu.");
       }
 
       if (isCentral) {
-        if (data.organizationId && organizationId && data.organizationId !== organizationId) {
+        const qrOrganizationId = getQrOrganizationId(data);
+        if (qrOrganizationId && organizationId && qrOrganizationId !== organizationId) {
           throw new Error("Ce QR code n'appartient pas à votre organisation.");
         }
-        if (data.date && data.date !== today) {
+        if (typeof data.date === "string" && data.date !== today) {
           throw new Error("Ce QR code a expiré (date différente d'aujourd'hui).");
         }
+      }
+
+      if (isPersonal && getQrEmployeeId(data) !== profileId) {
+        throw new Error("Ce QR code appartient à un autre employé.");
       }
 
       if (!profileId || !organizationId) {
