@@ -228,7 +228,7 @@ export function EmployeeBadge({
               <br />
               <span className="uppercase">{profile.nom || "NOM"}</span>
             </h2>
-            <p className="text-slate-500 text-[10px] font-bold uppercase mt-1.5 leading-tight line-clamp-2">
+            <p className="text-slate-500 text-[9px] font-bold uppercase mt-1.5 leading-tight line-clamp-3 break-words">
               {positionName || "Fonction"}
             </p>
             <div className="h-[2px] w-12 mt-2.5" style={{ background: secondary }} />
@@ -261,9 +261,9 @@ export function EmployeeBadge({
 
       {/* MRZ strip */}
       <div
-        className="shrink-0 p-4 flex flex-col justify-center gap-1"
+        className="shrink-0 px-4 py-3 flex flex-col justify-center gap-[3px]"
         style={{
-          height: 96,
+          height: 84,
           background: "#0f172a",
           borderTop: `2px solid ${accent}`,
         }}
@@ -271,10 +271,11 @@ export function EmployeeBadge({
         {[mrz1, mrz2, mrz3].map((line, i) => (
           <div
             key={i}
-            className="text-white text-[11px] leading-none whitespace-nowrap overflow-hidden"
+            className="text-white text-[9px] whitespace-nowrap overflow-hidden"
             style={{
               fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-              letterSpacing: "0.15em",
+              letterSpacing: "0.08em",
+              lineHeight: "1.2",
             }}
           >
             {line}
@@ -291,30 +292,30 @@ export function EmployeeBadge({
 
       {/* Mini header */}
       <div
-        className="h-16 flex items-center justify-between px-6 border-b shrink-0"
+        className="h-16 flex items-center justify-between px-4 gap-2 border-b shrink-0"
         style={{ background: "#f8fafc", borderColor: "#e2e8f0" }}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           {organization?.logo_url ? (
             <img
               src={organization.logo_url}
               alt=""
               crossOrigin="anonymous"
-              className="w-6 h-6 rounded object-contain"
+              className="w-6 h-6 rounded object-contain shrink-0"
             />
           ) : (
             <div
-              className="w-6 h-6 rounded flex items-center justify-center text-[10px] text-white font-bold"
+              className="w-6 h-6 rounded flex items-center justify-center text-[10px] text-white font-bold shrink-0"
               style={{ background: primary }}
             >
               {organization?.name?.[0] || "O"}
             </div>
           )}
-          <span className="font-bold text-slate-800 text-xs truncate max-w-[140px]">
+          <span className="font-bold text-slate-800 text-[10px] leading-tight line-clamp-2 min-w-0">
             {organization?.name || "Institution"}
           </span>
         </div>
-        <div className="text-[8px] font-bold text-slate-400">{matricule}</div>
+        <div className="text-[8px] font-bold text-slate-400 shrink-0">{matricule}</div>
       </div>
 
       {/* Body */}
@@ -363,8 +364,8 @@ export function EmployeeBadge({
                 />
               ) : (
                 <span
-                  className="text-[20px] text-slate-700 select-none truncate"
-                  style={{ fontFamily: "'Great Vibes', cursive" }}
+                  className="text-slate-700 select-none truncate max-w-full px-1"
+                  style={{ fontFamily: "'Great Vibes', cursive", fontSize: 16, lineHeight: 1 }}
                 >
                   {organization?.signataire_nom || "Responsable"}
                 </span>
