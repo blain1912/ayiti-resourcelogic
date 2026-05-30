@@ -17,6 +17,23 @@ const getFirstStringValue = (
 export const parseAttendanceQrPayload = (qrData: string): AttendanceQrPayload => {
   const rawValue = qrData.trim();
 
+  const centralMatch = rawValue.match(/^ATT-CENTRAL:([^:]+):(\d{4}-\d{2}-\d{2})(?::(.+))?$/i);
+  if (centralMatch) {
+    return {
+      type: "central-attendance",
+      organizationId: centralMatch[1],
+      organization_id: centralMatch[1],
+      org: centralMatch[1],
+      date: centralMatch[2],
+      dailyCode: centralMatch[3] || null,
+    };
+  }
+
+  const employeeMatch = rawValue.match(/^ATT-EMP:([^:]+)$/i);
+  if (employeeMatch) {
+    return { type: "employee-attendance", id: employeeMatch[1] };
+  }
+
   try {
     const parsed = JSON.parse(rawValue);
     if (!parsed || typeof parsed !== "object") {
