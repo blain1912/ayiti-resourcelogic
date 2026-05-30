@@ -205,6 +205,12 @@ export default function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to="/staff-movements" className="flex items-center cursor-pointer">
+                        <ArrowRightLeft className="h-4 w-4 mr-2" />
+                        Mouvement du personnel
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/leaves" className="flex items-center cursor-pointer">
                         <Calendar className="h-4 w-4 mr-2" />
                         Congés
