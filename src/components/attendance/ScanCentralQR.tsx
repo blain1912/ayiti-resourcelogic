@@ -144,35 +144,77 @@ export const ScanCentralQR = () => {
   const startScanning = async () => {
     hasScannedRef.current = false;
     setScanResult(null);
-    
+
+    // 1) Forcer la demande de permission caméra (iOS Safari l'exige avant enumerateDevices)
+    try {
+      const probe = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false,
+      });
+      probe.getTracks().forEach((t) => t.stop());
+    } catch (err: any) {
+      console.error("Camera permission error:", err);
+      toast({
+        title: "Accès caméra refusé",
+        description:
+          "Autorisez la caméra dans les réglages de votre navigateur puis réessayez.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // 2) Marquer comme scanning AVANT pour que le <div> cible soit monté
+    setIsScanning(true);
+    await new Promise((r) => setTimeout(r, 50));
+
     try {
       const qrCodeScanner = new Html5Qrcode("central-qr-reader");
       scannerRef.current = qrCodeScanner;
 
-      await qrCodeScanner.start(
-        { facingMode: "environment" },
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 }
-        },
-        (decodedText) => {
-          if (hasScannedRef.current) return;
-          hasScannedRef.current = true;
-          
-          stopScanning();
-          processQRCode(decodedText);
-        },
-        () => {
-          // Silent error handling for continuous scanning
-        }
-      );
+      const config = {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0,
+      };
 
-      setIsScanning(true);
-    } catch (err) {
+      const onScan = (decodedText: string) => {
+        if (hasScannedRef.current) return;
+        hasScannedRef.current = true;
+        stopScanning();
+        processQRCode(decodedText);
+      };
+
+      // 3) Essai : facingMode environment (ideal puis exact)
+      try {
+        await qrCodeScanner.start(
+          { facingMode: "environment" },
+          config,
+          onScan,
+          () => {}
+        );
+        return;
+      } catch (e1) {
+        console.warn("environment failed, enumerating cameras", e1);
+      }
+
+      // 4) Fallback : énumération + caméra arrière par nom
+      const cameras = await Html5Qrcode.getCameras();
+      if (!cameras || cameras.length === 0) {
+        throw new Error("Aucune caméra détectée");
+      }
+      const back =
+        cameras.find((c) => /back|rear|environment|arrière/i.test(c.label)) ||
+        cameras[cameras.length - 1];
+
+      await qrCodeScanner.start(back.id, config, onScan, () => {});
+    } catch (err: any) {
       console.error("Error starting scanner:", err);
+      setIsScanning(false);
       toast({
-        title: "Erreur",
-        description: "Impossible de démarrer la caméra. Vérifiez les permissions.",
+        title: "Erreur caméra",
+        description:
+          err?.message ||
+          "Impossible de démarrer la caméra. Vérifiez que vous êtes en HTTPS et que les permissions sont accordées.",
         variant: "destructive",
       });
     }
