@@ -44,6 +44,7 @@ import GreetingCards from "./pages/GreetingCards";
 import EmployeeCardRequest from "./pages/EmployeeCardRequest";
 import SpecialSchedules from "./pages/SpecialSchedules";
 import Correspondence from "./pages/Correspondence";
+import OnboardingImport from "./pages/OnboardingImport";
 import About from "./pages/About";
 import Reports from "./pages/Reports";
 import Terms from "./pages/Terms";
@@ -105,6 +106,7 @@ const App = () => (
             <Route path="/card-request" element={<ProtectedRoute><EmployeeCardRequest /></ProtectedRoute>} />
             <Route path="/special-schedules" element={<ProtectedRoute><SpecialSchedules /></ProtectedRoute>} />
             <Route path="/correspondence" element={<ProtectedRoute><Correspondence /></ProtectedRoute>} />
+            <Route path="/onboarding-import" element={<ProtectedRoute><OnboardingImport /></ProtectedRoute>} />
             <Route path="/user-manual" element={<UserManual />} />
             <Route path="/careers" element={<Careers />} />
             <Route path="/about" element={<About />} />

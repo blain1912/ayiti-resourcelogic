@@ -13,6 +13,8 @@ import { CustomizationSettings } from "@/components/settings/CustomizationSettin
 import { BadgeTemplateSelector } from "@/components/settings/BadgeTemplateSelector";
 import SalaryScale from "@/components/settings/SalaryScale";
 import { ProfessorGrades } from "@/components/settings/ProfessorGrades";
+import { OnboardingKitButton } from "@/components/OnboardingKitButton";
+import { Upload } from "lucide-react";
 
 const Settings = () => {
   const [loading, setLoading] = useState(true);
@@ -190,6 +192,25 @@ const Settings = () => {
             <BadgeTemplateSelector organization={organization} onUpdate={refetchOrganization} />
             <SalaryScale />
             <ProfessorGrades />
+            {organization && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>{language === "fr" ? "Kit d'onboarding" : "Onboarding Kit"}</CardTitle>
+                  <CardDescription>
+                    {language === "fr"
+                      ? "Téléchargez les formulaires (PDF + Excel) pour collecter rapidement les structures, catégories, postes et employés. Une fois rempli, importez le fichier Excel."
+                      : "Download the forms (PDF + Excel) to quickly collect structures, categories, positions and employees. Once filled, import the Excel file."}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="flex flex-wrap gap-2">
+                  <OnboardingKitButton organization={organization} />
+                  <Button variant="secondary" onClick={() => navigate("/onboarding-import")}>
+                    <Upload className="h-4 w-4 mr-2" />
+                    {language === "fr" ? "Importer le kit rempli" : "Import filled kit"}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
             <SubscriptionInfo organization={organization} onUpdate={refetchOrganization} />
           </TabsContent>
 
