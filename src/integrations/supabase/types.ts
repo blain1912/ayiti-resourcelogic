@@ -1871,6 +1871,69 @@ export type Database = {
           },
         ]
       }
+      staff_movements: {
+        Row: {
+          created_at: string
+          created_by: string
+          decision_reference: string | null
+          effective_date: string
+          employee_code: string | null
+          employee_id: string
+          employee_name: string
+          from_category: string | null
+          from_position: string | null
+          from_unit: string | null
+          id: string
+          movement_type: string
+          notes: string | null
+          organization_id: string
+          to_category: string | null
+          to_position: string | null
+          to_unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          decision_reference?: string | null
+          effective_date: string
+          employee_code?: string | null
+          employee_id: string
+          employee_name: string
+          from_category?: string | null
+          from_position?: string | null
+          from_unit?: string | null
+          id?: string
+          movement_type: string
+          notes?: string | null
+          organization_id: string
+          to_category?: string | null
+          to_position?: string | null
+          to_unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          decision_reference?: string | null
+          effective_date?: string
+          employee_code?: string | null
+          employee_id?: string
+          employee_name?: string
+          from_category?: string | null
+          from_position?: string | null
+          from_unit?: string | null
+          id?: string
+          movement_type?: string
+          notes?: string | null
+          organization_id?: string
+          to_category?: string | null
+          to_position?: string | null
+          to_unit?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscription_history: {
         Row: {
           changed_at: string

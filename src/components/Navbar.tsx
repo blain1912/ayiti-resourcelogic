@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useOrganizationTheme } from "@/contexts/OrganizationThemeContext";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield, Menu, ScanLine, Activity, FileBarChart, Briefcase, Cake, Gift, Heart, BookOpen, Clock } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield, Menu, ScanLine, Activity, FileBarChart, Briefcase, Cake, Gift, Heart, BookOpen, Clock, ArrowRightLeft } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -202,6 +202,12 @@ export default function Navbar() {
                       <Link to="/reports" className="flex items-center cursor-pointer">
                         <FileBarChart className="h-4 w-4 mr-2" />
                         Rapports RH
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/staff-movements" className="flex items-center cursor-pointer">
+                        <ArrowRightLeft className="h-4 w-4 mr-2" />
+                        Mouvement du personnel
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
@@ -511,6 +517,12 @@ export default function Navbar() {
                   <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                     <FileBarChart className="h-4 w-4" />
                     Rapports RH
+                  </Button>
+                </Link>
+                <Link to="/staff-movements" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <ArrowRightLeft className="h-4 w-4" />
+                    Mouvement du personnel
                   </Button>
                 </Link>
                 <Link to="/leaves" onClick={() => setMobileMenuOpen(false)}>
