@@ -1,7 +1,6 @@
 import { QRCodeSVG } from "qrcode.react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Printer } from "lucide-react";
+import { Download, Printer, User, IdCard, Calendar, Droplet, Phone, Globe } from "lucide-react";
 import { format, addMonths } from "date-fns";
 import { fr } from "date-fns/locale";
 
@@ -12,12 +11,19 @@ interface EmployeeBadgeProps {
     prenom: string | null;
     code_budgetaire: string | null;
     nif: string | null;
+    cin?: string | null;
+    telephone?: string | null;
+    date_naissance?: string | null;
     groupe_sanguin: string | null;
     email: string | null;
     photo_url: string | null;
     organization_id: string | null;
     position_id: string | null;
     date_entree_fonction?: string | null;
+    contact_urgence_nom?: string | null;
+    contact_urgence_telephone?: string | null;
+    service?: string | null;
+    departement?: string | null;
   };
   organization?: {
     name: string;
@@ -27,284 +33,340 @@ interface EmployeeBadgeProps {
     accent_color?: string | null;
     badge_header_text?: string | null;
     badge_footer_text?: string | null;
-    badge_border_style?: string | null;
     badge_validity_months?: number | null;
+    website?: string | null;
+    slogan?: string | null;
+    signataire_nom?: string | null;
+    signataire_titre?: string | null;
+    signataire_signature_url?: string | null;
   } | null;
   positionName?: string | null;
   hideActions?: boolean;
 }
 
+// Premium GRHPro-style PVC ID badge (recto + verso)
 export function EmployeeBadge({ profile, organization, positionName, hideActions = false }: EmployeeBadgeProps) {
-  const primaryColor = organization?.primary_color || '#1e3a5f';
-  const secondaryColor = organization?.secondary_color || '#2563eb';
-  const accentColor = organization?.accent_color || '#f59e0b';
-  const badgeHeaderText = organization?.badge_header_text || '';
-  const badgeFooterText = organization?.badge_footer_text || 'En cas de perte, veuillez contacter les RH';
-  const badgeBorderStyle = organization?.badge_border_style || 'solid';
-  const badgeValidityMonths = organization?.badge_validity_months || 12;
+  // Institutional palette — defaults match the GRHPro reference
+  const primary = organization?.primary_color || "#071b66";
+  const secondary = organization?.secondary_color || "#1236c9";
+  const accent = organization?.accent_color || "#facc15"; // yellow accent
+  const subtitle = organization?.badge_header_text || "Carte d'identification officielle";
+  const validityMonths = organization?.badge_validity_months || 12;
 
-  // Calculate expiration date based on date_entree_fonction or current date
-  const calculateExpirationDate = () => {
-    const baseDate = profile.date_entree_fonction 
-      ? new Date(profile.date_entree_fonction) 
-      : new Date();
-    return addMonths(baseDate, badgeValidityMonths);
-  };
+  const baseDate = profile.date_entree_fonction ? new Date(profile.date_entree_fonction) : new Date();
+  const expirationDate = addMonths(baseDate, validityMonths);
+  const academicYear = `${baseDate.getFullYear()} - ${expirationDate.getFullYear()}`;
 
-  const expirationDate = calculateExpirationDate();
+  const fullName = `${profile.prenom || ""} ${profile.nom || ""}`.trim();
+  const matricule = profile.code_budgetaire || "—";
 
-  // Calculate border styles based on badge_border_style
-  const getBorderStyle = () => {
-    switch (badgeBorderStyle) {
-      case 'gold':
-        return { border: '4px solid #D4AF37', borderRadius: '0.75rem' };
-      case 'silver':
-        return { border: '4px solid #C0C0C0', borderRadius: '0.75rem' };
-      case 'rounded':
-        return { border: `4px solid ${primaryColor}`, borderRadius: '1.5rem' };
-      case 'gradient':
-        return { 
-          border: '4px solid transparent',
-          borderRadius: '0.75rem',
-          backgroundImage: `linear-gradient(145deg, ${primaryColor}, ${secondaryColor}), linear-gradient(90deg, ${primaryColor}, ${accentColor}, ${secondaryColor})`,
-          backgroundOrigin: 'border-box',
-          backgroundClip: 'padding-box, border-box'
-        };
-      default: // solid
-        return { border: `4px solid ${primaryColor}`, borderRadius: '0.75rem' };
-    }
-  };
+  const qrPayload = JSON.stringify({
+    uid: profile.id,
+    matricule,
+    org: profile.organization_id,
+  });
 
-  const borderStyle = getBorderStyle();
-  
-  const handlePrint = () => {
-    window.print();
-  };
-
+  const handlePrint = () => window.print();
   const handleDownload = () => {
-    const badge = document.getElementById('employee-badge');
-    if (!badge) return;
-
-    import('html2canvas').then((html2canvas) => {
-      html2canvas.default(badge, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-        useCORS: true,
-        allowTaint: true
-      }).then((canvas) => {
-        const link = document.createElement('a');
-        link.download = `badge-${profile.code_budgetaire || profile.id}.png`;
-        link.href = canvas.toDataURL('image/png');
+    const el = document.getElementById("employee-badge");
+    if (!el) return;
+    import("html2canvas").then((h) =>
+      h.default(el, { backgroundColor: "#ffffff", scale: 3, useCORS: true, allowTaint: true }).then((canvas) => {
+        const link = document.createElement("a");
+        link.download = `badge-${matricule}.png`;
+        link.href = canvas.toDataURL("image/png");
         link.click();
-      });
-    });
+      })
+    );
   };
+
+  // PVC vertical: 53.98mm x 85.60mm → ratio ≈ 0.6307
+  // Display ~ 320 x 507 px for crispness
+  const CardShell = ({ children }: { children: React.ReactNode }) => (
+    <div
+      className="relative bg-white overflow-hidden shadow-2xl ring-1 ring-slate-200"
+      style={{ width: 320, height: 507, borderRadius: 12 }}
+    >
+      {children}
+    </div>
+  );
+
+  const Header = ({ compact = false }: { compact?: boolean }) => (
+    <div
+      className="relative px-4 pt-4 pb-6 text-white"
+      style={{
+        background: `linear-gradient(135deg, ${primary} 0%, ${secondary} 100%)`,
+      }}
+    >
+      <div className="flex items-center gap-3">
+        {organization?.logo_url ? (
+          <img
+            src={organization.logo_url}
+            alt=""
+            crossOrigin="anonymous"
+            className="h-12 w-12 object-contain drop-shadow"
+          />
+        ) : (
+          <div className="h-12 w-12 rounded-md bg-white/15 flex items-center justify-center font-bold text-lg">
+            {organization?.name?.charAt(0) || "O"}
+          </div>
+        )}
+        <div className="flex-1 min-w-0">
+          <h2 className="font-bold text-xl leading-tight tracking-tight truncate">
+            {organization?.name || "Institution"}
+          </h2>
+          {!compact && organization?.badge_header_text !== "" && (
+            <p
+              className="text-[11px] font-semibold uppercase tracking-widest"
+              style={{ color: accent }}
+            >
+              {subtitle}
+            </p>
+          )}
+        </div>
+      </div>
+      {/* decorative wave */}
+      <svg
+        className="absolute left-0 right-0 -bottom-px w-full"
+        viewBox="0 0 320 24"
+        preserveAspectRatio="none"
+        style={{ height: 24 }}
+      >
+        <path d="M0,24 C80,0 240,24 320,4 L320,24 Z" fill="#ffffff" />
+        <path d="M0,24 C100,8 220,28 320,10 L320,24 Z" fill={secondary} opacity="0.35" />
+      </svg>
+    </div>
+  );
+
+  const Footer = ({ children }: { children: React.ReactNode }) => (
+    <div
+      className="absolute bottom-0 left-0 right-0 px-4 py-2 text-center"
+      style={{ background: `linear-gradient(90deg, ${primary}, ${secondary})` }}
+    >
+      {children}
+    </div>
+  );
+
+  const InfoRow = ({ label, value }: { label: string; value?: string | null }) => (
+    <div className="flex text-[11px] leading-tight">
+      <span className="font-semibold text-slate-700 w-[78px] shrink-0">{label} :</span>
+      <span className="font-medium text-slate-900 truncate">{value || "—"}</span>
+    </div>
+  );
+
+  const Recto = (
+    <CardShell>
+      <Header />
+      {/* watermark */}
+      {organization?.logo_url && (
+        <img
+          src={organization.logo_url}
+          alt=""
+          crossOrigin="anonymous"
+          className="absolute right-2 bottom-24 w-40 h-40 object-contain opacity-[0.05] pointer-events-none"
+        />
+      )}
+
+      <div className="px-4 pt-2 pb-16 relative">
+        <div className="flex gap-3">
+          <div
+            className="shrink-0 rounded-md p-1 bg-white"
+            style={{ boxShadow: `0 0 0 2px ${secondary}33` }}
+          >
+            {profile.photo_url ? (
+              <img
+                src={profile.photo_url}
+                alt=""
+                crossOrigin="anonymous"
+                className="w-[92px] h-[112px] object-cover rounded"
+              />
+            ) : (
+              <div className="w-[92px] h-[112px] rounded bg-slate-100 flex items-center justify-center text-2xl font-bold text-slate-400">
+                {profile.prenom?.[0]}
+                {profile.nom?.[0]}
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0 pt-1">
+            <h3
+              className="font-extrabold leading-[1.05] text-[18px] break-words"
+              style={{ color: primary }}
+            >
+              {fullName || "Nom Prénom"}
+            </h3>
+            {positionName && (
+              <p
+                className="font-semibold text-[12px] mt-1"
+                style={{ color: secondary }}
+              >
+                {positionName}
+              </p>
+            )}
+            <div
+              className="my-2 h-px"
+              style={{ background: `linear-gradient(90deg, ${accent}, transparent)` }}
+            />
+          </div>
+        </div>
+
+        <div className="mt-2 space-y-1">
+          <InfoRow label="Matricule" value={matricule} />
+          {profile.nif && <InfoRow label="NIF" value={profile.nif} />}
+          {profile.cin && <InfoRow label="CIN" value={profile.cin} />}
+          {profile.telephone && <InfoRow label="Téléphone" value={profile.telephone} />}
+          {profile.service && <InfoRow label="Service" value={profile.service} />}
+          {profile.departement && <InfoRow label="Département" value={profile.departement} />}
+        </div>
+
+        {/* signature + QR */}
+        <div className="absolute left-4 right-4 bottom-12 flex items-end justify-between">
+          <div className="text-[10px]">
+            {organization?.signataire_signature_url ? (
+              <img
+                src={organization.signataire_signature_url}
+                alt=""
+                crossOrigin="anonymous"
+                className="h-10 object-contain"
+              />
+            ) : (
+              <div className="h-10 w-24 italic font-serif text-slate-400 flex items-end">
+                {organization?.signataire_nom?.split(" ")[0] || ""}
+              </div>
+            )}
+            <div className="border-t border-dotted border-slate-400 mt-0.5 pt-0.5">
+              <div className="font-bold text-slate-800">
+                {organization?.signataire_nom || "Responsable"}
+              </div>
+              <div className="font-semibold" style={{ color: secondary }}>
+                {organization?.signataire_titre || "Directeur Général"}
+              </div>
+            </div>
+          </div>
+          <div className="bg-white p-1 rounded" style={{ boxShadow: `0 0 0 2px ${secondary}` }}>
+            <QRCodeSVG value={qrPayload} size={68} level="H" includeMargin={false} />
+          </div>
+        </div>
+      </div>
+
+      <Footer>
+        <p className="text-[11px] font-semibold italic" style={{ color: accent }}>
+          Année académique {academicYear}
+        </p>
+      </Footer>
+    </CardShell>
+  );
+
+  const VersoRow = ({
+    Icon,
+    label,
+    value,
+  }: {
+    Icon: typeof User;
+    label: string;
+    value?: string | null;
+  }) => (
+    <div className="flex items-center gap-2 text-[11px]">
+      <Icon className="h-4 w-4 shrink-0" style={{ color: primary }} />
+      <span className="font-semibold w-[96px] shrink-0" style={{ color: primary }}>
+        {label} :
+      </span>
+      <span className="font-bold text-slate-900 truncate" style={{ color: primary }}>
+        {value || "—"}
+      </span>
+    </div>
+  );
+
+  const Verso = (
+    <CardShell>
+      <Header compact />
+      <div className="px-4 pt-3 pb-16 space-y-2">
+        <VersoRow Icon={User} label="Nom complet" value={fullName} />
+        <VersoRow Icon={IdCard} label="Matricule" value={matricule} />
+        <VersoRow
+          Icon={Calendar}
+          label="Date de naissance"
+          value={
+            profile.date_naissance
+              ? format(new Date(profile.date_naissance), "dd / MM / yyyy", { locale: fr })
+              : undefined
+          }
+        />
+        <VersoRow Icon={Droplet} label="Groupe sanguin" value={profile.groupe_sanguin} />
+        <VersoRow Icon={Phone} label="Contact d'urgence" value={profile.contact_urgence_nom} />
+        <VersoRow
+          Icon={Phone}
+          label="Téléphone urgence"
+          value={profile.contact_urgence_telephone}
+        />
+
+        <div className="my-3 h-px bg-slate-200" />
+
+        <div className="flex gap-3">
+          <div
+            className="bg-white p-1 rounded shrink-0"
+            style={{ boxShadow: `0 0 0 2px ${secondary}` }}
+          >
+            <QRCodeSVG value={qrPayload} size={92} level="H" includeMargin={false} />
+          </div>
+          <ul className="text-[10px] leading-snug text-slate-700 space-y-1.5">
+            <li className="flex gap-1.5">
+              <span style={{ color: secondary }}>●</span>
+              <span>Cette carte demeure la propriété de l'institution.</span>
+            </li>
+            <li className="flex gap-1.5">
+              <span style={{ color: secondary }}>●</span>
+              <span>Toute perte doit être immédiatement signalée.</span>
+            </li>
+            <li className="flex gap-1.5">
+              <span style={{ color: secondary }}>●</span>
+              <span>Si vous trouvez cette carte, veuillez contacter l'administration.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <Footer>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5 text-white text-[10px] font-medium">
+            <Globe className="h-3 w-3" />
+            <span>{organization?.website || "www.institution.ht"}</span>
+          </div>
+          <span className="text-[10px] font-semibold italic" style={{ color: accent }}>
+            {organization?.slogan || "Ensemble pour l'excellence !"}
+          </span>
+        </div>
+      </Footer>
+    </CardShell>
+  );
 
   return (
     <div className="space-y-4">
       {!hideActions && (
-        <div className="flex gap-2 print:hidden">
-          <Button onClick={handlePrint} variant="outline" className="flex-1">
+        <div className="flex gap-2 print:hidden justify-center flex-wrap">
+          <Button onClick={handlePrint} variant="outline">
             <Printer className="h-4 w-4 mr-2" />
             Imprimer
           </Button>
-          <Button onClick={handleDownload} variant="outline" className="flex-1">
+          <Button onClick={handleDownload} variant="outline">
             <Download className="h-4 w-4 mr-2" />
             Télécharger
           </Button>
         </div>
       )}
 
-      <Card 
-        id="employee-badge" 
-        className="w-[340px] mx-auto overflow-hidden relative shadow-2xl"
-        style={{ 
-          aspectRatio: '2.125/3.375',
-          ...borderStyle
-        }}
+      <div
+        id="employee-badge"
+        className="flex flex-wrap items-start justify-center gap-8 p-4 bg-slate-50 rounded-lg"
       >
-        {/* Background avec dégradé élégant */}
-        <div 
-          className="absolute inset-0 z-0"
-          style={{
-            background: `
-              linear-gradient(145deg, ${primaryColor} 0%, ${secondaryColor} 40%, ${accentColor}33 70%, ${primaryColor} 100%)
-            `,
-          }}
-        />
-        
-        {/* Logo en watermark très pâle */}
-        {organization?.logo_url && (
-          <div 
-            className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none"
-          >
-            <img 
-              src={organization.logo_url} 
-              alt=""
-              className="w-64 h-64 object-contain opacity-[0.08]"
-              crossOrigin="anonymous"
-              style={{ filter: 'grayscale(100%) brightness(1.5)' }}
-            />
-          </div>
-        )}
-        
-        {/* Motif géométrique subtil */}
-        <div 
-          className="absolute inset-0 z-0 opacity-[0.06]"
-          style={{
-            backgroundImage: `
-              radial-gradient(circle at 15% 85%, white 2px, transparent 2px),
-              radial-gradient(circle at 85% 15%, white 2px, transparent 2px),
-              radial-gradient(circle at 50% 50%, white 1px, transparent 1px)
-            `,
-            backgroundSize: '80px 80px',
-          }}
-        />
-        
-        {/* Bande décorative en haut */}
-        <div 
-          className="absolute top-0 left-0 right-0 h-3 z-10"
-          style={{ 
-            background: `linear-gradient(90deg, ${accentColor}, ${accentColor}dd, ${accentColor})`
-          }}
-        />
-        
-        <CardContent className="p-0 relative z-10 h-full flex flex-col">
-          {/* Header avec logo et nom organisation */}
-          <div className="bg-white/95 backdrop-blur-sm px-4 py-3 text-center shadow-lg border-b-2" style={{ borderColor: accentColor }}>
-            {organization?.logo_url ? (
-              <img 
-                src={organization.logo_url} 
-                alt="Logo" 
-                className="h-12 mx-auto object-contain mb-1"
-                crossOrigin="anonymous"
-              />
-            ) : (
-              <div 
-                className="w-12 h-12 mx-auto mb-1 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-md"
-                style={{ backgroundColor: primaryColor }}
-              >
-                {organization?.name?.charAt(0) || 'O'}
-              </div>
-            )}
-            <h3 
-              className="font-bold text-sm uppercase tracking-wide leading-tight"
-              style={{ color: primaryColor }}
-            >
-              {organization?.name || "Organisation"}
-            </h3>
-            {badgeHeaderText && (
-              <p 
-                className="text-[10px] font-semibold uppercase tracking-wider mt-0.5"
-                style={{ color: secondaryColor }}
-              >
-                {badgeHeaderText}
-              </p>
-            )}
-          </div>
-
-          {/* Corps principal */}
-          <div className="flex-1 p-4 flex flex-col items-center justify-center gap-3">
-            {/* Photo avec cadre élégant */}
-            <div 
-              className="p-1 rounded-lg shadow-lg"
-              style={{ backgroundColor: 'rgba(255,255,255,0.9)' }}
-            >
-              {profile.photo_url ? (
-                <img 
-                  src={profile.photo_url} 
-                  alt="Photo de profil"
-                  className="w-28 h-36 rounded-md object-cover"
-                  crossOrigin="anonymous"
-                />
-              ) : (
-                <div className="w-28 h-36 rounded-md bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                  <span className="text-4xl font-bold text-gray-400">
-                    {profile.prenom?.[0]}{profile.nom?.[0]}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Informations employé */}
-            <div className="text-center text-white space-y-1">
-              <h4 className="font-bold text-lg leading-tight drop-shadow-md">
-                {profile.prenom} {profile.nom}
-              </h4>
-              
-              {positionName && (
-                <p 
-                  className="text-sm font-medium px-3 py-1 rounded-full inline-block"
-                  style={{ backgroundColor: 'rgba(255,255,255,0.2)' }}
-                >
-                  {positionName}
-                </p>
-              )}
-            </div>
-
-            {/* Badges d'info */}
-            <div className="flex flex-wrap justify-center gap-2">
-              {profile.nif && (
-                <div 
-                  className="px-3 py-1.5 rounded-lg text-center"
-                  style={{ backgroundColor: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(4px)' }}
-                >
-                  <span className="text-[9px] opacity-80 block text-white uppercase tracking-wide">NIF</span>
-                  <span className="font-mono text-xs font-bold text-white">{profile.nif}</span>
-                </div>
-              )}
-              
-              {profile.groupe_sanguin && (
-                <div 
-                  className="px-3 py-1.5 rounded-lg text-center"
-                  style={{ backgroundColor: '#dc2626' }}
-                >
-                  <span className="text-[9px] opacity-90 block text-white uppercase tracking-wide">Groupe</span>
-                  <span className="font-mono text-xs font-bold text-white">{profile.groupe_sanguin}</span>
-                </div>
-              )}
-
-              {/* Date de validité */}
-              <div 
-                className="px-3 py-1.5 rounded-lg text-center"
-                style={{ backgroundColor: 'rgba(255,255,255,0.25)', backdropFilter: 'blur(4px)' }}
-              >
-                <span className="text-[9px] opacity-90 block text-white uppercase tracking-wide">Valide jusqu'au</span>
-                <span className="font-mono text-xs font-bold text-white">
-                  {format(expirationDate, "dd/MM/yyyy", { locale: fr })}
-                </span>
-              </div>
-            </div>
-
-            {/* QR Code */}
-            <div className="bg-white p-2 rounded-lg shadow-lg">
-              <QRCodeSVG
-                value={JSON.stringify({
-                  id: profile.id,
-                  nom: profile.nom,
-                  prenom: profile.prenom,
-                  code_budgetaire: profile.code_budgetaire,
-                  email: profile.email,
-                  organization_id: profile.organization_id
-                })}
-                size={80}
-                level="H"
-                includeMargin={false}
-              />
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div 
-            className="px-4 py-2 text-center"
-            style={{ backgroundColor: 'rgba(0,0,0,0.2)' }}
-          >
-            <p className="text-[9px] text-white/80">
-              {badgeFooterText}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-xs font-semibold tracking-widest text-slate-500">RECTO</span>
+          {Recto}
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-xs font-semibold tracking-widest text-slate-500">VERSO</span>
+          {Verso}
+        </div>
+      </div>
     </div>
   );
 }
