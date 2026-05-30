@@ -37,36 +37,58 @@ export const QRScanner = ({ onScanSuccess, onClose }: QRScannerProps) => {
 
   const startScanning = async () => {
     hasScannedRef.current = false;
-    
+
+    try {
+      const probe = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false,
+      });
+      probe.getTracks().forEach((t) => t.stop());
+    } catch (err) {
+      console.error("Camera permission error:", err);
+      toast({
+        title: "Accès caméra refusé",
+        description: "Autorisez la caméra dans votre navigateur puis réessayez.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsScanning(true);
+    await new Promise((r) => setTimeout(r, 50));
+
     try {
       const qrCodeScanner = new Html5Qrcode("qr-reader");
       scannerRef.current = qrCodeScanner;
 
-      await qrCodeScanner.start(
-        { facingMode: "environment" },
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 }
-        },
-        (decodedText) => {
-          // Prevent multiple callbacks for the same scan
-          if (hasScannedRef.current) return;
-          hasScannedRef.current = true;
-          
-          stopScanning();
-          onScanSuccess(decodedText);
-        },
-        () => {
-          // Silent error handling for continuous scanning
-        }
-      );
+      const config = { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 };
+      const onScan = (decodedText: string) => {
+        if (hasScannedRef.current) return;
+        hasScannedRef.current = true;
+        stopScanning();
+        onScanSuccess(decodedText);
+      };
 
-      setIsScanning(true);
-    } catch (err) {
+      try {
+        await qrCodeScanner.start({ facingMode: "environment" }, config, onScan, () => {});
+        return;
+      } catch (e1) {
+        console.warn("environment failed, enumerating cameras", e1);
+      }
+
+      const cameras = await Html5Qrcode.getCameras();
+      if (!cameras || cameras.length === 0) throw new Error("Aucune caméra détectée");
+      const back =
+        cameras.find((c) => /back|rear|environment|arrière/i.test(c.label)) ||
+        cameras[cameras.length - 1];
+
+      await qrCodeScanner.start(back.id, config, onScan, () => {});
+    } catch (err: any) {
       console.error("Error starting scanner:", err);
+      setIsScanning(false);
       toast({
-        title: "Erreur",
-        description: "Impossible de démarrer la caméra",
+        title: "Erreur caméra",
+        description: err?.message || "Impossible de démarrer la caméra.",
         variant: "destructive",
       });
     }
