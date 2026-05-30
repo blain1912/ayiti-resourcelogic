@@ -228,7 +228,7 @@ export function EmployeeBadge({
               <br />
               <span className="uppercase">{profile.nom || "NOM"}</span>
             </h2>
-            <p className="text-slate-500 text-[10px] font-bold uppercase mt-1.5 leading-tight line-clamp-2">
+            <p className="text-slate-500 text-[9px] font-bold uppercase mt-1.5 leading-tight line-clamp-3 break-words">
               {positionName || "Fonction"}
             </p>
             <div className="h-[2px] w-12 mt-2.5" style={{ background: secondary }} />
