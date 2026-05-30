@@ -34,7 +34,7 @@ const Auth = () => {
     fullName: "",
     email: "",
     password: "",
-    userType: "responsable" as "responsable" | "employe",
+    userType: "responsable" as "responsable" | "employe" | "super_admin",
     organizationId: "",
   });
 
