@@ -100,6 +100,49 @@ export function LeaveRequestCard({
     }
   };
 
+  const handleDownloadPdf = async () => {
+    // Fetch employee full details + organization
+    const [empRes, orgRes] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("full_name, prenom, nom, matricule, poste, date_entree_fonction, organization_id, unit_id")
+        .eq("id", request.employee_id)
+        .maybeSingle(),
+      supabase
+        .from("organizations")
+        .select("name, city, logo_url")
+        .eq("id", request.organization_id)
+        .maybeSingle(),
+    ]);
+
+    let unitName: string | null = null;
+    const emp: any = empRes.data;
+    if (emp?.unit_id) {
+      const { data: unit } = await supabase
+        .from("organizational_units")
+        .select("name")
+        .eq("id", emp.unit_id)
+        .maybeSingle();
+      unitName = (unit as any)?.name ?? null;
+    }
+
+    generateLeaveRequestPdf(
+      request,
+      {
+        full_name: emp?.full_name,
+        prenom: emp?.prenom,
+        nom: emp?.nom,
+        matricule: emp?.matricule,
+        poste: emp?.poste,
+        unite: unitName,
+        date_entree_fonction: emp?.date_entree_fonction,
+      },
+      (orgRes.data as any) || {}
+    );
+  };
+
+
+
   return (
     <>
       <Card className="hover:shadow-md transition-shadow">
