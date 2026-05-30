@@ -68,7 +68,9 @@ export const EmployeeQRCode = () => {
   }
 
   const qrValue = JSON.stringify({
+    type: "employee-attendance",
     employeeId,
+    profileId: employeeId,
     timestamp: Date.now(),
   });
 
@@ -78,13 +80,15 @@ export const EmployeeQRCode = () => {
         <CardTitle>Mon QR Code de Pointage</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col items-center space-y-4">
-        <div className="p-4 bg-white rounded-lg">
+        <div className="p-6 bg-white rounded-xl shadow-2xl border-4 border-primary/20">
           <QRCodeSVG
             id="employee-qr-code"
             value={qrValue}
-            size={256}
+            size={300}
             level="H"
             includeMargin
+            bgColor="#FFFFFF"
+            fgColor="#000000"
           />
         </div>
         
