@@ -37,8 +37,19 @@ export default function EmployeeBadges() {
   const [loading, setLoading] = useState(true);
   const { organization } = useOrganization();
 
+  // Live preview color overrides (not saved to DB)
+  const [livePrimary, setLivePrimary] = useState<string>("#00209F");
+  const [liveSecondary, setLiveSecondary] = useState<string>("#D21034");
+  const [liveAccent, setLiveAccent] = useState<string>("#FFD700");
+
   useEffect(() => {
     fetchProfiles();
+  }, [organization]);
+
+  useEffect(() => {
+    if (organization?.primary_color) setLivePrimary(organization.primary_color);
+    if (organization?.secondary_color) setLiveSecondary(organization.secondary_color);
+    if (organization?.accent_color) setLiveAccent(organization.accent_color);
   }, [organization]);
 
   useEffect(() => {
