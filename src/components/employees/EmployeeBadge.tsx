@@ -364,8 +364,8 @@ export function EmployeeBadge({
                 />
               ) : (
                 <span
-                  className="text-[20px] text-slate-700 select-none truncate"
-                  style={{ fontFamily: "'Great Vibes', cursive" }}
+                  className="text-slate-700 select-none truncate max-w-full px-1"
+                  style={{ fontFamily: "'Great Vibes', cursive", fontSize: 16, lineHeight: 1 }}
                 >
                   {organization?.signataire_nom || "Responsable"}
                 </span>
