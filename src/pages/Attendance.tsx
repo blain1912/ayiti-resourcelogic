@@ -19,11 +19,13 @@ import { cn } from "@/lib/utils";
 import { QRScanner } from "@/components/attendance/QRScanner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { getQrEmployeeId, getQrOrganizationId, parseAttendanceQrPayload } from "@/lib/attendanceQr";
+import { getQrEmail, getQrEmployeeId, getQrMatricule, getQrOrganizationId, parseAttendanceQrPayload } from "@/lib/attendanceQr";
 
 interface Employee {
   id: string;
   full_name: string;
+  code_budgetaire: string | null;
+  email: string | null;
   position_name: string;
   unit_name: string;
 }
@@ -66,6 +68,8 @@ const Attendance = () => {
         .select(`
           id,
           full_name,
+          code_budgetaire,
+          email,
           positions (name),
           organizational_units (name)
         `)
@@ -78,6 +82,8 @@ const Attendance = () => {
       const formattedEmployees = data?.map((emp: any) => ({
         id: emp.id,
         full_name: emp.full_name || "N/A",
+        code_budgetaire: emp.code_budgetaire,
+        email: emp.email,
         position_name: emp.positions?.name || "N/A",
         unit_name: emp.organizational_units?.name || "N/A",
       })) || [];
@@ -223,11 +229,19 @@ const Attendance = () => {
       const data = parseAttendanceQrPayload(qrData);
       const employeeId = getQrEmployeeId(data);
       const qrOrganizationId = getQrOrganizationId(data);
+      const matricule = getQrMatricule(data);
+      const email = getQrEmail(data);
 
-      if (!employeeId) {
+      const employee = employees.find((e) =>
+        e.id === employeeId ||
+        Boolean(matricule && e.code_budgetaire === matricule) ||
+        Boolean(email && e.email?.toLowerCase() === email.toLowerCase())
+      );
+
+      if (!employee) {
         toast({
           title: "QR Code invalide",
-          description: "Ce QR code ne contient pas d'identifiant employé valide",
+          description: "Aucun employé approuvé ne correspond à ce QR code",
           variant: "destructive",
         });
         return;
@@ -242,19 +256,8 @@ const Attendance = () => {
         return;
       }
 
-      // Verify employee exists
-      const employee = employees.find(e => e.id === employeeId);
-      if (!employee) {
-        toast({
-          title: "Employé non trouvé",
-          description: "L'employé n'a pas été trouvé dans la base de données",
-          variant: "destructive",
-        });
-        return;
-      }
-
       // Mark attendance as present (markAttendance already shows a toast)
-      await markAttendance(employeeId, "present");
+      await markAttendance(employee.id, "present");
       
       // Only show the personalized toast, markAttendance's generic toast is shown inside
       toast({
