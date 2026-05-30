@@ -47,7 +47,7 @@ const InitialSetup = () => {
         .insert([{
           user_id: profile.user_id,
           role: "admin",
-          organization_id: "00000000-0000-0000-0000-000000000000" // UUID spécial pour super admin
+          organization_id: null
         }]);
 
       if (roleError) throw roleError;
