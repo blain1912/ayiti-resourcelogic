@@ -443,9 +443,9 @@ const Auth = () => {
                     <Label htmlFor="signup-type">Type d'utilisateur</Label>
                     <Select
                       value={signUpData.userType}
-                      onValueChange={(value: "responsable" | "employe") => 
-                        setSignUpData({ 
-                          ...signUpData, 
+                      onValueChange={(value: "responsable" | "employe" | "super_admin") =>
+                        setSignUpData({
+                          ...signUpData,
                           userType: value,
                           organizationId: ""
                         })
@@ -457,12 +457,15 @@ const Auth = () => {
                       <SelectContent>
                         <SelectItem value="responsable">Responsable d'organisation</SelectItem>
                         <SelectItem value="employe">Employé</SelectItem>
+                        <SelectItem value="super_admin">Super administrateur</SelectItem>
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-muted-foreground">
-                      {signUpData.userType === "responsable" 
-                        ? "Vous pourrez créer et gérer votre organisation" 
-                        : "Rejoignez une organisation existante"}
+                      {signUpData.userType === "responsable"
+                        ? "Vous pourrez créer et gérer votre organisation"
+                        : signUpData.userType === "employe"
+                        ? "Rejoignez une organisation existante"
+                        : "Compte d'administration de la plateforme (sans organisation)"}
                     </p>
                   </div>
                 )}
