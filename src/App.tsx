@@ -44,6 +44,7 @@ import GreetingCards from "./pages/GreetingCards";
 import EmployeeCardRequest from "./pages/EmployeeCardRequest";
 import SpecialSchedules from "./pages/SpecialSchedules";
 import Correspondence from "./pages/Correspondence";
+import OnboardingImport from "./pages/OnboardingImport";
 import About from "./pages/About";
 import Reports from "./pages/Reports";
 import Terms from "./pages/Terms";
