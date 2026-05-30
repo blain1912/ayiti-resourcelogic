@@ -142,6 +142,8 @@ const Auth = () => {
             if (!profile?.organization_id) {
               if (userType === "employe") {
                 navigate("/employee-waiting");
+              } else if (userType === "super_admin") {
+                navigate("/initial-setup");
               } else {
                 navigate("/onboarding");
               }
