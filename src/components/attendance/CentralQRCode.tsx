@@ -116,13 +116,15 @@ export const CentralQRCode = () => {
         </p>
       </CardHeader>
       <CardContent className="flex flex-col items-center space-y-6">
-        <div className="p-6 bg-white rounded-xl shadow-lg">
+        <div className="p-8 bg-white rounded-2xl shadow-2xl border-4 border-primary/20">
           <QRCodeSVG
             id="central-qr-code"
             value={qrValue}
-            size={isFullscreen ? 400 : 280}
+            size={isFullscreen ? 480 : 320}
             level="H"
             includeMargin
+            bgColor="#FFFFFF"
+            fgColor="#000000"
           />
         </div>
         

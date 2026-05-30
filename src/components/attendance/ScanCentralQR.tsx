@@ -62,24 +62,33 @@ export const ScanCentralQR = () => {
 
   const processQRCode = async (decodedText: string) => {
     setIsProcessing(true);
-    
+
     try {
-      const data = JSON.parse(decodedText);
-      
-      // Validate QR code type
-      if (data.type !== "central-attendance") {
-        throw new Error("Code QR invalide");
-      }
-
-      // Validate organization
-      if (data.organizationId !== organizationId) {
-        throw new Error("Ce QR code n'appartient pas à votre organisation");
-      }
-
-      // Validate date
       const today = format(new Date(), "yyyy-MM-dd");
-      if (data.date !== today) {
-        throw new Error("Ce QR code a expiré");
+
+      // Tenter de parser comme JSON (QR central ou personnel)
+      let data: any = null;
+      try {
+        data = JSON.parse(decodedText);
+      } catch {
+        throw new Error("Code QR non reconnu. Scannez le QR de pointage officiel.");
+      }
+
+      // Accepter deux formats : central-attendance OU QR personnel (employeeId)
+      const isCentral = data?.type === "central-attendance";
+      const isPersonal = !!data?.employeeId && !data?.type;
+
+      if (!isCentral && !isPersonal) {
+        throw new Error("Format de QR code non reconnu.");
+      }
+
+      if (isCentral) {
+        if (data.organizationId && organizationId && data.organizationId !== organizationId) {
+          throw new Error("Ce QR code n'appartient pas à votre organisation.");
+        }
+        if (data.date && data.date !== today) {
+          throw new Error("Ce QR code a expiré (date différente d'aujourd'hui).");
+        }
       }
 
       if (!profileId || !organizationId) {
