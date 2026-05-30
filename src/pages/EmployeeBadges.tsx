@@ -267,16 +267,120 @@ export default function EmployeeBadges() {
         <TabsContent value="preview" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Aperçu d'impression</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-4">
-                Tous les badges seront imprimés. Utilisez l'aperçu avant impression de votre navigateur pour vérifier.
+              <CardTitle>Aperçu live & personnalisation couleurs</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Testez les couleurs en temps réel. Les modifications restent locales tant que vous ne les
+                enregistrez pas dans les paramètres de votre organisation.
               </p>
-              <Button onClick={handlePrintAll}>
-                <Printer className="h-4 w-4 mr-2" />
-                Imprimer tous les badges
-              </Button>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Employé
+                  </label>
+                  <select
+                    className="mt-1 w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                    value={selectedProfile?.id || ""}
+                    onChange={(e) => {
+                      const p = profiles.find((x) => x.id === e.target.value);
+                      setSelectedProfile(p || null);
+                    }}
+                  >
+                    <option value="">— Choisir —</option>
+                    {profiles.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.prenom} {p.nom}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {[
+                  { label: "Couleur primaire", val: livePrimary, set: setLivePrimary },
+                  { label: "Couleur secondaire", val: liveSecondary, set: setLiveSecondary },
+                  { label: "Couleur accent", val: liveAccent, set: setLiveAccent },
+                ].map((c) => (
+                  <div key={c.label}>
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      {c.label}
+                    </label>
+                    <div className="mt-1 flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={c.val}
+                        onChange={(e) => c.set(e.target.value)}
+                        className="h-10 w-12 rounded border border-input cursor-pointer"
+                      />
+                      <Input
+                        value={c.val}
+                        onChange={(e) => c.set(e.target.value)}
+                        className="font-mono text-xs"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Quick palette presets */}
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                  Palettes rapides
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { name: "Haïti officiel", p: "#00209F", s: "#D21034", a: "#FFD700" },
+                    { name: "Or institutionnel", p: "#1a1a1a", s: "#8b6f3a", a: "#c9a84c" },
+                    { name: "Marine", p: "#0f1b3d", s: "#1e3a5f", a: "#3b6fa0" },
+                    { name: "Émeraude", p: "#064e3b", s: "#0d7a5f", a: "#c9a84c" },
+                    { name: "Bordeaux", p: "#5c2018", s: "#9b4423", a: "#d4842a" },
+                    { name: "Noir & or", p: "#0d0d0d", s: "#c9a84c", a: "#f0d78c" },
+                  ].map((preset) => (
+                    <Button
+                      key={preset.name}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setLivePrimary(preset.p);
+                        setLiveSecondary(preset.s);
+                        setLiveAccent(preset.a);
+                      }}
+                    >
+                      <span className="inline-flex gap-0.5 mr-2">
+                        <span className="w-2.5 h-4 rounded-sm" style={{ background: preset.p }} />
+                        <span className="w-2.5 h-4 rounded-sm" style={{ background: preset.s }} />
+                        <span className="w-2.5 h-4 rounded-sm" style={{ background: preset.a }} />
+                      </span>
+                      {preset.name}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border-t pt-6">
+                {selectedProfile ? (
+                  <EmployeeBadge
+                    profile={selectedProfile}
+                    organization={organization}
+                    positionName={selectedProfile.positions?.name}
+                    colorOverride={{
+                      primary: livePrimary,
+                      secondary: liveSecondary,
+                      accent: liveAccent,
+                    }}
+                  />
+                ) : (
+                  <p className="text-center text-muted-foreground py-12">
+                    Sélectionnez un employé pour prévisualiser son badge avec les couleurs choisies.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex justify-end">
+                <Button onClick={handlePrintAll} variant="outline">
+                  <Printer className="h-4 w-4 mr-2" />
+                  Imprimer tous les badges
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
