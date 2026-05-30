@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Calendar, Check, X, Clock, Ban, MessageSquare } from "lucide-react";
+import { Calendar, Check, X, Clock, Ban, MessageSquare, FileDown } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { supabase } from "@/integrations/supabase/client";
+import { generateLeaveRequestPdf } from "@/lib/generateLeaveRequestPdf";
+
 import {
   Dialog,
   DialogContent,
