@@ -15,7 +15,7 @@ const signUpSchema = z.object({
   fullName: z.string().trim().min(2, "Le nom doit contenir au moins 2 caractères").max(100),
   email: z.string().trim().email("Email invalide").max(255),
   password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères").max(100),
-  userType: z.enum(["responsable", "employe"]),
+  userType: z.enum(["responsable", "employe", "super_admin"]),
 });
 
 const signInSchema = z.object({
