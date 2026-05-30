@@ -83,11 +83,16 @@ export function EmployeeBadge({
   const qrPayload = JSON.stringify({
     type: "employee-attendance",
     employeeId: profile.id,
+    employee_id: profile.id,
     profileId: profile.id,
+    profile_id: profile.id,
+    id: profile.id,
     uid: profile.id,
     matricule,
+    code_budgetaire: profile.code_budgetaire,
     org: profile.organization_id,
     organizationId: profile.organization_id,
+    organization_id: profile.organization_id,
     exp: expirationDate.toISOString().slice(0, 10),
   });
 
@@ -383,7 +388,7 @@ export function EmployeeBadge({
             className="bg-white p-1 border rounded-lg shrink-0"
             style={{ borderColor: "#e2e8f0", boxShadow: `0 0 0 1px ${primary}20` }}
           >
-            <QRCodeSVG value={qrPayload} size={64} level="H" includeMargin={false} />
+            <QRCodeSVG value={qrPayload} size={74} level="M" includeMargin bgColor="#FFFFFF" fgColor="#000000" />
           </div>
         </div>
 

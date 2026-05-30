@@ -99,6 +99,8 @@ export const CentralQRCode = () => {
   const qrValue = JSON.stringify({
     type: "central-attendance",
     organizationId,
+    organization_id: organizationId,
+    org: organizationId,
     dailyCode,
     date: format(new Date(), "yyyy-MM-dd"),
   });
