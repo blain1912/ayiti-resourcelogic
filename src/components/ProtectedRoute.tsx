@@ -66,6 +66,9 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         if (userType === "employe") {
           console.log("➡️ Redirecting employee to waiting page");
           navigate("/employee-waiting");
+        } else if (userType === "super_admin") {
+          console.log("➡️ Redirecting to initial-setup for super admin promotion");
+          navigate("/initial-setup");
         } else {
           console.log("➡️ Redirecting to onboarding");
           navigate("/onboarding");

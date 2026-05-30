@@ -15,7 +15,7 @@ const signUpSchema = z.object({
   fullName: z.string().trim().min(2, "Le nom doit contenir au moins 2 caractères").max(100),
   email: z.string().trim().email("Email invalide").max(255),
   password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères").max(100),
-  userType: z.enum(["responsable", "employe"]),
+  userType: z.enum(["responsable", "employe", "super_admin"]),
 });
 
 const signInSchema = z.object({
@@ -34,7 +34,7 @@ const Auth = () => {
     fullName: "",
     email: "",
     password: "",
-    userType: "responsable" as "responsable" | "employe",
+    userType: "responsable" as "responsable" | "employe" | "super_admin",
     organizationId: "",
   });
 
@@ -142,6 +142,8 @@ const Auth = () => {
             if (!profile?.organization_id) {
               if (userType === "employe") {
                 navigate("/employee-waiting");
+              } else if (userType === "super_admin") {
+                navigate("/initial-setup");
               } else {
                 navigate("/onboarding");
               }
@@ -179,6 +181,8 @@ const Auth = () => {
         if (!profile?.organization_id) {
           if (userType === "employe") {
             navigate("/employee-waiting");
+          } else if (userType === "super_admin") {
+            navigate("/initial-setup");
           } else {
             navigate("/onboarding");
           }
@@ -443,9 +447,9 @@ const Auth = () => {
                     <Label htmlFor="signup-type">Type d'utilisateur</Label>
                     <Select
                       value={signUpData.userType}
-                      onValueChange={(value: "responsable" | "employe") => 
-                        setSignUpData({ 
-                          ...signUpData, 
+                      onValueChange={(value: "responsable" | "employe" | "super_admin") =>
+                        setSignUpData({
+                          ...signUpData,
                           userType: value,
                           organizationId: ""
                         })
@@ -457,12 +461,15 @@ const Auth = () => {
                       <SelectContent>
                         <SelectItem value="responsable">Responsable d'organisation</SelectItem>
                         <SelectItem value="employe">Employé</SelectItem>
+                        <SelectItem value="super_admin">Super administrateur</SelectItem>
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-muted-foreground">
-                      {signUpData.userType === "responsable" 
-                        ? "Vous pourrez créer et gérer votre organisation" 
-                        : "Rejoignez une organisation existante"}
+                      {signUpData.userType === "responsable"
+                        ? "Vous pourrez créer et gérer votre organisation"
+                        : signUpData.userType === "employe"
+                        ? "Rejoignez une organisation existante"
+                        : "Compte d'administration de la plateforme (sans organisation)"}
                     </p>
                   </div>
                 )}
