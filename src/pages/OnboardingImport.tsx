@@ -130,7 +130,7 @@ const OnboardingImport = () => {
       if (!nom) { structReport.skipped++; continue; }
       const { data, error } = await supabase
         .from("organizational_units")
-        .insert({ name: nom, type: "direction", organization_id: organizationId })
+        .insert({ name: nom, type: "direction_generale", organization_id: organizationId })
         .select("id")
         .single();
       if (error) { structReport.errors.push(`${nom}: ${error.message}`); structReport.skipped++; }

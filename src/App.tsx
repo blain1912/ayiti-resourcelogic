@@ -105,6 +105,7 @@ const App = () => (
             <Route path="/card-request" element={<ProtectedRoute><EmployeeCardRequest /></ProtectedRoute>} />
             <Route path="/special-schedules" element={<ProtectedRoute><SpecialSchedules /></ProtectedRoute>} />
             <Route path="/correspondence" element={<ProtectedRoute><Correspondence /></ProtectedRoute>} />
+            <Route path="/onboarding-import" element={<ProtectedRoute><OnboardingImport /></ProtectedRoute>} />
             <Route path="/user-manual" element={<UserManual />} />
             <Route path="/careers" element={<Careers />} />
             <Route path="/about" element={<About />} />
