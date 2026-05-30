@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { QRScanner } from "@/components/attendance/QRScanner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { getQrEmployeeId, getQrOrganizationId, parseAttendanceQrPayload } from "@/lib/attendanceQr";
 
 interface Employee {
   id: string;
@@ -219,13 +220,23 @@ const Attendance = () => {
     setShowQRScanner(false);
     
     try {
-      const data = JSON.parse(qrData);
-      const { employeeId } = data;
+      const data = parseAttendanceQrPayload(qrData);
+      const employeeId = getQrEmployeeId(data);
+      const qrOrganizationId = getQrOrganizationId(data);
 
       if (!employeeId) {
         toast({
           title: "QR Code invalide",
-          description: "Le QR code scanné n'est pas valide",
+          description: "Ce QR code ne contient pas d'identifiant employé valide",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (qrOrganizationId && qrOrganizationId !== organization?.id) {
+        toast({
+          title: "QR Code invalide",
+          description: "Ce QR code appartient à une autre organisation",
           variant: "destructive",
         });
         return;
