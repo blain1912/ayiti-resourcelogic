@@ -194,6 +194,8 @@ const Settings = () => {
             <BadgeTemplateSelector organization={organization} onUpdate={refetchOrganization} />
             <SalaryScale />
             <ProfessorGrades />
+            {organization && <LeavePolicySettings organizationId={organization.id} />}
+
             {organization && (
               <Card>
                 <CardHeader>
