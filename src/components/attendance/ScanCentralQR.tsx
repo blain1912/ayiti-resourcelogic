@@ -91,12 +91,12 @@ export const ScanCentralQR = () => {
         }
       }
 
-      if (isPersonal && getQrEmployeeId(data) !== profileId) {
-        throw new Error("Ce QR code appartient à un autre employé.");
-      }
-
       if (!profileId || !organizationId) {
         throw new Error("Profil non trouvé");
+      }
+
+      if (isPersonal && getQrEmployeeId(data) !== profileId) {
+        throw new Error("Ce QR code appartient à un autre employé.");
       }
 
       const { data: { user } } = await supabase.auth.getUser();
