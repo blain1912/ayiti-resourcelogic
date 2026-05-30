@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Building2, Plus, Trash2, Edit, Globe } from "lucide-react";
+import { Building2, Plus, Trash2, Edit, Globe, Download, Upload } from "lucide-react";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { OnboardingKitButton } from "@/components/OnboardingKitButton";
 
 type OrganizationType = "ministere" | "direction_generale" | "organisme_autonome" | "organisme_deconcentre";
 
@@ -259,7 +260,7 @@ const AdminOrganization = () => {
                     </p>
                   )}
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <Button
                     variant="outline"
                     size="icon"
@@ -273,6 +274,14 @@ const AdminOrganization = () => {
                     onClick={() => handleDelete(org.id)}
                   >
                     <Trash2 className="h-4 w-4" />
+                  </Button>
+                  <OnboardingKitButton organization={org} size="sm" label="Kit" />
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => navigate(`/onboarding-import?org=${org.id}`)}
+                  >
+                    <Upload className="h-4 w-4 mr-1" /> Importer
                   </Button>
                   <Button
                     onClick={() => navigate(`/admin/organization/${org.id}/units`)}
