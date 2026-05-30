@@ -244,7 +244,7 @@ const SuperAdmin = () => {
         <Tabs defaultValue="organizations" className="w-full">
           <TabsList>
             <TabsTrigger value="organizations">Organisations</TabsTrigger>
-            <TabsTrigger value="platform">Paramètres Plateforme</TabsTrigger>
+            <TabsTrigger value="platform">Configuration Plateforme</TabsTrigger>
           </TabsList>
 
           <TabsContent value="organizations" className="space-y-6">
