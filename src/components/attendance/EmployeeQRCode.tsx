@@ -70,7 +70,11 @@ export const EmployeeQRCode = () => {
   const qrValue = JSON.stringify({
     type: "employee-attendance",
     employeeId,
+    employee_id: employeeId,
     profileId: employeeId,
+    profile_id: employeeId,
+    id: employeeId,
+    uid: employeeId,
     timestamp: Date.now(),
   });
 
