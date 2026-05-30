@@ -2,6 +2,11 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { Database } from "@/integrations/supabase/types";
+import {
+  normalizePolicy,
+  computeAnnualLeaveDays,
+  type LeavePolicy,
+} from "@/lib/leavePolicy";
 
 type LeaveType = Database["public"]["Enums"]["leave_type"];
 
@@ -26,15 +31,20 @@ interface RawLeaveBalance {
   used_days: number;
 }
 
-const DEFAULT_LEAVE_DAYS: Record<LeaveType, number> = {
-  conge_annuel: 20,
-  conge_maladie: 15,
-  conge_maternite: 90,
-  conge_paternite: 10,
-  conge_sans_solde: 0,
-  conge_exceptionnel: 5,
-  conge_etudes: 30,
-};
+function defaultsFromPolicy(
+  policy: LeavePolicy,
+  dateEntreeFonction?: string | null
+): Record<LeaveType, number> {
+  return {
+    conge_annuel: computeAnnualLeaveDays(policy, dateEntreeFonction),
+    conge_maladie: policy.sick_days,
+    conge_maternite: policy.maternity_days,
+    conge_paternite: policy.paternity_days,
+    conge_sans_solde: 0,
+    conge_exceptionnel: policy.exceptional_days,
+    conge_etudes: policy.study_days,
+  };
+}
 
 export const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
   conge_annuel: "Congé Annuel",
@@ -45,6 +55,7 @@ export const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
   conge_exceptionnel: "Congé Exceptionnel",
   conge_etudes: "Congé Études",
 };
+
 
 export function useLeaveBalances(employeeId?: string) {
   const [balances, setBalances] = useState<LeaveBalance[]>([]);
