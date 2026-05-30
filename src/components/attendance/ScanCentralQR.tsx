@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
   getQrEmployeeId,
+  getQrMatricule,
   getQrOrganizationId,
   isCentralAttendanceQr,
   isEmployeeAttendanceQr,
@@ -96,7 +97,21 @@ export const ScanCentralQR = () => {
       }
 
       if (isPersonal && getQrEmployeeId(data) !== profileId) {
-        throw new Error("Ce QR code appartient à un autre employé.");
+        const matricule = getQrMatricule(data);
+        if (!matricule) {
+          throw new Error("Ce QR code appartient à un autre employé.");
+        }
+
+        const { data: matchingProfile } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("id", profileId)
+          .eq("code_budgetaire", matricule)
+          .maybeSingle();
+
+        if (!matchingProfile) {
+          throw new Error("Ce QR code appartient à un autre employé.");
+        }
       }
 
       const { data: { user } } = await supabase.auth.getUser();
