@@ -10,68 +10,68 @@ const Index = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkAuthAndRedirect();
-  }, []);
+    let cancelled = false;
+    // Safety timeout: never block the homepage more than 3s
+    const safety = setTimeout(() => {
+      if (!cancelled) setLoading(false);
+    }, 3000);
 
-  const checkAuthAndRedirect = async () => {
-    try {
-      // Check if we're on a custom domain first
-      let currentDomain = window.location.hostname;
-      currentDomain = currentDomain.replace(/^www\./, '');
-      
-      const isPreviewDomain = currentDomain.includes('lovable.app') || 
-                              currentDomain.includes('lovableproject.com') ||
-                              currentDomain.includes('localhost') ||
-                              currentDomain.includes('127.0.0.1');
-      
-      // If on custom domain and not authenticated, redirect to auth page
-      if (!isPreviewDomain) {
-        const { data: orgByDomain } = await supabase
-          .from("organizations")
-          .select("id")
-          .eq("custom_domain", currentDomain)
-          .eq("approval_status", "approved")
-          .maybeSingle();
-        
-        if (orgByDomain) {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (!user) {
-            // Not authenticated on custom domain, redirect to auth
+    const checkAuthAndRedirect = async () => {
+      try {
+        const currentDomain = window.location.hostname.replace(/^www\./, '');
+        const isPreviewDomain = currentDomain.includes('lovable.app') ||
+                                currentDomain.includes('lovableproject.com') ||
+                                currentDomain.includes('localhost') ||
+                                currentDomain.includes('127.0.0.1');
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (cancelled) return;
+
+        // Custom domain + not authenticated => send to auth if domain is mapped
+        if (!isPreviewDomain && !user) {
+          const { data: orgByDomain } = await supabase
+            .from("organizations")
+            .select("id")
+            .eq("custom_domain", currentDomain)
+            .eq("approval_status", "approved")
+            .maybeSingle();
+          if (cancelled) return;
+          if (orgByDomain) {
             navigate("/auth");
             return;
           }
         }
-      }
 
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user) {
-        // Check if super admin
-        const { data: isSuperAdmin } = await supabase.rpc('is_super_admin', { _user_id: user.id });
-        
-        if (isSuperAdmin) {
-          navigate("/super-admin");
-          return;
+        if (user) {
+          const { data: isSuperAdmin } = await supabase.rpc('is_super_admin', { _user_id: user.id });
+          if (cancelled) return;
+          if (isSuperAdmin) {
+            navigate("/super-admin");
+            return;
+          }
+
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("organization_id, approval_status")
+            .eq("user_id", user.id)
+            .maybeSingle();
+          if (cancelled) return;
+          if (profile?.organization_id && profile.approval_status === "approved") {
+            navigate("/dashboard");
+            return;
+          }
         }
-        
-        // Check if has organization
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("organization_id, approval_status")
-          .eq("user_id", user.id)
-          .maybeSingle();
-        
-        if (profile?.organization_id && profile.approval_status === "approved") {
-          navigate("/dashboard");
-          return;
-        }
+      } catch (error) {
+        console.error("Error checking auth:", error);
+      } finally {
+        if (!cancelled) setLoading(false);
+        clearTimeout(safety);
       }
-    } catch (error) {
-      console.error("Error checking auth:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    checkAuthAndRedirect();
+    return () => { cancelled = true; clearTimeout(safety); };
+  }, [navigate]);
 
   if (loading) {
     return (
@@ -83,6 +83,8 @@ const Index = () => {
       </div>
     );
   }
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background">
