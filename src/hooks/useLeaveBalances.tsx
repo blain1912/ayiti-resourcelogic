@@ -115,18 +115,21 @@ export function useLeaveBalances(employeeId?: string) {
   const fetchBalancesForEmployee = async (empId: string, orgId: string | null) => {
     if (!orgId) return;
 
-    const { data, error } = await supabase
-      .from("leave_balances")
-      .select("*")
-      .eq("employee_id", empId)
-      .eq("year", currentYear);
+    // Fetch employee seniority + org leave policy in parallel
+    const [profileRes, orgRes, balancesRes] = await Promise.all([
+      supabase.from("profiles").select("date_entree_fonction").eq("id", empId).maybeSingle(),
+      supabase.from("organizations").select("leave_policy").eq("id", orgId).maybeSingle(),
+      supabase.from("leave_balances").select("*").eq("employee_id", empId).eq("year", currentYear),
+    ]);
 
-    if (error) {
-      console.error("Error fetching leave balances:", error);
+    if (balancesRes.error) {
+      console.error("Error fetching leave balances:", balancesRes.error);
       return;
     }
 
-    // Create balances for all leave types, filling in defaults
+    const policy = normalizePolicy((orgRes.data as any)?.leave_policy);
+    const defaults = defaultsFromPolicy(policy, (profileRes.data as any)?.date_entree_fonction);
+
     const leaveTypes: LeaveType[] = [
       "conge_annuel",
       "conge_maladie",
@@ -138,11 +141,11 @@ export function useLeaveBalances(employeeId?: string) {
     ];
 
     const allBalances: LeaveBalance[] = leaveTypes.map((leaveType) => {
-      const existing = (data as RawLeaveBalance[] || []).find(
+      const existing = (balancesRes.data as RawLeaveBalance[] || []).find(
         (b) => b.leave_type === leaveType
       );
 
-      const totalDays = existing?.total_days || DEFAULT_LEAVE_DAYS[leaveType];
+      const totalDays = existing?.total_days ?? defaults[leaveType];
       const usedDays = existing?.used_days || 0;
 
       return {
@@ -159,6 +162,7 @@ export function useLeaveBalances(employeeId?: string) {
 
     setBalances(allBalances);
   };
+
 
   const updateBalance = async (
     employeeId: string,
