@@ -16,6 +16,23 @@ import { QRCodeSVG } from "qrcode.react";
 import { useOrganization } from "@/hooks/useOrganization";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+const buildEmployeeAttendanceQrPayload = (profile: any) =>
+  JSON.stringify({
+    type: "employee-attendance",
+    employeeId: profile.id,
+    employee_id: profile.id,
+    profileId: profile.id,
+    profile_id: profile.id,
+    id: profile.id,
+    uid: profile.id,
+    matricule: profile.code_budgetaire,
+    code_budgetaire: profile.code_budgetaire,
+    email: profile.email,
+    organizationId: profile.organization_id,
+    organization_id: profile.organization_id,
+    org: profile.organization_id,
+  });
+
 export default function EmployeeProfile() {
   const { employeeId } = useParams<{ employeeId: string }>();
   const [profile, setProfile] = useState<any>(null);
@@ -489,17 +506,12 @@ export default function EmployeeProfile() {
                         )}
                         <div className="flex flex-col items-center justify-center p-4 bg-white rounded-lg">
                           <QRCodeSVG
-                            value={JSON.stringify({
-                              id: profile.id,
-                              nom: profile.nom,
-                              prenom: profile.prenom,
-                              code_budgetaire: profile.code_budgetaire,
-                              email: profile.email,
-                              organization_id: profile.organization_id
-                            })}
+                            value={buildEmployeeAttendanceQrPayload(profile)}
                             size={150}
                             level="H"
                             includeMargin={true}
+                            bgColor="#FFFFFF"
+                            fgColor="#000000"
                           />
                         </div>
                       </div>
