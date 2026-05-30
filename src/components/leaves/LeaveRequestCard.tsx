@@ -187,43 +187,51 @@ export function LeaveRequestCard({
             </div>
           )}
 
-          {(canReview || canCancel) && (
-            <div className="flex gap-2 pt-2">
-              {canReview && (
-                <>
-                  <Button
-                    size="sm"
-                    variant="default"
-                    className="gap-1"
-                    onClick={() => handleReviewClick("approve")}
-                  >
-                    <Check className="h-4 w-4" />
-                    Approuver
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="gap-1"
-                    onClick={() => handleReviewClick("reject")}
-                  >
-                    <X className="h-4 w-4" />
-                    Rejeter
-                  </Button>
-                </>
-              )}
-              {canCancel && (
+          <div className="flex flex-wrap gap-2 pt-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1"
+              onClick={handleDownloadPdf}
+            >
+              <FileDown className="h-4 w-4" />
+              Formulaire PDF
+            </Button>
+            {canReview && (
+              <>
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="default"
                   className="gap-1"
-                  onClick={handleCancel}
+                  onClick={() => handleReviewClick("approve")}
                 >
-                  <Ban className="h-4 w-4" />
-                  Annuler
+                  <Check className="h-4 w-4" />
+                  Approuver
                 </Button>
-              )}
-            </div>
-          )}
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="gap-1"
+                  onClick={() => handleReviewClick("reject")}
+                >
+                  <X className="h-4 w-4" />
+                  Rejeter
+                </Button>
+              </>
+            )}
+            {canCancel && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1"
+                onClick={handleCancel}
+              >
+                <Ban className="h-4 w-4" />
+                Annuler
+              </Button>
+            )}
+          </div>
+
         </CardContent>
       </Card>
 
