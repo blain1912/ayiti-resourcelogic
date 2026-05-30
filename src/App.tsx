@@ -47,6 +47,7 @@ import Correspondence from "./pages/Correspondence";
 import OnboardingImport from "./pages/OnboardingImport";
 import About from "./pages/About";
 import Reports from "./pages/Reports";
+import StaffMovements from "./pages/StaffMovements";
 import Terms from "./pages/Terms";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
