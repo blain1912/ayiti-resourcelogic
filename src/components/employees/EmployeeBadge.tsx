@@ -292,30 +292,30 @@ export function EmployeeBadge({
 
       {/* Mini header */}
       <div
-        className="h-16 flex items-center justify-between px-6 border-b shrink-0"
+        className="h-16 flex items-center justify-between px-4 gap-2 border-b shrink-0"
         style={{ background: "#f8fafc", borderColor: "#e2e8f0" }}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           {organization?.logo_url ? (
             <img
               src={organization.logo_url}
               alt=""
               crossOrigin="anonymous"
-              className="w-6 h-6 rounded object-contain"
+              className="w-6 h-6 rounded object-contain shrink-0"
             />
           ) : (
             <div
-              className="w-6 h-6 rounded flex items-center justify-center text-[10px] text-white font-bold"
+              className="w-6 h-6 rounded flex items-center justify-center text-[10px] text-white font-bold shrink-0"
               style={{ background: primary }}
             >
               {organization?.name?.[0] || "O"}
             </div>
           )}
-          <span className="font-bold text-slate-800 text-xs truncate max-w-[140px]">
+          <span className="font-bold text-slate-800 text-[10px] leading-tight line-clamp-2 min-w-0">
             {organization?.name || "Institution"}
           </span>
         </div>
-        <div className="text-[8px] font-bold text-slate-400">{matricule}</div>
+        <div className="text-[8px] font-bold text-slate-400 shrink-0">{matricule}</div>
       </div>
 
       {/* Body */}
