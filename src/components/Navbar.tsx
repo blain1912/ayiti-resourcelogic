@@ -519,6 +519,12 @@ export default function Navbar() {
                     Rapports RH
                   </Button>
                 </Link>
+                <Link to="/staff-movements" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <ArrowRightLeft className="h-4 w-4" />
+                    Mouvement du personnel
+                  </Button>
+                </Link>
                 <Link to="/leaves" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                     <Calendar className="h-4 w-4" />
