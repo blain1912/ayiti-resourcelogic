@@ -1392,6 +1392,7 @@ export type Database = {
           document_city: string | null
           document_header_text: string | null
           id: string
+          leave_policy: Json
           letterhead_url: string | null
           logo_url: string | null
           max_units: number
@@ -1424,6 +1425,7 @@ export type Database = {
           document_city?: string | null
           document_header_text?: string | null
           id?: string
+          leave_policy?: Json
           letterhead_url?: string | null
           logo_url?: string | null
           max_units?: number
@@ -1456,6 +1458,7 @@ export type Database = {
           document_city?: string | null
           document_header_text?: string | null
           id?: string
+          leave_policy?: Json
           letterhead_url?: string | null
           logo_url?: string | null
           max_units?: number

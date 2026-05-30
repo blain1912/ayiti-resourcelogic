@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Calendar, Check, X, Clock, Ban, MessageSquare } from "lucide-react";
+import { Calendar, Check, X, Clock, Ban, MessageSquare, FileDown } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { supabase } from "@/integrations/supabase/client";
+import { generateLeaveRequestPdf } from "@/lib/generateLeaveRequestPdf";
+
 import {
   Dialog,
   DialogContent,
@@ -97,6 +100,49 @@ export function LeaveRequestCard({
     }
   };
 
+  const handleDownloadPdf = async () => {
+    // Fetch employee full details + organization
+    const [empRes, orgRes] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("full_name, prenom, nom, matricule, poste, date_entree_fonction, organization_id, unit_id")
+        .eq("id", request.employee_id)
+        .maybeSingle(),
+      supabase
+        .from("organizations")
+        .select("name, city, logo_url")
+        .eq("id", request.organization_id)
+        .maybeSingle(),
+    ]);
+
+    let unitName: string | null = null;
+    const emp: any = empRes.data;
+    if (emp?.unit_id) {
+      const { data: unit } = await supabase
+        .from("organizational_units")
+        .select("name")
+        .eq("id", emp.unit_id)
+        .maybeSingle();
+      unitName = (unit as any)?.name ?? null;
+    }
+
+    generateLeaveRequestPdf(
+      request,
+      {
+        full_name: emp?.full_name,
+        prenom: emp?.prenom,
+        nom: emp?.nom,
+        matricule: emp?.matricule,
+        poste: emp?.poste,
+        unite: unitName,
+        date_entree_fonction: emp?.date_entree_fonction,
+      },
+      (orgRes.data as any) || {}
+    );
+  };
+
+
+
   return (
     <>
       <Card className="hover:shadow-md transition-shadow">
@@ -141,43 +187,51 @@ export function LeaveRequestCard({
             </div>
           )}
 
-          {(canReview || canCancel) && (
-            <div className="flex gap-2 pt-2">
-              {canReview && (
-                <>
-                  <Button
-                    size="sm"
-                    variant="default"
-                    className="gap-1"
-                    onClick={() => handleReviewClick("approve")}
-                  >
-                    <Check className="h-4 w-4" />
-                    Approuver
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    className="gap-1"
-                    onClick={() => handleReviewClick("reject")}
-                  >
-                    <X className="h-4 w-4" />
-                    Rejeter
-                  </Button>
-                </>
-              )}
-              {canCancel && (
+          <div className="flex flex-wrap gap-2 pt-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1"
+              onClick={handleDownloadPdf}
+            >
+              <FileDown className="h-4 w-4" />
+              Formulaire PDF
+            </Button>
+            {canReview && (
+              <>
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="default"
                   className="gap-1"
-                  onClick={handleCancel}
+                  onClick={() => handleReviewClick("approve")}
                 >
-                  <Ban className="h-4 w-4" />
-                  Annuler
+                  <Check className="h-4 w-4" />
+                  Approuver
                 </Button>
-              )}
-            </div>
-          )}
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="gap-1"
+                  onClick={() => handleReviewClick("reject")}
+                >
+                  <X className="h-4 w-4" />
+                  Rejeter
+                </Button>
+              </>
+            )}
+            {canCancel && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1"
+                onClick={handleCancel}
+              >
+                <Ban className="h-4 w-4" />
+                Annuler
+              </Button>
+            )}
+          </div>
+
         </CardContent>
       </Card>
 

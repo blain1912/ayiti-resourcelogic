@@ -13,8 +13,10 @@ import { CustomizationSettings } from "@/components/settings/CustomizationSettin
 import { BadgeTemplateSelector } from "@/components/settings/BadgeTemplateSelector";
 import SalaryScale from "@/components/settings/SalaryScale";
 import { ProfessorGrades } from "@/components/settings/ProfessorGrades";
+import { LeavePolicySettings } from "@/components/settings/LeavePolicySettings";
 import { OnboardingKitButton } from "@/components/OnboardingKitButton";
 import { Upload } from "lucide-react";
+
 
 const Settings = () => {
   const [loading, setLoading] = useState(true);
@@ -192,6 +194,8 @@ const Settings = () => {
             <BadgeTemplateSelector organization={organization} onUpdate={refetchOrganization} />
             <SalaryScale />
             <ProfessorGrades />
+            {organization && <LeavePolicySettings organizationId={organization.id} />}
+
             {organization && (
               <Card>
                 <CardHeader>
