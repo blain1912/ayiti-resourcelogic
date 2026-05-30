@@ -81,9 +81,13 @@ export function EmployeeBadge({
   const matricule = profile.code_budgetaire || "—";
 
   const qrPayload = JSON.stringify({
+    type: "employee-attendance",
+    employeeId: profile.id,
+    profileId: profile.id,
     uid: profile.id,
     matricule,
     org: profile.organization_id,
+    organizationId: profile.organization_id,
     exp: expirationDate.toISOString().slice(0, 10),
   });
 
