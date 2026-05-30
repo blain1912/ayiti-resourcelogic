@@ -261,9 +261,9 @@ export function EmployeeBadge({
 
       {/* MRZ strip */}
       <div
-        className="shrink-0 p-4 flex flex-col justify-center gap-1"
+        className="shrink-0 px-4 py-3 flex flex-col justify-center gap-[3px]"
         style={{
-          height: 96,
+          height: 84,
           background: "#0f172a",
           borderTop: `2px solid ${accent}`,
         }}
@@ -271,10 +271,11 @@ export function EmployeeBadge({
         {[mrz1, mrz2, mrz3].map((line, i) => (
           <div
             key={i}
-            className="text-white text-[11px] leading-none whitespace-nowrap overflow-hidden"
+            className="text-white text-[9px] whitespace-nowrap overflow-hidden"
             style={{
               fontFamily: "'JetBrains Mono', ui-monospace, monospace",
-              letterSpacing: "0.15em",
+              letterSpacing: "0.08em",
+              lineHeight: "1.2",
             }}
           >
             {line}
