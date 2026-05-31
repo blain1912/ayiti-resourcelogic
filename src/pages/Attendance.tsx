@@ -20,6 +20,7 @@ import { QRScanner } from "@/components/attendance/QRScanner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { getQrEmail, getQrEmployeeId, getQrMatricule, getQrOrganizationId, parseAttendanceQrPayload } from "@/lib/attendanceQr";
+import { LateHistoryTable } from "@/components/attendance/LateHistoryTable";
 
 interface Employee {
   id: string;
@@ -610,6 +611,13 @@ const Attendance = () => {
           </div>
         </CardContent>
       </Card>
+
+      {organization && (
+        <LateHistoryTable
+          organizationId={organization.id}
+          lateThresholdTime={(organization as any).late_threshold_time}
+        />
+      )}
     </div>
   );
 };
