@@ -537,6 +537,12 @@ export default function Navbar() {
                     Congés
                   </Button>
                 </Link>
+                <Link to="/pension" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <ShieldCheck className="h-4 w-4" />
+                    Demande de pension
+                  </Button>
+                </Link>
                 <Link to="/recruitment" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                     <Briefcase className="h-4 w-4" />
