@@ -50,6 +50,7 @@ import About from "./pages/About";
 import Reports from "./pages/Reports";
 import StaffMovements from "./pages/StaffMovements";
 import Pension from "./pages/Pension";
+import PensionOverview from "./pages/PensionOverview";
 import Payroll from "./pages/Payroll";
 import PayrollDetail from "./pages/PayrollDetail";
 import SocialBenefits from "./pages/SocialBenefits";
