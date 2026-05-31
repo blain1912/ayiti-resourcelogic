@@ -1478,6 +1478,69 @@ export type Database = {
         }
         Relationships: []
       }
+      pension_requests: {
+        Row: {
+          age_years: number | null
+          comments: string | null
+          created_at: string
+          documents: Json
+          dpc_reference: string | null
+          drh_comment: string | null
+          eligibility_notes: string | null
+          employee_id: string
+          id: string
+          is_eligible: boolean | null
+          organization_id: string
+          request_date: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          service_years: number | null
+          status: Database["public"]["Enums"]["pension_request_status"]
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          age_years?: number | null
+          comments?: string | null
+          created_at?: string
+          documents?: Json
+          dpc_reference?: string | null
+          drh_comment?: string | null
+          eligibility_notes?: string | null
+          employee_id: string
+          id?: string
+          is_eligible?: boolean | null
+          organization_id: string
+          request_date?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          service_years?: number | null
+          status?: Database["public"]["Enums"]["pension_request_status"]
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          age_years?: number | null
+          comments?: string | null
+          created_at?: string
+          documents?: Json
+          dpc_reference?: string | null
+          drh_comment?: string | null
+          eligibility_notes?: string | null
+          employee_id?: string
+          id?: string
+          is_eligible?: boolean | null
+          organization_id?: string
+          request_date?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          service_years?: number | null
+          status?: Database["public"]["Enums"]["pension_request_status"]
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       platform_settings: {
         Row: {
           created_at: string
@@ -2127,6 +2190,14 @@ export type Database = {
         | "direction_generale"
         | "organisme_autonome"
         | "organisme_deconcentre"
+      pension_request_status:
+        | "brouillon"
+        | "soumis_drh"
+        | "valide_drh"
+        | "transmis_dpc"
+        | "en_instruction"
+        | "accordee"
+        | "rejetee"
       professor_grade:
         | "assistant"
         | "adjoint"
@@ -2344,6 +2415,15 @@ export const Constants = {
         "direction_generale",
         "organisme_autonome",
         "organisme_deconcentre",
+      ],
+      pension_request_status: [
+        "brouillon",
+        "soumis_drh",
+        "valide_drh",
+        "transmis_dpc",
+        "en_instruction",
+        "accordee",
+        "rejetee",
       ],
       professor_grade: [
         "assistant",
