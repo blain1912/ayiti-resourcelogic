@@ -53,6 +53,7 @@ import Terms from "./pages/Terms";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
 import InitialSetup from "./pages/InitialSetup";
+import BadgePreview from "./pages/BadgePreview";
 
 const queryClient = new QueryClient();
 
