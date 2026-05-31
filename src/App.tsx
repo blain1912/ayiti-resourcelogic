@@ -48,6 +48,7 @@ import OnboardingImport from "./pages/OnboardingImport";
 import About from "./pages/About";
 import Reports from "./pages/Reports";
 import StaffMovements from "./pages/StaffMovements";
+import Pension from "./pages/Pension";
 import Terms from "./pages/Terms";
 import ProtectedRoute from "./components/ProtectedRoute";
 import NotFound from "./pages/NotFound";
