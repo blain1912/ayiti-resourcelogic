@@ -211,6 +211,12 @@ export default function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to="/social-benefits" className="flex items-center cursor-pointer">
+                        <Gift className="h-4 w-4 mr-2" />
+                        Avantages sociaux
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/staff-movements" className="flex items-center cursor-pointer">
                         <ArrowRightLeft className="h-4 w-4 mr-2" />
                         Mouvement du personnel
