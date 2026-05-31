@@ -339,6 +339,14 @@ export default function Employees() {
           </Table>
         </CardContent>
       </Card>
+      {organization?.id && (
+        <EmployeeListExport
+          organizationId={organization.id}
+          organizationName={organization.name}
+          open={exportOpen}
+          onOpenChange={setExportOpen}
+        />
+      )}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
