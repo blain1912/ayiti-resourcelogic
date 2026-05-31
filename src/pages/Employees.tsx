@@ -240,7 +240,7 @@ export default function Employees() {
               />
             </div>
             <Button variant="outline">{t("filter")}</Button>
-            <Button variant="outline">{t("export")}</Button>
+            <Button variant="outline" onClick={() => setExportOpen(true)}>{t("export")}</Button>
             <Button
               variant="outline"
               className="gap-2"
