@@ -1103,17 +1103,29 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {professorGrades.map((grade) => (
-                            <SelectItem key={grade.id} value={grade.grade}>
-                              {GRADE_LABELS[grade.grade]} - {grade.salary.toLocaleString()} HTG
-                            </SelectItem>
-                          ))}
+                          {professorGrades.length > 0
+                            ? professorGrades.map((grade) => (
+                                <SelectItem key={grade.id} value={grade.grade}>
+                                  {GRADE_LABELS[grade.grade]} - {grade.salary.toLocaleString()} HTG
+                                </SelectItem>
+                              ))
+                            : (["assistant", "adjoint", "associe", "titulaire", "emerite"] as const).map((g) => (
+                                <SelectItem key={g} value={g}>
+                                  {GRADE_LABELS[g]}
+                                </SelectItem>
+                              ))}
                         </SelectContent>
                       </Select>
+                      {professorGrades.length === 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          Astuce : configurez les grades et salaires dans Paramètres &gt; Grades de professeurs pour afficher les montants.
+                        </p>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
 
                 {isAlsoProfessor && (
                   <>
