@@ -143,17 +143,14 @@ export function EmployeeBadge({
           borderBottom: `4px solid ${secondary}`,
         }}
       >
-        {/* Haiti emblem corner */}
-        <div
-          className="absolute top-2 left-2 w-8 h-8 rounded-full overflow-hidden flex items-center justify-center"
-          style={{
-            background: `conic-gradient(${secondary} 0deg 180deg, ${primary} 180deg 360deg)`,
-            boxShadow: `0 0 0 1.5px ${accent}`,
-          }}
-          aria-hidden
-        >
-          <div className="w-2 h-2 rounded-full" style={{ background: accent }} />
-        </div>
+        {/* Armoirie d'Haïti */}
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/5/5c/Coat_of_arms_of_Haiti.svg"
+          alt="Armoirie d'Haïti"
+          crossOrigin="anonymous"
+          className="absolute top-1.5 left-2 w-9 h-9 object-contain rounded-full bg-white/95 p-0.5"
+          style={{ boxShadow: `0 0 0 1.5px ${accent}` }}
+        />
 
         {/* Logo top-right */}
         {organization?.logo_url && (
@@ -165,7 +162,7 @@ export function EmployeeBadge({
           />
         )}
 
-        <h1 className="text-white font-extrabold text-[18px] tracking-tight leading-none uppercase">
+        <h1 className="text-white font-extrabold text-[11px] tracking-tight leading-[1.1] uppercase px-10 line-clamp-2">
           {organization?.name || "Institution"}
         </h1>
         <p
