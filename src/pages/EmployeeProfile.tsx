@@ -15,23 +15,10 @@ import { useProfessorGrades } from "@/hooks/useProfessorGrades";
 import { QRCodeSVG } from "qrcode.react";
 import { useOrganization } from "@/hooks/useOrganization";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { buildEmployeeAttendanceQrValue } from "@/lib/attendanceQr";
 
 const buildEmployeeAttendanceQrPayload = (profile: any) =>
-  JSON.stringify({
-    type: "employee-attendance",
-    employeeId: profile.id,
-    employee_id: profile.id,
-    profileId: profile.id,
-    profile_id: profile.id,
-    id: profile.id,
-    uid: profile.id,
-    matricule: profile.code_budgetaire,
-    code_budgetaire: profile.code_budgetaire,
-    email: profile.email,
-    organizationId: profile.organization_id,
-    organization_id: profile.organization_id,
-    org: profile.organization_id,
-  });
+  buildEmployeeAttendanceQrValue(profile.id);
 
 export default function EmployeeProfile() {
   const { employeeId } = useParams<{ employeeId: string }>();
