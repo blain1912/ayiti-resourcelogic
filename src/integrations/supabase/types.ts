@@ -1964,6 +1964,93 @@ export type Database = {
           },
         ]
       }
+      social_benefits_payments: {
+        Row: {
+          amount: number
+          base_amount: number
+          benefit_type: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          payment_date: string | null
+          payment_method: string | null
+          percentage: number | null
+          period: string
+          profile_id: string
+          reference: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          base_amount?: number
+          benefit_type: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          payment_date?: string | null
+          payment_method?: string | null
+          percentage?: number | null
+          period: string
+          profile_id: string
+          reference?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          base_amount?: number
+          benefit_type?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          payment_date?: string | null
+          payment_method?: string | null
+          percentage?: number | null
+          period?: string
+          profile_id?: string
+          reference?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      social_benefits_settings: {
+        Row: {
+          created_at: string
+          gratifications: Json
+          organization_id: string
+          ti_kat_enabled: boolean
+          ti_kat_label: string
+          ti_kat_percentage: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          gratifications?: Json
+          organization_id: string
+          ti_kat_enabled?: boolean
+          ti_kat_label?: string
+          ti_kat_percentage?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          gratifications?: Json
+          organization_id?: string
+          ti_kat_enabled?: boolean
+          ti_kat_label?: string
+          ti_kat_percentage?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       special_schedule_assignments: {
         Row: {
           created_at: string
