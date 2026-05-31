@@ -134,26 +134,45 @@ export const ScanCentralQR = () => {
         return;
       }
 
-      // Mark attendance
-      const currentTime = format(new Date(), "HH:mm:ss");
+      // Mark attendance - determine if late based on org threshold
+      const now = new Date();
+      const currentTime = format(now, "HH:mm:ss");
+
+      const { data: org } = await supabase
+        .from("organizations")
+        .select("late_threshold_time")
+        .eq("id", organizationId)
+        .maybeSingle();
+
+      const threshold = (org as any)?.late_threshold_time as string | undefined;
+      let computedStatus: "present" | "retard" = "present";
+      if (threshold) {
+        const [th, tm] = threshold.split(":").map(Number);
+        const thresholdMinutes = (th || 0) * 60 + (tm || 0);
+        const nowMinutes = now.getHours() * 60 + now.getMinutes();
+        if (nowMinutes > thresholdMinutes) computedStatus = "retard";
+      }
+
       const { error } = await supabase
         .from("attendance")
         .insert({
           profile_id: profileId,
           organization_id: organizationId,
           date: today,
-          status: "present",
+          status: computedStatus,
           time: currentTime,
           marked_by: user.id,
-          notes: "Pointage par QR code central",
+          notes: computedStatus === "retard"
+            ? `Pointage QR central - en retard (limite ${threshold?.slice(0,5)})`
+            : "Pointage par QR code central",
         });
 
       if (error) throw error;
 
       setScanResult("success");
       toast({
-        title: "Présence enregistrée",
-        description: `Bonjour ${employeeName} ! Votre présence a été enregistrée à ${format(new Date(), "HH:mm", { locale: fr })}`,
+        title: computedStatus === "retard" ? "Présence enregistrée (en retard)" : "Présence enregistrée",
+        description: `Bonjour ${employeeName} ! Pointage à ${format(now, "HH:mm", { locale: fr })}${computedStatus === "retard" ? ` — au-delà de ${threshold?.slice(0,5)}` : ""}`,
       });
 
     } catch (error: any) {
