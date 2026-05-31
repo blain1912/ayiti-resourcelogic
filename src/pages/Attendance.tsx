@@ -21,6 +21,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { getQrEmail, getQrEmployeeId, getQrMatricule, getQrOrganizationId, parseAttendanceQrPayload } from "@/lib/attendanceQr";
 import { LateHistoryTable } from "@/components/attendance/LateHistoryTable";
+import { TeacherAttendanceSection } from "@/components/attendance/TeacherAttendanceSection";
+import { useOrgTeacherSlots } from "@/hooks/useTeacherSchedules";
 
 interface Employee {
   id: string;
@@ -44,6 +46,8 @@ interface AttendanceRecord {
 const Attendance = () => {
   const navigate = useNavigate();
   const { organization, loading: orgLoading } = useOrganization();
+  const { data: teacherSlots = [] } = useOrgTeacherSlots(organization?.id);
+  const teacherProfileIds = new Set(teacherSlots.map((s) => s.profile_id));
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -309,19 +313,25 @@ const Attendance = () => {
   };
 
   const filteredEmployees = employees.filter(emp =>
-    emp.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.position_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.unit_name.toLowerCase().includes(searchTerm.toLowerCase())
+    !teacherProfileIds.has(emp.id) && (
+      emp.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.position_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.unit_name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
   );
 
   // Calculate statistics
+  // Calculate statistics (excluding teachers — they have their own section)
+  const standardEmployees = employees.filter((e) => !teacherProfileIds.has(e.id));
+  const standardIds = new Set(standardEmployees.map((e) => e.id));
+  const standardAttendance = attendance.filter((a) => standardIds.has(a.profile_id));
   const stats = {
-    total: employees.length,
-    present: attendance.filter(a => a.status === "present").length,
-    absent: attendance.filter(a => a.status === "absent").length,
-    late: attendance.filter(a => a.status === "retard").length,
-    leave: attendance.filter(a => ["conge", "maladie", "permission"].includes(a.status)).length,
-    notMarked: employees.length - attendance.length,
+    total: standardEmployees.length,
+    present: standardAttendance.filter(a => a.status === "present").length,
+    absent: standardAttendance.filter(a => a.status === "absent").length,
+    late: standardAttendance.filter(a => a.status === "retard").length,
+    leave: standardAttendance.filter(a => ["conge", "maladie", "permission"].includes(a.status)).length,
+    notMarked: standardEmployees.length - standardAttendance.length,
   };
 
   const attendanceRate = stats.total > 0 ? ((stats.present / stats.total) * 100).toFixed(1) : "0";
@@ -611,6 +621,13 @@ const Attendance = () => {
           </div>
         </CardContent>
       </Card>
+
+      {organization && (
+        <TeacherAttendanceSection
+          organizationId={organization.id}
+          selectedDate={selectedDate}
+        />
+      )}
 
       {organization && (
         <LateHistoryTable

@@ -2068,6 +2068,54 @@ export type Database = {
           },
         ]
       }
+      teacher_schedule_slots: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          day_of_week: number
+          end_time: string
+          id: string
+          is_active: boolean
+          organization_id: string
+          profile_id: string
+          start_time: string
+          subject: string | null
+          updated_at: string
+          valid_from: string
+          valid_to: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_active?: boolean
+          organization_id: string
+          profile_id: string
+          start_time: string
+          subject?: string | null
+          updated_at?: string
+          valid_from?: string
+          valid_to?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          organization_id?: string
+          profile_id?: string
+          start_time?: string
+          subject?: string | null
+          updated_at?: string
+          valid_from?: string
+          valid_to?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
