@@ -89,12 +89,12 @@ export default function Pension() {
   };
 
   const age = Math.floor(yearsBetween(profile?.date_naissance));
-  const service = Math.floor(yearsBetween(profile?.date_entree) * 10) / 10;
+  const service = Math.floor(yearsBetween(profile?.date_entree_fonction) * 10) / 10;
   const ageOk = age >= MIN_AGE;
   const serviceOk = service >= MIN_YEARS;
   const eligible = ageOk || serviceOk;
   const monthsToAge = ageOk ? 0 : Math.ceil((MIN_AGE - yearsBetween(profile?.date_naissance)) * 12);
-  const monthsToService = serviceOk ? 0 : Math.ceil((MIN_YEARS - yearsBetween(profile?.date_entree)) * 12);
+  const monthsToService = serviceOk ? 0 : Math.ceil((MIN_YEARS - yearsBetween(profile?.date_entree_fonction)) * 12);
 
   const docs: DocItem[] = (request?.documents as DocItem[]) || [];
   const missingRequired = REQUIRED_DOCS.filter(d => d.required && !docs.some(x => x.key === d.key));
@@ -269,7 +269,7 @@ export default function Pension() {
                 </div>
               </div>
 
-              {!profile.date_naissance || !profile.date_entree ? (
+              {!profile.date_naissance || !profile.date_entree_fonction ? (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Données manquantes</AlertTitle>
