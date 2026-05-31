@@ -14,6 +14,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 const formSchema = z.object({
   name: z.string().min(3, "Le nom doit contenir au moins 3 caractères"),
   type: z.enum(["ministere", "direction_generale", "organisme_autonome", "organisme_deconcentre"]),
+  late_threshold_time: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Format attendu HH:MM"),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -33,6 +36,7 @@ const OrganizationInfo = ({ organization, onUpdate }: OrganizationInfoProps) => 
     defaultValues: {
       name: organization?.name || "",
       type: organization?.type || "ministere",
+      late_threshold_time: (organization?.late_threshold_time || "08:30:00").slice(0, 5),
     },
   });
 
@@ -48,7 +52,11 @@ const OrganizationInfo = ({ organization, onUpdate }: OrganizationInfoProps) => 
     try {
       const { error } = await supabase
         .from("organizations")
-        .update({ name: data.name, type: data.type })
+        .update({
+          name: data.name,
+          type: data.type,
+          late_threshold_time: `${data.late_threshold_time}:00`,
+        } as any)
         .eq("id", organization.id);
 
       if (error) throw error;
@@ -126,9 +134,32 @@ const OrganizationInfo = ({ organization, onUpdate }: OrganizationInfoProps) => 
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="late_threshold_time"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {language === "fr"
+                      ? "Heure limite d'arrivée (au-delà = retard automatique)"
+                      : "Late arrival threshold (after = auto late)"}
+                  </FormLabel>
+                  <FormControl>
+                    <Input type="time" step={60} {...field} />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "fr"
+                      ? "Tout pointage effectué après cette heure sera automatiquement marqué « En retard »."
+                      : "Any check-in after this time will be marked as 'Late' automatically."}
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <Button type="submit" disabled={loading}>
-              {loading 
-                ? (language === "fr" ? "Mise à jour..." : "Updating...") 
+              {loading
+                ? (language === "fr" ? "Mise à jour..." : "Updating...")
                 : (language === "fr" ? "Mettre à jour" : "Update")}
             </Button>
           </form>
