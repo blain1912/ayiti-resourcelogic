@@ -537,6 +537,12 @@ export default function Navbar() {
                     Rapports RH
                   </Button>
                 </Link>
+                <Link to="/payroll" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <FileBarChart className="h-4 w-4" />
+                    Paie
+                  </Button>
+                </Link>
                 <Link to="/staff-movements" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                     <ArrowRightLeft className="h-4 w-4" />
