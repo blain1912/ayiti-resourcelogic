@@ -279,7 +279,19 @@ export default function Pension() {
                 </div>
               </div>
 
-              {!profile.date_naissance || !profile.date_entree_fonction ? (
+              {hasCumul && (
+                <Alert>
+                  <CheckCircle2 className="h-4 w-4" />
+                  <AlertTitle>Cumul de poste détecté (Employé + Enseignant)</AlertTitle>
+                  <AlertDescription>
+                    Conformément à la pratique de la fonction publique haïtienne, l'ancienneté retenue
+                    correspond à la <strong>date d'entrée la plus ancienne</strong> entre vos deux fonctions
+                    {earliestEntry ? <> ({new Date(earliestEntry).toLocaleDateString("fr-FR")})</> : null}.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {!profile.date_naissance || !earliestEntry ? (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Données manquantes</AlertTitle>
