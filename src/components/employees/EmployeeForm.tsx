@@ -279,9 +279,15 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
   const isProfessor = employmentType === "professeur";
   const [isAlsoProfessor, setIsAlsoProfessor] = useState(false);
 
-  // Initialize isAlsoProfessor from default values
+  // Initialize isAlsoProfessor from default values (any professor_* field signals cumul)
   useEffect(() => {
-    if (defaultValues?.professor_grade && defaultValues?.employment_type !== "professeur") {
+    if (
+      defaultValues?.employment_type !== "professeur" &&
+      (defaultValues?.professor_grade ||
+        defaultValues?.professor_code_budgetaire ||
+        defaultValues?.professor_salary ||
+        defaultValues?.professor_date_entree_fonction)
+    ) {
       setIsAlsoProfessor(true);
     }
   }, [defaultValues]);
