@@ -549,6 +549,12 @@ export default function Navbar() {
                     Paie
                   </Button>
                 </Link>
+                <Link to="/social-benefits" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <Gift className="h-4 w-4" />
+                    Avantages sociaux
+                  </Button>
+                </Link>
                 <Link to="/staff-movements" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                     <ArrowRightLeft className="h-4 w-4" />
