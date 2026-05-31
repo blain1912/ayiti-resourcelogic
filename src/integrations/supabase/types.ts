@@ -2207,6 +2207,7 @@ export type Database = {
         | "employe"
         | "approbateur_conges"
         | "secretaire"
+        | "secretaire_academique"
       application_status:
         | "pending"
         | "reviewing"
@@ -2426,6 +2427,7 @@ export const Constants = {
         "employe",
         "approbateur_conges",
         "secretaire",
+        "secretaire_academique",
       ],
       application_status: [
         "pending",
