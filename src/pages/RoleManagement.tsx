@@ -376,6 +376,10 @@ const RoleManagement = () => {
               <span className="text-sm">Gestion des fiches employés, pointage de présence, génération QR code, impression fiche vierge</span>
             </div>
             <div className="flex items-center gap-3">
+              <Badge className={`${roleColors.secretaire_academique} text-white`}>Secrétariat Académique</Badge>
+              <span className="text-sm">Gestion des horaires de cours et de la présence des enseignants</span>
+            </div>
+            <div className="flex items-center gap-3">
               <Badge className={`${roleColors.approbateur_conges} text-white`}>Approbateur Congés</Badge>
               <span className="text-sm">Peut approuver ou rejeter les demandes de congés uniquement</span>
             </div>
