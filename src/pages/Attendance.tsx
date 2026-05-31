@@ -143,7 +143,21 @@ const Attendance = () => {
       if (!user) throw new Error("Non authentifié");
 
       const dateStr = format(selectedDate, "yyyy-MM-dd");
-      const currentTime = format(new Date(), "HH:mm:ss");
+      const now = new Date();
+      const currentTime = format(now, "HH:mm:ss");
+
+      // Auto-promote 'present' to 'retard' if past organization threshold (only for today)
+      const threshold = (organization as any)?.late_threshold_time as string | undefined;
+      if (
+        status === "present" &&
+        threshold &&
+        dateStr === format(new Date(), "yyyy-MM-dd")
+      ) {
+        const [th, tm] = threshold.split(":").map(Number);
+        const thresholdMinutes = (th || 0) * 60 + (tm || 0);
+        const nowMinutes = now.getHours() * 60 + now.getMinutes();
+        if (nowMinutes > thresholdMinutes) status = "retard";
+      }
 
       // Check if attendance already exists
       const existing = attendance.find(a => a.profile_id === profileId);
