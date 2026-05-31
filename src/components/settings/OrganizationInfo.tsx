@@ -52,7 +52,11 @@ const OrganizationInfo = ({ organization, onUpdate }: OrganizationInfoProps) => 
     try {
       const { error } = await supabase
         .from("organizations")
-        .update({ name: data.name, type: data.type })
+        .update({
+          name: data.name,
+          type: data.type,
+          late_threshold_time: `${data.late_threshold_time}:00`,
+        } as any)
         .eq("id", organization.id);
 
       if (error) throw error;
