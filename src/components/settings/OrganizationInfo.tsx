@@ -14,6 +14,9 @@ import { useLanguage } from "@/contexts/LanguageContext";
 const formSchema = z.object({
   name: z.string().min(3, "Le nom doit contenir au moins 3 caractères"),
   type: z.enum(["ministere", "direction_generale", "organisme_autonome", "organisme_deconcentre"]),
+  late_threshold_time: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Format attendu HH:MM"),
 });
 
 type FormData = z.infer<typeof formSchema>;
