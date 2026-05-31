@@ -196,6 +196,7 @@ const Settings = () => {
             <SalaryScale />
             <ProfessorGrades />
             {organization && <LeavePolicySettings organizationId={organization.id} />}
+            {organization && <LateNotificationSettings organizationId={organization.id} />}
 
             {organization && (
               <Card>
