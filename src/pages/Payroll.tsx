@@ -284,6 +284,12 @@ const Payroll = () => {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
+                            <Button variant="outline" size="sm" asChild>
+                              <Link to={`/payroll/${d.id}`} className="gap-1">
+                                <ArrowRight className="h-4 w-4" />
+                                <span className="hidden sm:inline">Suivi & extraction</span>
+                              </Link>
+                            </Button>
                             <Button
                               variant="outline"
                               size="sm"
@@ -291,7 +297,6 @@ const Payroll = () => {
                             >
                               <a href={d.file_url} target="_blank" rel="noopener noreferrer" className="gap-1">
                                 <Download className="h-4 w-4" />
-                                <span className="hidden sm:inline">Télécharger</span>
                               </a>
                             </Button>
                             <Button
