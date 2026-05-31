@@ -321,13 +321,17 @@ const Attendance = () => {
   );
 
   // Calculate statistics
+  // Calculate statistics (excluding teachers — they have their own section)
+  const standardEmployees = employees.filter((e) => !teacherProfileIds.has(e.id));
+  const standardIds = new Set(standardEmployees.map((e) => e.id));
+  const standardAttendance = attendance.filter((a) => standardIds.has(a.profile_id));
   const stats = {
-    total: employees.length,
-    present: attendance.filter(a => a.status === "present").length,
-    absent: attendance.filter(a => a.status === "absent").length,
-    late: attendance.filter(a => a.status === "retard").length,
-    leave: attendance.filter(a => ["conge", "maladie", "permission"].includes(a.status)).length,
-    notMarked: employees.length - attendance.length,
+    total: standardEmployees.length,
+    present: standardAttendance.filter(a => a.status === "present").length,
+    absent: standardAttendance.filter(a => a.status === "absent").length,
+    late: standardAttendance.filter(a => a.status === "retard").length,
+    leave: standardAttendance.filter(a => ["conge", "maladie", "permission"].includes(a.status)).length,
+    notMarked: standardEmployees.length - standardAttendance.length,
   };
 
   const attendanceRate = stats.total > 0 ? ((stats.present / stats.total) * 100).toFixed(1) : "0";
