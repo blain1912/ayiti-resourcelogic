@@ -611,6 +611,13 @@ const Attendance = () => {
           </div>
         </CardContent>
       </Card>
+
+      {organization && (
+        <LateHistoryTable
+          organizationId={organization.id}
+          lateThresholdTime={(organization as any).late_threshold_time}
+        />
+      )}
     </div>
   );
 };
