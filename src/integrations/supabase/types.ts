@@ -1069,6 +1069,33 @@ export type Database = {
           },
         ]
       }
+      late_notification_settings: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          enabled_roles: string[]
+          extra_recipient_ids: string[]
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          enabled_roles?: string[]
+          extra_recipient_ids?: string[]
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          enabled_roles?: string[]
+          extra_recipient_ids?: string[]
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       leave_balances: {
         Row: {
           created_at: string
