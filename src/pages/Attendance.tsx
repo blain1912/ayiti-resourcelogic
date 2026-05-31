@@ -20,6 +20,7 @@ import { QRScanner } from "@/components/attendance/QRScanner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { getQrEmail, getQrEmployeeId, getQrMatricule, getQrOrganizationId, parseAttendanceQrPayload } from "@/lib/attendanceQr";
+import { LateHistoryTable } from "@/components/attendance/LateHistoryTable";
 
 interface Employee {
   id: string;
