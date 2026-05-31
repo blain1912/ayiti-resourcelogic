@@ -43,6 +43,7 @@ const RoleManagement = () => {
     directeur_administratif: "Directeur Administratif",
     directeur_rh: "Directeur RH",
     secretaire: "Secrétaire",
+    secretaire_academique: "Secrétariat Académique",
     approbateur_conges: "Approbateur Congés",
     employe: "Employé",
     user: "Utilisateur",
