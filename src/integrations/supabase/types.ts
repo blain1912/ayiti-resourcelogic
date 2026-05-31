@@ -1392,6 +1392,7 @@ export type Database = {
           document_city: string | null
           document_header_text: string | null
           id: string
+          late_threshold_time: string
           leave_policy: Json
           letterhead_url: string | null
           logo_url: string | null
@@ -1425,6 +1426,7 @@ export type Database = {
           document_city?: string | null
           document_header_text?: string | null
           id?: string
+          late_threshold_time?: string
           leave_policy?: Json
           letterhead_url?: string | null
           logo_url?: string | null
@@ -1458,6 +1460,7 @@ export type Database = {
           document_city?: string | null
           document_header_text?: string | null
           id?: string
+          late_threshold_time?: string
           leave_policy?: Json
           letterhead_url?: string | null
           logo_url?: string | null

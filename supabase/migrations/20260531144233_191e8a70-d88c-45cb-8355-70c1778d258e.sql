@@ -1,0 +1,1 @@
+ALTER TABLE public.organizations ADD COLUMN IF NOT EXISTS late_threshold_time time NOT NULL DEFAULT '08:30:00';
