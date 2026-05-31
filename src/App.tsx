@@ -43,6 +43,7 @@ import Birthdays from "./pages/Birthdays";
 import GreetingCards from "./pages/GreetingCards";
 import EmployeeCardRequest from "./pages/EmployeeCardRequest";
 import SpecialSchedules from "./pages/SpecialSchedules";
+import TeacherSchedules from "./pages/TeacherSchedules";
 import Correspondence from "./pages/Correspondence";
 import OnboardingImport from "./pages/OnboardingImport";
 import About from "./pages/About";
@@ -110,6 +111,7 @@ const App = () => (
             <Route path="/greeting-cards" element={<ProtectedRoute><GreetingCards /></ProtectedRoute>} />
             <Route path="/card-request" element={<ProtectedRoute><EmployeeCardRequest /></ProtectedRoute>} />
             <Route path="/special-schedules" element={<ProtectedRoute><SpecialSchedules /></ProtectedRoute>} />
+            <Route path="/teacher-schedules" element={<ProtectedRoute><TeacherSchedules /></ProtectedRoute>} />
             <Route path="/correspondence" element={<ProtectedRoute><Correspondence /></ProtectedRoute>} />
             <Route path="/onboarding-import" element={<ProtectedRoute><OnboardingImport /></ProtectedRoute>} />
             <Route path="/user-manual" element={<UserManual />} />

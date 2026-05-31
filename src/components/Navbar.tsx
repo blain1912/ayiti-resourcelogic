@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useOrganizationTheme } from "@/contexts/OrganizationThemeContext";
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield, Menu, ScanLine, Activity, FileBarChart, Briefcase, Cake, Gift, Heart, BookOpen, Clock, ArrowRightLeft, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, FileText, Settings, Globe, LogOut, LogIn, UserCircle, ClipboardCheck, CreditCard, CheckSquare, QrCode, ChevronDown, Shield, Menu, ScanLine, Activity, FileBarChart, Briefcase, Cake, Gift, Heart, BookOpen, Clock, ArrowRightLeft, ShieldCheck, GraduationCap } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -256,6 +256,12 @@ export default function Navbar() {
                       <Link to="/special-schedules" className="flex items-center cursor-pointer">
                         <Clock className="h-4 w-4 mr-2" />
                         Horaires spéciaux
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/teacher-schedules" className="flex items-center cursor-pointer">
+                        <GraduationCap className="h-4 w-4 mr-2" />
+                        Programmation enseignants
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
