@@ -88,13 +88,23 @@ export default function Pension() {
     }
   };
 
+  // Cumul de poste (Employé + Enseignant) : on retient la date la plus ancienne
+  const entryDates = [profile?.date_entree_fonction, profile?.professor_date_entree_fonction]
+    .filter(Boolean)
+    .map((d: string) => new Date(d).getTime())
+    .filter((t) => !Number.isNaN(t));
+  const earliestEntry = entryDates.length > 0
+    ? new Date(Math.min(...entryDates)).toISOString().slice(0, 10)
+    : null;
+
   const age = Math.floor(yearsBetween(profile?.date_naissance));
-  const service = Math.floor(yearsBetween(profile?.date_entree_fonction) * 10) / 10;
+  const service = Math.floor(yearsBetween(earliestEntry) * 10) / 10;
   const ageOk = age >= MIN_AGE;
   const serviceOk = service >= MIN_YEARS;
   const eligible = ageOk || serviceOk;
   const monthsToAge = ageOk ? 0 : Math.ceil((MIN_AGE - yearsBetween(profile?.date_naissance)) * 12);
-  const monthsToService = serviceOk ? 0 : Math.ceil((MIN_YEARS - yearsBetween(profile?.date_entree_fonction)) * 12);
+  const monthsToService = serviceOk ? 0 : Math.ceil((MIN_YEARS - yearsBetween(earliestEntry)) * 12);
+  const hasCumul = entryDates.length > 1;
 
   const docs: DocItem[] = (request?.documents as DocItem[]) || [];
   const missingRequired = REQUIRED_DOCS.filter(d => d.required && !docs.some(x => x.key === d.key));
@@ -269,7 +279,19 @@ export default function Pension() {
                 </div>
               </div>
 
-              {!profile.date_naissance || !profile.date_entree_fonction ? (
+              {hasCumul && (
+                <Alert>
+                  <CheckCircle2 className="h-4 w-4" />
+                  <AlertTitle>Cumul de poste détecté (Employé + Enseignant)</AlertTitle>
+                  <AlertDescription>
+                    Conformément à la pratique de la fonction publique haïtienne, l'ancienneté retenue
+                    correspond à la <strong>date d'entrée la plus ancienne</strong> entre vos deux fonctions
+                    {earliestEntry ? <> ({new Date(earliestEntry).toLocaleDateString("fr-FR")})</> : null}.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {!profile.date_naissance || !earliestEntry ? (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Données manquantes</AlertTitle>
