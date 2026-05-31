@@ -56,6 +56,7 @@ const RoleManagement = () => {
     directeur_administratif: "bg-blue-500",
     directeur_rh: "bg-green-500",
     secretaire: "bg-teal-500",
+    secretaire_academique: "bg-indigo-500",
     approbateur_conges: "bg-amber-500",
     employe: "bg-gray-500",
     user: "bg-slate-500",
