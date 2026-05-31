@@ -1508,6 +1508,111 @@ export type Database = {
         }
         Relationships: []
       }
+      payroll_payments: {
+        Row: {
+          autres_retenues: number
+          aval: number
+          cas_fdu: number
+          cfgdct: number
+          code_employe: string | null
+          confirmed_by: string | null
+          created_at: string
+          emargement_document_id: string | null
+          id: string
+          isr: number
+          montant_brut: number
+          montant_net: number
+          nif: string | null
+          no_cheque: string | null
+          nom_complet: string
+          notes: string | null
+          organization_id: string
+          payment_date: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          pension: number
+          period: string
+          poste: string | null
+          profile_id: string | null
+          remboursement: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          autres_retenues?: number
+          aval?: number
+          cas_fdu?: number
+          cfgdct?: number
+          code_employe?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          emargement_document_id?: string | null
+          id?: string
+          isr?: number
+          montant_brut?: number
+          montant_net?: number
+          nif?: string | null
+          no_cheque?: string | null
+          nom_complet: string
+          notes?: string | null
+          organization_id: string
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          pension?: number
+          period: string
+          poste?: string | null
+          profile_id?: string | null
+          remboursement?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          autres_retenues?: number
+          aval?: number
+          cas_fdu?: number
+          cfgdct?: number
+          code_employe?: string | null
+          confirmed_by?: string | null
+          created_at?: string
+          emargement_document_id?: string | null
+          id?: string
+          isr?: number
+          montant_brut?: number
+          montant_net?: number
+          nif?: string | null
+          no_cheque?: string | null
+          nom_complet?: string
+          notes?: string | null
+          organization_id?: string
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          pension?: number
+          period?: string
+          poste?: string | null
+          profile_id?: string | null
+          remboursement?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payroll_payments_emargement_document_id_fkey"
+            columns: ["emargement_document_id"]
+            isOneToOne: false
+            referencedRelation: "emargement_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payroll_payments_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pension_requests: {
         Row: {
           age_years: number | null
