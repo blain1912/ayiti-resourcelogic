@@ -279,9 +279,15 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
   const isProfessor = employmentType === "professeur";
   const [isAlsoProfessor, setIsAlsoProfessor] = useState(false);
 
-  // Initialize isAlsoProfessor from default values
+  // Initialize isAlsoProfessor from default values (any professor_* field signals cumul)
   useEffect(() => {
-    if (defaultValues?.professor_grade && defaultValues?.employment_type !== "professeur") {
+    if (
+      defaultValues?.employment_type !== "professeur" &&
+      (defaultValues?.professor_grade ||
+        defaultValues?.professor_code_budgetaire ||
+        defaultValues?.professor_salary ||
+        defaultValues?.professor_date_entree_fonction)
+    ) {
       setIsAlsoProfessor(true);
     }
   }, [defaultValues]);
@@ -1097,17 +1103,29 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {professorGrades.map((grade) => (
-                            <SelectItem key={grade.id} value={grade.grade}>
-                              {GRADE_LABELS[grade.grade]} - {grade.salary.toLocaleString()} HTG
-                            </SelectItem>
-                          ))}
+                          {professorGrades.length > 0
+                            ? professorGrades.map((grade) => (
+                                <SelectItem key={grade.id} value={grade.grade}>
+                                  {GRADE_LABELS[grade.grade]} - {grade.salary.toLocaleString()} HTG
+                                </SelectItem>
+                              ))
+                            : (["assistant", "adjoint", "associe", "titulaire", "emerite"] as const).map((g) => (
+                                <SelectItem key={g} value={g}>
+                                  {GRADE_LABELS[g]}
+                                </SelectItem>
+                              ))}
                         </SelectContent>
                       </Select>
+                      {professorGrades.length === 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          Astuce : configurez les grades et salaires dans Paramètres &gt; Grades de professeurs pour afficher les montants.
+                        </p>
+                      )}
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
 
                 {isAlsoProfessor && (
                   <>
