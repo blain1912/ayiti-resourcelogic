@@ -16,7 +16,8 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
-import { DollarSign, Upload, FileText, Download, Trash2, Loader2, Calendar } from "lucide-react";
+import { DollarSign, Upload, FileText, Download, Trash2, Loader2, Calendar, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
