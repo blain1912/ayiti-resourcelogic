@@ -95,11 +95,14 @@ const SocialBenefits = () => {
   const loadAll = async () => {
     if (!orgId) return;
     setLoading(true);
-    const [{ data: s }, { data: emps }] = await Promise.all([
+    const [{ data: s }, { data: profs }, { data: positions }, { data: grades }] = await Promise.all([
       supabase.from("social_benefits_settings").select("*").eq("organization_id", orgId).maybeSingle(),
-      supabase.from("profiles").select("id, full_name, salaire_brut, poste")
+      supabase.from("profiles")
+        .select("id, full_name, position_id, professor_grade, professor_salary")
         .eq("organization_id", orgId).eq("approval_status", "approved")
         .order("full_name"),
+      supabase.from("positions").select("id, name, salary").eq("organization_id", orgId),
+      supabase.from("professor_grades").select("grade, salary").eq("organization_id", orgId),
     ]);
 
     if (s) {
@@ -119,7 +122,23 @@ const SocialBenefits = () => {
         gratifications: DEFAULT_GRATIFS,
       });
     }
-    setEmployees((emps as any) || []);
+
+    const posMap = new Map((positions || []).map((p: any) => [p.id, { name: p.name, salary: Number(p.salary) || 0 }]));
+    const gradeMap = new Map((grades || []).map((g: any) => [g.grade, Number(g.salary) || 0]));
+
+    const list: EmployeeRow[] = (profs || []).map((p: any) => {
+      const pos = p.position_id ? posMap.get(p.position_id) : null;
+      const profSalary = Number(p.professor_salary) || (p.professor_grade ? gradeMap.get(p.professor_grade) || 0 : 0);
+      const brut = (pos?.salary || 0) + profSalary;
+      const posteParts = [pos?.name, profSalary ? "Professeur" : null].filter(Boolean);
+      return {
+        id: p.id,
+        full_name: p.full_name || "Sans nom",
+        salaire_brut: brut,
+        poste: posteParts.join(" + ") || null,
+      };
+    });
+    setEmployees(list);
     setLoading(false);
   };
 
