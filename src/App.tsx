@@ -50,6 +50,7 @@ import About from "./pages/About";
 import Reports from "./pages/Reports";
 import StaffMovements from "./pages/StaffMovements";
 import Pension from "./pages/Pension";
+import PensionOverview from "./pages/PensionOverview";
 import Payroll from "./pages/Payroll";
 import PayrollDetail from "./pages/PayrollDetail";
 import SocialBenefits from "./pages/SocialBenefits";
@@ -98,6 +99,7 @@ const App = () => (
             <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
             <Route path="/staff-movements" element={<ProtectedRoute><StaffMovements /></ProtectedRoute>} />
             <Route path="/pension" element={<ProtectedRoute><Pension /></ProtectedRoute>} />
+            <Route path="/pension-overview" element={<ProtectedRoute><PensionOverview /></ProtectedRoute>} />
             <Route path="/payroll" element={<ProtectedRoute><Payroll /></ProtectedRoute>} />
             <Route path="/payroll/:id" element={<ProtectedRoute><PayrollDetail /></ProtectedRoute>} />
             <Route path="/social-benefits" element={<ProtectedRoute><SocialBenefits /></ProtectedRoute>} />

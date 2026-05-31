@@ -235,6 +235,12 @@ export default function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to="/pension-overview" className="flex items-center cursor-pointer">
+                        <ShieldCheck className="h-4 w-4 mr-2" />
+                        Suivi des retraites
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/recruitment" className="flex items-center cursor-pointer">
                         <Briefcase className="h-4 w-4 mr-2" />
                         Recrutement
