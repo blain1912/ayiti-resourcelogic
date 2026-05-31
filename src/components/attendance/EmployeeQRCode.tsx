@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { buildEmployeeAttendanceQrValue } from "@/lib/attendanceQr";
 
 export const EmployeeQRCode = () => {
   const [employeeId, setEmployeeId] = useState<string | null>(null);
@@ -67,16 +68,7 @@ export const EmployeeQRCode = () => {
     );
   }
 
-  const qrValue = JSON.stringify({
-    type: "employee-attendance",
-    employeeId,
-    employee_id: employeeId,
-    profileId: employeeId,
-    profile_id: employeeId,
-    id: employeeId,
-    uid: employeeId,
-    timestamp: Date.now(),
-  });
+  const qrValue = buildEmployeeAttendanceQrValue(employeeId);
 
   return (
     <Card>

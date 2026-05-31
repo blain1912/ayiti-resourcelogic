@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Download, Printer } from "lucide-react";
 import { format, addMonths } from "date-fns";
 import { fr } from "date-fns/locale";
+import { buildEmployeeAttendanceQrValue } from "@/lib/attendanceQr";
 
 interface EmployeeBadgeProps {
   profile: {
@@ -80,21 +81,7 @@ export function EmployeeBadge({
   const fullName = `${profile.prenom || ""} ${profile.nom || ""}`.trim();
   const matricule = profile.code_budgetaire || "—";
 
-  const qrPayload = JSON.stringify({
-    type: "employee-attendance",
-    employeeId: profile.id,
-    employee_id: profile.id,
-    profileId: profile.id,
-    profile_id: profile.id,
-    id: profile.id,
-    uid: profile.id,
-    matricule,
-    code_budgetaire: profile.code_budgetaire,
-    org: profile.organization_id,
-    organizationId: profile.organization_id,
-    organization_id: profile.organization_id,
-    exp: expirationDate.toISOString().slice(0, 10),
-  });
+  const qrPayload = buildEmployeeAttendanceQrValue(profile.id);
 
   // MRZ lines (3-line ID card format, passport-inspired)
   const dob = profile.date_naissance
