@@ -1,33 +1,31 @@
 import { useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
-import { Check, GraduationCap, Calendar, Shield, Phone, MapPin } from "lucide-react";
+import { Check, Building2, Calendar, Shield } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
 /**
- * Aperçu badge élève — style SaaS moderne
- * Palette par défaut : Bleu institutionnel #0F4C81, Bleu clair #3A86FF,
- * Blanc, Gris clair #F5F7FA, Gris foncé #2C3E50
- * Typo : Poppins
+ * Aperçu badge employé — style SaaS moderne
+ * Palette : Bleu institutionnel #0F4C81, Bleu clair #3A86FF,
+ * Blanc, Gris clair #F5F7FA, Gris foncé #2C3E50 · Typo Poppins
  */
 const BadgePreview = () => {
   const [primary, setPrimary] = useState("#0F4C81");
   const [accent, setAccent] = useState("#3A86FF");
-  const [schoolName, setSchoolName] = useState("Lycée National de Port-au-Prince");
-  const [schoolShort, setSchoolShort] = useState("LNPP");
+  const [orgName, setOrgName] = useState("Ministère de l'Économie et des Finances");
+  const [orgShort, setOrgShort] = useState("MEF");
   const [year, setYear] = useState("2025 – 2026");
 
-  const student = {
+  const employee = {
     prenom: "Marie-Claire",
     nom: "DESROSIERS",
-    classe: "Terminale C",
-    matricule: "LNPP-2025-0427",
-    section: "Sciences Expérimentales",
-    naissance: "14 / 03 / 2008",
-    tuteur: "Jean DESROSIERS",
+    poste: "Directrice des Ressources Humaines",
+    departement: "Direction Générale",
+    matricule: "MEF-2025-0427",
+    nif: "003-852-741-9",
+    embauche: "12 / 03 / 2018",
     tel: "+509 3712 4488",
-    adresse: "Delmas 75, Port-au-Prince",
   };
 
   const font = "'Poppins', system-ui, sans-serif";
@@ -49,7 +47,6 @@ const BadgePreview = () => {
         border: "1px solid rgba(15,76,129,0.08)",
       }}
     >
-      {/* Header gradient */}
       <div
         style={{
           height: 130,
@@ -59,7 +56,6 @@ const BadgePreview = () => {
           color: "#fff",
         }}
       >
-        {/* Decorative circles */}
         <div
           style={{
             position: "absolute",
@@ -97,7 +93,7 @@ const BadgePreview = () => {
               border: "1px solid rgba(255,255,255,0.25)",
             }}
           >
-            <GraduationCap size={22} color="#fff" />
+            <Building2 size={22} color="#fff" />
           </div>
           <div
             style={{
@@ -110,13 +106,13 @@ const BadgePreview = () => {
               border: "1px solid rgba(255,255,255,0.3)",
             }}
           >
-            CARTE ÉLÈVE
+            BADGE EMPLOYÉ
           </div>
         </div>
 
         <div style={{ marginTop: 14, position: "relative" }}>
           <div style={{ fontSize: 11, fontWeight: 500, opacity: 0.85, letterSpacing: "0.05em" }}>
-            {schoolShort}
+            {orgShort}
           </div>
           <div
             style={{
@@ -127,12 +123,11 @@ const BadgePreview = () => {
               maxWidth: 240,
             }}
           >
-            {schoolName}
+            {orgName}
           </div>
         </div>
       </div>
 
-      {/* Photo flottante */}
       <div
         style={{
           position: "absolute",
@@ -162,12 +157,11 @@ const BadgePreview = () => {
             fontFamily: font,
           }}
         >
-          {student.prenom[0]}
-          {student.nom[0]}
+          {employee.prenom[0]}
+          {employee.nom[0]}
         </div>
       </div>
 
-      {/* Identité */}
       <div style={{ paddingTop: 56, paddingInline: 22, textAlign: "center" }}>
         <div
           style={{
@@ -178,7 +172,7 @@ const BadgePreview = () => {
             letterSpacing: "-0.01em",
           }}
         >
-          {student.prenom} <span style={{ fontWeight: 800 }}>{student.nom}</span>
+          {employee.prenom} <span style={{ fontWeight: 800 }}>{employee.nom}</span>
         </div>
         <div
           style={{
@@ -192,14 +186,16 @@ const BadgePreview = () => {
             borderRadius: 999,
           }}
         >
-          {student.classe} · {student.section}
+          {employee.poste}
+        </div>
+        <div style={{ fontSize: 9.5, color: "#2C3E50", opacity: 0.7, marginTop: 3, fontWeight: 500 }}>
+          {employee.departement}
         </div>
       </div>
 
-      {/* Infos */}
       <div
         style={{
-          margin: "14px 18px 0",
+          margin: "12px 18px 0",
           padding: "10px 14px",
           background: "#F5F7FA",
           borderRadius: 12,
@@ -212,20 +208,21 @@ const BadgePreview = () => {
         <div className="flex justify-between">
           <span style={{ opacity: 0.6, fontWeight: 500 }}>Matricule</span>
           <span style={{ fontWeight: 700, fontFamily: "'JetBrains Mono', monospace" }}>
-            {student.matricule}
+            {employee.matricule}
           </span>
         </div>
         <div className="flex justify-between">
-          <span style={{ opacity: 0.6, fontWeight: 500 }}>Né(e) le</span>
-          <span style={{ fontWeight: 600 }}>{student.naissance}</span>
+          <span style={{ opacity: 0.6, fontWeight: 500 }}>NIF</span>
+          <span style={{ fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>
+            {employee.nif}
+          </span>
         </div>
         <div className="flex justify-between">
-          <span style={{ opacity: 0.6, fontWeight: 500 }}>Tuteur</span>
-          <span style={{ fontWeight: 600 }}>{student.tuteur}</span>
+          <span style={{ opacity: 0.6, fontWeight: 500 }}>Embauche</span>
+          <span style={{ fontWeight: 600 }}>{employee.embauche}</span>
         </div>
       </div>
 
-      {/* QR + statuts */}
       <div
         style={{
           display: "flex",
@@ -242,13 +239,13 @@ const BadgePreview = () => {
             borderRadius: 10,
           }}
         >
-          <QRCodeSVG value={`STUDENT:${student.matricule}`} size={70} level="M" fgColor={primary} />
+          <QRCodeSVG value={`EMP:${employee.matricule}`} size={70} level="M" fgColor={primary} />
         </div>
         <div style={{ flex: 1, display: "grid", gap: 5 }}>
           {[
-            { label: "Élève actif", color: "#10B981" },
-            { label: "Inscription validée", color: accent },
-            { label: `Année ${year}`, color: primary },
+            { label: "Employé actif", color: "#10B981" },
+            { label: "Contrat validé", color: accent },
+            { label: `Exercice ${year}`, color: primary },
           ].map((s) => (
             <div
               key={s.label}
@@ -281,7 +278,6 @@ const BadgePreview = () => {
         </div>
       </div>
 
-      {/* Footer */}
       <div
         style={{
           position: "absolute",
@@ -328,30 +324,29 @@ const BadgePreview = () => {
               letterSpacing: "-0.02em",
             }}
           >
-            Aperçu — Badge Élève
+            Aperçu — Badge Employé
           </h1>
           <p style={{ color: "#2C3E50", opacity: 0.7, marginTop: 6, fontWeight: 500 }}>
-            Style SaaS moderne · Poppins · Personnalisable par école
+            Style SaaS moderne · Poppins · Personnalisable par organisation
           </p>
         </div>
 
         <div className="grid md:grid-cols-[1fr_auto] gap-10 items-start justify-items-center">
-          {/* Customizer */}
           <Card className="p-6 w-full max-w-sm" style={{ fontFamily: font, borderRadius: 16 }}>
             <h3 className="font-bold mb-4" style={{ color: "#2C3E50" }}>
-              Personnalisation école
+              Personnalisation organisation
             </h3>
             <div className="space-y-4">
               <div>
-                <Label>Nom de l'école</Label>
-                <Input value={schoolName} onChange={(e) => setSchoolName(e.target.value)} />
+                <Label>Nom de l'organisation</Label>
+                <Input value={orgName} onChange={(e) => setOrgName(e.target.value)} />
               </div>
               <div>
                 <Label>Sigle</Label>
-                <Input value={schoolShort} onChange={(e) => setSchoolShort(e.target.value)} />
+                <Input value={orgShort} onChange={(e) => setOrgShort(e.target.value)} />
               </div>
               <div>
-                <Label>Année académique</Label>
+                <Label>Exercice / Année</Label>
                 <Input value={year} onChange={(e) => setYear(e.target.value)} />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -378,7 +373,7 @@ const BadgePreview = () => {
 
             <div className="mt-6 p-3 rounded-lg" style={{ background: "#F5F7FA", fontSize: 11 }}>
               <p style={{ color: "#2C3E50", fontWeight: 600, marginBottom: 6 }}>
-                Palette par défaut
+                Palette recommandée
               </p>
               <div className="flex gap-2">
                 {["#0F4C81", "#3A86FF", "#FFFFFF", "#F5F7FA", "#2C3E50"].map((c) => (
@@ -398,7 +393,6 @@ const BadgePreview = () => {
             </div>
           </Card>
 
-          {/* Badge */}
           <div>{Badge}</div>
         </div>
       </div>
