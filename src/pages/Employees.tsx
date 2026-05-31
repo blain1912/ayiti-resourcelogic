@@ -61,6 +61,7 @@ export default function Employees() {
   const { grades: professorGrades } = useProfessorGrades(organization?.id);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
 
   useEffect(() => {
     if (organization?.id) {
