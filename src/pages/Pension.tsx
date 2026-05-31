@@ -269,7 +269,7 @@ export default function Pension() {
                 </div>
               </div>
 
-              {!profile.date_naissance || !profile.date_entree ? (
+              {!profile.date_naissance || !profile.date_entree_fonction ? (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>Données manquantes</AlertTitle>
