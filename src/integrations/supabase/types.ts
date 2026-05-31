@@ -2027,6 +2027,7 @@ export type Database = {
           gratifications: Json
           organization_id: string
           ti_kat_enabled: boolean
+          ti_kat_fixed_amount: number
           ti_kat_label: string
           ti_kat_percentage: number
           updated_at: string
@@ -2036,6 +2037,7 @@ export type Database = {
           gratifications?: Json
           organization_id: string
           ti_kat_enabled?: boolean
+          ti_kat_fixed_amount?: number
           ti_kat_label?: string
           ti_kat_percentage?: number
           updated_at?: string
@@ -2045,6 +2047,7 @@ export type Database = {
           gratifications?: Json
           organization_id?: string
           ti_kat_enabled?: boolean
+          ti_kat_fixed_amount?: number
           ti_kat_label?: string
           ti_kat_percentage?: number
           updated_at?: string

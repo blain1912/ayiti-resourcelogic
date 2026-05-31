@@ -25,6 +25,7 @@ interface Settings {
   organization_id: string;
   ti_kat_enabled: boolean;
   ti_kat_percentage: number;
+  ti_kat_fixed_amount: number;
   ti_kat_label: string;
   gratifications: Record<GratificationKey, Gratification>;
 }
@@ -110,6 +111,7 @@ const SocialBenefits = () => {
         organization_id: s.organization_id,
         ti_kat_enabled: s.ti_kat_enabled,
         ti_kat_percentage: Number(s.ti_kat_percentage) || 0,
+        ti_kat_fixed_amount: Number((s as any).ti_kat_fixed_amount) || 0,
         ti_kat_label: s.ti_kat_label || "Ti Kat",
         gratifications: { ...DEFAULT_GRATIFS, ...(s.gratifications as any || {}) },
       });
@@ -118,6 +120,7 @@ const SocialBenefits = () => {
         organization_id: orgId,
         ti_kat_enabled: true,
         ti_kat_percentage: 0,
+        ti_kat_fixed_amount: 0,
         ti_kat_label: "Ti Kat",
         gratifications: DEFAULT_GRATIFS,
       });
@@ -160,9 +163,10 @@ const SocialBenefits = () => {
       organization_id: orgId,
       ti_kat_enabled: settings.ti_kat_enabled,
       ti_kat_percentage: settings.ti_kat_percentage,
+      ti_kat_fixed_amount: settings.ti_kat_fixed_amount,
       ti_kat_label: settings.ti_kat_label,
       gratifications: settings.gratifications as any,
-    });
+    } as any);
     setSaving(false);
     if (error) toast({ title: "Erreur", description: error.message, variant: "destructive" });
     else toast({ title: "Configuration enregistrée" });
@@ -170,18 +174,19 @@ const SocialBenefits = () => {
 
   // -------- Ti Kat --------
   const tiKatPeriod = `${tiKatYear}-${tiKatMonth.padStart(2, "0")}`;
-  useEffect(() => { if (orgId && settings) loadPayments("ti_kat", tiKatPeriod); }, [orgId, tiKatPeriod, settings?.ti_kat_percentage]);
+  useEffect(() => { if (orgId && settings) loadPayments("ti_kat", tiKatPeriod); }, [orgId, tiKatPeriod, settings?.ti_kat_percentage, settings?.ti_kat_fixed_amount]);
 
   const tiKatRows = useMemo(() => {
     if (!settings) return [];
     const pct = Number(settings.ti_kat_percentage) || 0;
+    const fixed = Number(settings.ti_kat_fixed_amount) || 0;
     return employees.map((e) => {
       const base = Number(e.salaire_brut) || 0;
-      const amount = +(base * pct / 100).toFixed(2);
+      const amount = +(base * pct / 100 + fixed).toFixed(2);
       const pay = payments.find((p) => p.profile_id === e.id && p.benefit_type === "ti_kat" && p.period === tiKatPeriod);
       return { emp: e, base, amount, pay };
     });
-  }, [employees, settings?.ti_kat_percentage, payments, tiKatPeriod, settings]);
+  }, [employees, settings?.ti_kat_percentage, settings?.ti_kat_fixed_amount, payments, tiKatPeriod, settings]);
 
   const tiKatTotals = useMemo(() => ({
     count: tiKatRows.length,
@@ -193,7 +198,8 @@ const SocialBenefits = () => {
   const initTiKat = async () => {
     if (!orgId || !settings) return;
     const pct = Number(settings.ti_kat_percentage) || 0;
-    if (pct <= 0) return toast({ title: "Définissez d'abord un pourcentage", variant: "destructive" });
+    const fixed = Number(settings.ti_kat_fixed_amount) || 0;
+    if (pct <= 0 && fixed <= 0) return toast({ title: "Définissez d'abord un pourcentage ou un montant fixe", variant: "destructive" });
     const toUpsert = employees.map((e) => {
       const base = Number(e.salaire_brut) || 0;
       return {
@@ -203,7 +209,7 @@ const SocialBenefits = () => {
         period: tiKatPeriod,
         base_amount: base,
         percentage: pct,
-        amount: +(base * pct / 100).toFixed(2),
+        amount: +(base * pct / 100 + fixed).toFixed(2),
       };
     });
     const { error } = await supabase.from("social_benefits_payments")
@@ -347,7 +353,7 @@ const SocialBenefits = () => {
                       <Switch checked={settings.ti_kat_enabled}
                         onCheckedChange={(v) => setSettings({ ...settings, ti_kat_enabled: v })} />
                     </div>
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-3 gap-4">
                       <div className="space-y-2">
                         <Label>Libellé</Label>
                         <Input value={settings.ti_kat_label}
@@ -358,9 +364,17 @@ const SocialBenefits = () => {
                         <Input type="number" step="0.01" min="0" max="100"
                           value={settings.ti_kat_percentage}
                           onChange={(e) => setSettings({ ...settings, ti_kat_percentage: Number(e.target.value) })} />
-                        <p className="text-xs text-muted-foreground">Calculé au prorata du salaire brut de chaque employé.</p>
+                        <p className="text-xs text-muted-foreground">Calculé au prorata du salaire brut.</p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Montant fixe (HTG)</Label>
+                        <Input type="number" step="0.01" min="0"
+                          value={settings.ti_kat_fixed_amount}
+                          onChange={(e) => setSettings({ ...settings, ti_kat_fixed_amount: Number(e.target.value) })} />
+                        <p className="text-xs text-muted-foreground">Ajouté au % (le cas échéant). Laisser 0 si non applicable.</p>
                       </div>
                     </div>
+                    <p className="text-xs text-muted-foreground">Formule : <strong>(Brut × %) + Montant fixe</strong>.</p>
                   </div>
 
                   {/* Gratifications config */}
@@ -424,9 +438,10 @@ const SocialBenefits = () => {
               <CardHeader className="space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 flex-wrap">
                       <CreditCard className="h-5 w-5" /> {settings.ti_kat_label}
-                      <Badge variant="secondary">{settings.ti_kat_percentage}% du brut</Badge>
+                      {settings.ti_kat_percentage > 0 && <Badge variant="secondary">{settings.ti_kat_percentage}% du brut</Badge>}
+                      {settings.ti_kat_fixed_amount > 0 && <Badge variant="secondary">+ {fmt(settings.ti_kat_fixed_amount)} HTG fixe</Badge>}
                     </CardTitle>
                     <CardDescription>Suivi mensuel par employé.</CardDescription>
                   </div>

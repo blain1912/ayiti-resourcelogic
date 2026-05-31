@@ -1,0 +1,1 @@
+ALTER TABLE public.social_benefits_settings ADD COLUMN IF NOT EXISTS ti_kat_fixed_amount numeric NOT NULL DEFAULT 0;
