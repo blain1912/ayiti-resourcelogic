@@ -36,6 +36,7 @@ const OrganizationInfo = ({ organization, onUpdate }: OrganizationInfoProps) => 
     defaultValues: {
       name: organization?.name || "",
       type: organization?.type || "ministere",
+      late_threshold_time: (organization?.late_threshold_time || "08:30:00").slice(0, 5),
     },
   });
 
