@@ -38,6 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { EmployeeListExport } from "@/components/employees/EmployeeListExport";
 
 interface Employee {
   id: string;
@@ -60,6 +61,7 @@ export default function Employees() {
   const { grades: professorGrades } = useProfessorGrades(organization?.id);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
 
   useEffect(() => {
     if (organization?.id) {
@@ -238,7 +240,7 @@ export default function Employees() {
               />
             </div>
             <Button variant="outline">{t("filter")}</Button>
-            <Button variant="outline">{t("export")}</Button>
+            <Button variant="outline" onClick={() => setExportOpen(true)}>{t("export")}</Button>
             <Button
               variant="outline"
               className="gap-2"
@@ -337,6 +339,14 @@ export default function Employees() {
           </Table>
         </CardContent>
       </Card>
+      {organization?.id && (
+        <EmployeeListExport
+          organizationId={organization.id}
+          organizationName={organization.name}
+          open={exportOpen}
+          onOpenChange={setExportOpen}
+        />
+      )}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
