@@ -78,7 +78,7 @@ export function EmployeeListExport({
         position: p.position?.name || "—",
         salary: p.position?.salary || null,
         unit: p.unit?.name || "—",
-        phone: p.telephone || "—",
+        phone: p.tel_1 || p.tel_2 || "—",
         email: p.email || "—",
       }));
 
