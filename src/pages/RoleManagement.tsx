@@ -328,6 +328,7 @@ const RoleManagement = () => {
                           <SelectItem value="user">Utilisateur</SelectItem>
                           <SelectItem value="employe">Employé</SelectItem>
                           <SelectItem value="secretaire">Secrétaire</SelectItem>
+                          <SelectItem value="secretaire_academique">Secrétariat Académique</SelectItem>
                           <SelectItem value="approbateur_conges">Approbateur Congés</SelectItem>
                           <SelectItem value="directeur_rh">Directeur RH</SelectItem>
                           <SelectItem value="directeur_administratif">Directeur Administratif</SelectItem>
