@@ -134,9 +134,32 @@ const OrganizationInfo = ({ organization, onUpdate }: OrganizationInfoProps) => 
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="late_threshold_time"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    {language === "fr"
+                      ? "Heure limite d'arrivée (au-delà = retard automatique)"
+                      : "Late arrival threshold (after = auto late)"}
+                  </FormLabel>
+                  <FormControl>
+                    <Input type="time" step={60} {...field} />
+                  </FormControl>
+                  <p className="text-xs text-muted-foreground">
+                    {language === "fr"
+                      ? "Tout pointage effectué après cette heure sera automatiquement marqué « En retard »."
+                      : "Any check-in after this time will be marked as 'Late' automatically."}
+                  </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <Button type="submit" disabled={loading}>
-              {loading 
-                ? (language === "fr" ? "Mise à jour..." : "Updating...") 
+              {loading
+                ? (language === "fr" ? "Mise à jour..." : "Updating...")
                 : (language === "fr" ? "Mettre à jour" : "Update")}
             </Button>
           </form>
