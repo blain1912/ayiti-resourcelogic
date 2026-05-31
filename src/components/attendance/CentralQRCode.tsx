@@ -6,6 +6,7 @@ import { Download, RefreshCw, Monitor } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { buildCentralAttendanceQrValue } from "@/lib/attendanceQr";
 
 export const CentralQRCode = () => {
   const [organizationId, setOrganizationId] = useState<string | null>(null);
@@ -96,14 +97,11 @@ export const CentralQRCode = () => {
     );
   }
 
-  const qrValue = JSON.stringify({
-    type: "central-attendance",
+  const qrValue = buildCentralAttendanceQrValue(
     organizationId,
-    organization_id: organizationId,
-    org: organizationId,
-    dailyCode,
-    date: format(new Date(), "yyyy-MM-dd"),
-  });
+    format(new Date(), "yyyy-MM-dd"),
+    dailyCode
+  );
 
   const today = format(new Date(), "EEEE d MMMM yyyy", { locale: fr });
 
