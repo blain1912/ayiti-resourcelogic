@@ -62,7 +62,7 @@ export function EmployeeListExport({
       const { data, error } = await supabase
         .from("profiles")
         .select(
-          `id, full_name, sexe, employee_category, telephone, email,
+          `id, full_name, sexe, employee_category, tel_1, tel_2, email,
            position:positions(name, salary),
            unit:organizational_units(name)`
         )
