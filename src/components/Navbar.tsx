@@ -205,6 +205,12 @@ export default function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to="/payroll" className="flex items-center cursor-pointer">
+                        <FileBarChart className="h-4 w-4 mr-2" />
+                        Paie
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/staff-movements" className="flex items-center cursor-pointer">
                         <ArrowRightLeft className="h-4 w-4 mr-2" />
                         Mouvement du personnel
@@ -529,6 +535,12 @@ export default function Navbar() {
                   <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                     <FileBarChart className="h-4 w-4" />
                     Rapports RH
+                  </Button>
+                </Link>
+                <Link to="/payroll" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <FileBarChart className="h-4 w-4" />
+                    Paie
                   </Button>
                 </Link>
                 <Link to="/staff-movements" onClick={() => setMobileMenuOpen(false)}>
