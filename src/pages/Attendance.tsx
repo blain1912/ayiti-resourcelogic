@@ -21,6 +21,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { getQrEmail, getQrEmployeeId, getQrMatricule, getQrOrganizationId, parseAttendanceQrPayload } from "@/lib/attendanceQr";
 import { LateHistoryTable } from "@/components/attendance/LateHistoryTable";
+import { TeacherAttendanceSection } from "@/components/attendance/TeacherAttendanceSection";
+import { useOrgTeacherSlots } from "@/hooks/useTeacherSchedules";
 
 interface Employee {
   id: string;
@@ -44,6 +46,8 @@ interface AttendanceRecord {
 const Attendance = () => {
   const navigate = useNavigate();
   const { organization, loading: orgLoading } = useOrganization();
+  const { data: teacherSlots = [] } = useOrgTeacherSlots(organization?.id);
+  const teacherProfileIds = new Set(teacherSlots.map((s) => s.profile_id));
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -309,9 +313,11 @@ const Attendance = () => {
   };
 
   const filteredEmployees = employees.filter(emp =>
-    emp.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.position_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.unit_name.toLowerCase().includes(searchTerm.toLowerCase())
+    !teacherProfileIds.has(emp.id) && (
+      emp.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.position_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.unit_name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
   );
 
   // Calculate statistics
@@ -611,6 +617,13 @@ const Attendance = () => {
           </div>
         </CardContent>
       </Card>
+
+      {organization && (
+        <TeacherAttendanceSection
+          organizationId={organization.id}
+          selectedDate={selectedDate}
+        />
+      )}
 
       {organization && (
         <LateHistoryTable
