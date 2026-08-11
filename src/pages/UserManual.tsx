@@ -49,19 +49,56 @@ const UserManual = () => {
     window.print();
   };
 
+  const handleExportPdf = async () => {
+    const root = contentRef.current;
+    if (!root || exporting) return;
+
+    setExporting(true);
+    setQuery("");
+
+    // Ouvrir tous les accordéons pour que tout le contenu soit capturé
+    const closedTriggers = Array.from(
+      root.querySelectorAll<HTMLButtonElement>('button[aria-expanded="false"]')
+    );
+
+    try {
+      root.querySelectorAll<HTMLElement>("section[id]").forEach((s) => s.classList.remove("hidden"));
+      closedTriggers.forEach((t) => t.click());
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      await exportToPdf("manual-content", "Manuel-Utilisation-RH");
+      toast({ title: "Manuel exporté", description: "Le PDF a été téléchargé." });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Export impossible",
+        description: "Une erreur est survenue lors de la génération du PDF.",
+      });
+    } finally {
+      // Refermer les accordéons ouverts pour l'export
+      closedTriggers.forEach((t) => {
+        if (t.getAttribute("aria-expanded") === "true") t.click();
+      });
+      setExporting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-primary text-primary-foreground py-8 px-4 print:bg-white print:text-black">
         <div className="container mx-auto">
-          <div className="flex items-center gap-4 mb-4 print:hidden">
+          <div className="flex flex-wrap items-center gap-4 mb-4 print:hidden">
             <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-primary-foreground hover:bg-primary-foreground/20">
               <ArrowLeft className="h-5 w-5" />
             </Button>
+            <Button variant="outline" onClick={handleExportPdf} disabled={exporting} className="text-primary-foreground border-primary-foreground hover:bg-primary-foreground/20">
+              {exporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+              {exporting ? "Génération du PDF..." : "Exporter en PDF"}
+            </Button>
             <Button variant="outline" onClick={handlePrint} className="text-primary-foreground border-primary-foreground hover:bg-primary-foreground/20">
-              <Download className="h-4 w-4 mr-2" />
-              Imprimer / Télécharger PDF
+              <Printer className="h-4 w-4 mr-2" />
+              Imprimer
             </Button>
           </div>
           <div className="flex items-center gap-3">
