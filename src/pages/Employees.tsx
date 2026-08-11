@@ -321,6 +321,10 @@ export default function Employees() {
                             <Eye className="mr-2 h-4 w-4" />
                             Voir le profil
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setInviteEmployee(employee)}>
+                            <Mail className="mr-2 h-4 w-4" />
+                            Inviter à se connecter
+                          </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-destructive focus:text-destructive"
                             onClick={() => {
@@ -349,6 +353,11 @@ export default function Employees() {
           onOpenChange={setExportOpen}
         />
       )}
+      <InviteEmployeeDialog
+        open={!!inviteEmployee}
+        onOpenChange={(v) => !v && setInviteEmployee(null)}
+        profile={inviteEmployee ? { id: inviteEmployee.id, full_name: inviteEmployee.full_name } : null}
+      />
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
