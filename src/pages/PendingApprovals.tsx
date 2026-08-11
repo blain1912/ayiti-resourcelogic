@@ -245,6 +245,7 @@ export default function PendingApprovals() {
                             Lier à une fiche
                           </Button>
                           <AlertDialog>
+                            <AlertDialogTrigger asChild>
                               <Button size="sm" variant="default" className="gap-1">
                                 <CheckCircle className="h-3 w-3" />
                                 Approuver
