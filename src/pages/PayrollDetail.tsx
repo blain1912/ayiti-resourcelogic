@@ -481,7 +481,21 @@ const PayrollDetail = () => {
                         <TableCell>
                           <div className="font-medium">{r.nom_complet}</div>
                           <div className="text-muted-foreground text-[10px]">{r.poste}</div>
+                          {(() => {
+                            const c = cumulInfo(r);
+                            if (!c) return null;
+                            return (
+                              <Badge
+                                variant="secondary"
+                                className="mt-1 text-[10px] h-4"
+                                title={`Cumul de postes : ${c.count} lignes de paie pour ce NIF — total net ${fmt(c.totalNet)}`}
+                              >
+                                Cumul {c.index}/{c.count}
+                              </Badge>
+                            );
+                          })()}
                         </TableCell>
+
                         <TableCell className="text-right tabular-nums">{fmt(r.montant_brut)}</TableCell>
                         <TableCell className="text-right tabular-nums">{fmt(r.isr)}</TableCell>
                         <TableCell className="text-right tabular-nums">{fmt(r.cas_fdu)}</TableCell>
