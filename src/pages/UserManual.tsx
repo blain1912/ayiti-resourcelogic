@@ -2,16 +2,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Download, BookOpen, Users, QrCode, Calendar, Settings, Shield, Building, FileText, Mail, Briefcase, Star, Heart, Search, X } from "lucide-react";
+import { ArrowLeft, Download, BookOpen, Users, QrCode, Calendar, Settings, Shield, Building, FileText, Mail, Briefcase, Star, Heart, Search, X, Printer, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
+import { exportToPdf } from "@/lib/exportPdf";
+import { useToast } from "@/hooks/use-toast";
 
 const normalize = (value: string) =>
   value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
 const UserManual = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [query, setQuery] = useState("");
+  const [exporting, setExporting] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const [matchCount, setMatchCount] = useState<number | null>(null);
 
