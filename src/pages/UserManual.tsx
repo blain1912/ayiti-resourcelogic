@@ -71,10 +71,40 @@ const UserManual = () => {
               <p className="text-primary-foreground/80">Système de Gestion des Ressources Humaines</p>
             </div>
           </div>
+
+          <div className="mt-6 print:hidden">
+            <div className="relative max-w-xl">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary-foreground/70" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Rechercher une fonctionnalité (ex : paie, retraites, avantages sociaux)"
+                aria-label="Rechercher dans le manuel"
+                className="pl-9 pr-9 bg-primary-foreground/10 border-primary-foreground/30 text-primary-foreground placeholder:text-primary-foreground/60"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  aria-label="Effacer la recherche"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-primary-foreground/70 hover:text-primary-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+            {matchCount !== null && (
+              <p className="mt-2 text-sm text-primary-foreground/80">
+                {matchCount === 0
+                  ? "Aucune section ne correspond à votre recherche."
+                  : `${matchCount} section${matchCount > 1 ? "s" : ""} correspondante${matchCount > 1 ? "s" : ""}.`}
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="container mx-auto py-8 px-4 max-w-4xl">
+      <div className="container mx-auto py-8 px-4 max-w-4xl" ref={contentRef}>
         {/* Table des matières */}
         <Card className="mb-8 print:shadow-none print:border-none">
           <CardHeader>
