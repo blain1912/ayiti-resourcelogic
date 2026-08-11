@@ -9,6 +9,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import UnitForm from "./UnitForm";
 import UnitsList from "./UnitsList";
 import StructureCollectionButton from "./StructureCollectionButton";
+import StructureImportDialog from "./StructureImportDialog";
 
 interface OrganizationalUnitsProps {
   organizationId: string;
@@ -79,6 +80,11 @@ const OrganizationalUnits = ({ organizationId }: OrganizationalUnitsProps) => {
           </div>
           <div className="flex flex-wrap items-center gap-2">
           <StructureCollectionButton organizationName={orgName} />
+          <StructureImportDialog
+            organizationId={organizationId}
+            existingUnits={units}
+            onImported={loadUnits}
+          />
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button type="button">
