@@ -2,16 +2,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Download, BookOpen, Users, QrCode, Calendar, Settings, Shield, Building, FileText, Mail, Briefcase, Star, Heart, Search, X } from "lucide-react";
+import { ArrowLeft, Download, BookOpen, Users, QrCode, Calendar, Settings, Shield, Building, FileText, Mail, Briefcase, Star, Heart, Search, X, Printer, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
+import { exportToPdf } from "@/lib/exportPdf";
+import { useToast } from "@/hooks/use-toast";
 
 const normalize = (value: string) =>
   value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
 const UserManual = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [query, setQuery] = useState("");
+  const [exporting, setExporting] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
   const [matchCount, setMatchCount] = useState<number | null>(null);
 
@@ -49,19 +53,56 @@ const UserManual = () => {
     window.print();
   };
 
+  const handleExportPdf = async () => {
+    const root = contentRef.current;
+    if (!root || exporting) return;
+
+    setExporting(true);
+    setQuery("");
+
+    // Ouvrir tous les accordéons pour que tout le contenu soit capturé
+    const closedTriggers = Array.from(
+      root.querySelectorAll<HTMLButtonElement>('button[aria-expanded="false"]')
+    );
+
+    try {
+      root.querySelectorAll<HTMLElement>("section[id]").forEach((s) => s.classList.remove("hidden"));
+      closedTriggers.forEach((t) => t.click());
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      await exportToPdf("manual-content", "Manuel-Utilisation-RH");
+      toast({ title: "Manuel exporté", description: "Le PDF a été téléchargé." });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Export impossible",
+        description: "Une erreur est survenue lors de la génération du PDF.",
+      });
+    } finally {
+      // Refermer les accordéons ouverts pour l'export
+      closedTriggers.forEach((t) => {
+        if (t.getAttribute("aria-expanded") === "true") t.click();
+      });
+      setExporting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-primary text-primary-foreground py-8 px-4 print:bg-white print:text-black">
         <div className="container mx-auto">
-          <div className="flex items-center gap-4 mb-4 print:hidden">
+          <div className="flex flex-wrap items-center gap-4 mb-4 print:hidden">
             <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="text-primary-foreground hover:bg-primary-foreground/20">
               <ArrowLeft className="h-5 w-5" />
             </Button>
+            <Button variant="outline" onClick={handleExportPdf} disabled={exporting} className="text-primary-foreground border-primary-foreground hover:bg-primary-foreground/20">
+              {exporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Download className="h-4 w-4 mr-2" />}
+              {exporting ? "Génération du PDF..." : "Exporter en PDF"}
+            </Button>
             <Button variant="outline" onClick={handlePrint} className="text-primary-foreground border-primary-foreground hover:bg-primary-foreground/20">
-              <Download className="h-4 w-4 mr-2" />
-              Imprimer / Télécharger PDF
+              <Printer className="h-4 w-4 mr-2" />
+              Imprimer
             </Button>
           </div>
           <div className="flex items-center gap-3">
@@ -104,7 +145,7 @@ const UserManual = () => {
         </div>
       </div>
 
-      <div className="container mx-auto py-8 px-4 max-w-4xl" ref={contentRef}>
+      <div id="manual-content" className="container mx-auto py-8 px-4 max-w-4xl" ref={contentRef}>
         {/* Table des matières */}
         <Card className="mb-8 print:shadow-none print:border-none">
           <CardHeader>
@@ -142,7 +183,7 @@ const UserManual = () => {
         {/* Sections */}
         <div className="space-y-8">
           {/* Introduction */}
-          <section id="introduction">
+          <section data-pdf-section id="introduction">
             <Card className="print:shadow-none print:border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -175,7 +216,7 @@ const UserManual = () => {
           </section>
 
           {/* Connexion */}
-          <section id="connexion">
+          <section data-pdf-section id="connexion">
             <Card className="print:shadow-none print:border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -184,7 +225,7 @@ const UserManual = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="multiple" className="w-full">
                   <AccordionItem value="inscription">
                     <AccordionTrigger>Comment s'inscrire ?</AccordionTrigger>
                     <AccordionContent>
@@ -226,7 +267,7 @@ const UserManual = () => {
           </section>
 
           {/* Dashboard */}
-          <section id="dashboard">
+          <section data-pdf-section id="dashboard">
             <Card className="print:shadow-none print:border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -251,7 +292,7 @@ const UserManual = () => {
           </section>
 
           {/* Employés */}
-          <section id="employes">
+          <section data-pdf-section id="employes">
             <Card className="print:shadow-none print:border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -260,7 +301,7 @@ const UserManual = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="multiple" className="w-full">
                   <AccordionItem value="liste">
                     <AccordionTrigger>Consulter la liste des employés</AccordionTrigger>
                     <AccordionContent>
@@ -319,7 +360,7 @@ const UserManual = () => {
           </section>
 
           {/* Présence */}
-          <section id="presence">
+          <section data-pdf-section id="presence">
             <Card className="print:shadow-none print:border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -328,7 +369,7 @@ const UserManual = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="multiple" className="w-full">
                   <AccordionItem value="qr-scan">
                     <AccordionTrigger>Scanner un QR Code</AccordionTrigger>
                     <AccordionContent>
@@ -401,7 +442,7 @@ const UserManual = () => {
           </section>
 
           {/* Congés */}
-          <section id="conges">
+          <section data-pdf-section id="conges">
             <Card className="print:shadow-none print:border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -410,7 +451,7 @@ const UserManual = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="multiple" className="w-full">
                   <AccordionItem value="demande">
                     <AccordionTrigger>Faire une demande de congé</AccordionTrigger>
                     <AccordionContent>
@@ -459,7 +500,7 @@ const UserManual = () => {
           </section>
 
           {/* Correspondance */}
-          <section id="correspondance">
+          <section data-pdf-section id="correspondance">
             <Card className="print:shadow-none print:border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -469,7 +510,7 @@ const UserManual = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p>Le module de correspondance permet de créer, valider et archiver des documents administratifs officiels.</p>
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="multiple" className="w-full">
                   <AccordionItem value="modeles">
                     <AccordionTrigger>Modèles de documents</AccordionTrigger>
                     <AccordionContent>
@@ -564,7 +605,7 @@ const UserManual = () => {
           </section>
 
           {/* Recrutement */}
-          <section id="recrutement">
+          <section data-pdf-section id="recrutement">
             <Card className="print:shadow-none print:border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -573,7 +614,7 @@ const UserManual = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="multiple" className="w-full">
                   <AccordionItem value="offres">
                     <AccordionTrigger>Publier une offre d'emploi</AccordionTrigger>
                     <AccordionContent>
@@ -623,7 +664,7 @@ const UserManual = () => {
           </section>
 
           {/* Évaluations */}
-          <section id="evaluations">
+          <section data-pdf-section id="evaluations">
             <Card className="print:shadow-none print:border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -633,7 +674,7 @@ const UserManual = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <p>Le module d'évaluation permet de conduire les évaluations annuelles de performance.</p>
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="multiple" className="w-full">
                   <AccordionItem value="criteres">
                     <AccordionTrigger>Critères d'évaluation</AccordionTrigger>
                     <AccordionContent>
@@ -658,7 +699,7 @@ const UserManual = () => {
           </section>
 
           {/* Cartes de vœux */}
-          <section id="cartes-voeux">
+          <section data-pdf-section id="cartes-voeux">
             <Card className="print:shadow-none print:border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -667,7 +708,7 @@ const UserManual = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="multiple" className="w-full">
                   <AccordionItem value="occasions">
                     <AccordionTrigger>Occasions disponibles</AccordionTrigger>
                     <AccordionContent>
@@ -705,7 +746,7 @@ const UserManual = () => {
           </section>
 
           {/* Badges */}
-          <section id="badges">
+          <section data-pdf-section id="badges">
             <Card className="print:shadow-none print:border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -741,7 +782,7 @@ const UserManual = () => {
           </section>
 
           {/* Horaires Spéciaux */}
-          <section id="horaires">
+          <section data-pdf-section id="horaires">
             <Card className="print:shadow-none print:border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -750,7 +791,7 @@ const UserManual = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="multiple" className="w-full">
                   <AccordionItem value="creation-horaire">
                     <AccordionTrigger>Créer un horaire spécial</AccordionTrigger>
                     <AccordionContent>
@@ -775,7 +816,7 @@ const UserManual = () => {
 
 
           {/* Programmation enseignants */}
-          <section id="enseignants">
+          <section data-pdf-section id="enseignants">
             <Card className="print:shadow-none print:border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -788,7 +829,7 @@ const UserManual = () => {
                   Deux catégories de personnel coexistent : le personnel administratif (8h–16h, lundi au vendredi)
                   et le corps enseignant (jusqu'à 6 heures de cours par semaine, réparties librement).
                 </p>
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="multiple" className="w-full">
                   <AccordionItem value="creneaux">
                     <AccordionTrigger>Créer les créneaux de cours</AccordionTrigger>
                     <AccordionContent>
@@ -822,7 +863,7 @@ const UserManual = () => {
           </section>
 
           {/* Paie */}
-          <section id="paie">
+          <section data-pdf-section id="paie">
             <Card className="print:shadow-none print:border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -831,7 +872,7 @@ const UserManual = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="multiple" className="w-full">
                   <AccordionItem value="upload-mef">
                     <AccordionTrigger>Importer l'état d'émargement du MEF</AccordionTrigger>
                     <AccordionContent>
@@ -864,7 +905,7 @@ const UserManual = () => {
           </section>
 
           {/* Avantages sociaux */}
-          <section id="avantages">
+          <section data-pdf-section id="avantages">
             <Card className="print:shadow-none print:border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -873,7 +914,7 @@ const UserManual = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="multiple" className="w-full">
                   <AccordionItem value="ti-kat">
                     <AccordionTrigger>Ti Kat</AccordionTrigger>
                     <AccordionContent>
@@ -900,7 +941,7 @@ const UserManual = () => {
           </section>
 
           {/* Retraites */}
-          <section id="retraites">
+          <section data-pdf-section id="retraites">
             <Card className="print:shadow-none print:border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -923,7 +964,7 @@ const UserManual = () => {
           </section>
 
           {/* Mouvements & exports */}
-          <section id="mouvements">
+          <section data-pdf-section id="mouvements">
             <Card className="print:shadow-none print:border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -932,7 +973,7 @@ const UserManual = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="multiple" className="w-full">
                   <AccordionItem value="mouvements">
                     <AccordionTrigger>Registre des mouvements</AccordionTrigger>
                     <AccordionContent>
@@ -962,7 +1003,7 @@ const UserManual = () => {
 
 
           {/* Rôles */}
-          <section id="roles">
+          <section data-pdf-section id="roles">
             <Card className="print:shadow-none print:border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1011,7 +1052,7 @@ const UserManual = () => {
           </section>
 
           {/* Paramètres */}
-          <section id="parametres">
+          <section data-pdf-section id="parametres">
             <Card className="print:shadow-none print:border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1020,7 +1061,7 @@ const UserManual = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="multiple" className="w-full">
                   <AccordionItem value="organisation">
                     <AccordionTrigger>Informations de l'organisation</AccordionTrigger>
                     <AccordionContent>
@@ -1112,7 +1153,7 @@ const UserManual = () => {
           </section>
 
           {/* Super Admin */}
-          <section id="super-admin">
+          <section data-pdf-section id="super-admin">
             <Card className="print:shadow-none print:border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -1124,7 +1165,7 @@ const UserManual = () => {
                 <p className="text-muted-foreground">
                   Réservé aux super-administrateurs de la plateforme.
                 </p>
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="multiple" className="w-full">
                   <AccordionItem value="orgs">
                     <AccordionTrigger>Gestion des organisations</AccordionTrigger>
                     <AccordionContent>
