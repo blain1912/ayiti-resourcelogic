@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import UnitForm from "./UnitForm";
 import UnitsList from "./UnitsList";
+import StructureCollectionButton from "./StructureCollectionButton";
 
 interface OrganizationalUnitsProps {
   organizationId: string;
@@ -15,6 +16,7 @@ interface OrganizationalUnitsProps {
 
 const OrganizationalUnits = ({ organizationId }: OrganizationalUnitsProps) => {
   const [units, setUnits] = useState<any[]>([]);
+  const [orgName, setOrgName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -23,6 +25,12 @@ const OrganizationalUnits = ({ organizationId }: OrganizationalUnitsProps) => {
   useEffect(() => {
     if (!organizationId) return;
     loadUnits();
+    supabase
+      .from("organizations")
+      .select("name")
+      .eq("id", organizationId)
+      .maybeSingle()
+      .then(({ data }) => setOrgName(data?.name ?? null));
   }, [organizationId]);
 
   const loadUnits = async () => {
@@ -58,7 +66,7 @@ const OrganizationalUnits = ({ organizationId }: OrganizationalUnitsProps) => {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <CardTitle>
               {language === "fr" ? "Structures Administratives" : "Administrative Units"}
@@ -69,6 +77,8 @@ const OrganizationalUnits = ({ organizationId }: OrganizationalUnitsProps) => {
                 : "Manage your organization's different structures"}
             </CardDescription>
           </div>
+          <div className="flex flex-wrap items-center gap-2">
+          <StructureCollectionButton organizationName={orgName} />
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button type="button">
@@ -89,6 +99,7 @@ const OrganizationalUnits = ({ organizationId }: OrganizationalUnitsProps) => {
               />
             </DialogContent>
           </Dialog>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
