@@ -58,6 +58,11 @@ const UserManual = () => {
               <li><a href="#cartes-voeux" className="hover:text-primary">Cartes de Vœux</a></li>
               <li><a href="#badges" className="hover:text-primary">Badges Employés</a></li>
               <li><a href="#horaires" className="hover:text-primary">Horaires Spéciaux</a></li>
+              <li><a href="#enseignants" className="hover:text-primary">Programmation des Enseignants</a></li>
+              <li><a href="#paie" className="hover:text-primary">Paie et États d'Émargement</a></li>
+              <li><a href="#avantages" className="hover:text-primary">Avantages Sociaux</a></li>
+              <li><a href="#retraites" className="hover:text-primary">Suivi des Retraites</a></li>
+              <li><a href="#mouvements" className="hover:text-primary">Mouvements de Personnel et Listes</a></li>
               <li><a href="#roles" className="hover:text-primary">Gestion des Rôles</a></li>
               <li><a href="#parametres" className="hover:text-primary">Paramètres</a></li>
               <li><a href="#super-admin" className="hover:text-primary">Administration Plateforme</a></li>
@@ -89,7 +94,10 @@ const UserManual = () => {
                   <li>Les évaluations de performance</li>
                   <li>Les cartes de vœux automatisées</li>
                   <li>Les badges d'identification</li>
-                  <li>Les horaires spéciaux</li>
+                  <li>Les horaires spéciaux et la programmation des enseignants</li>
+                  <li>La paie et les états d'émargement du MEF</li>
+                  <li>Les avantages sociaux (Ti Kat, gratifications)</li>
+                  <li>Le suivi des retraites et les mouvements de personnel</li>
                   <li>La structure organisationnelle</li>
                   <li>Les rôles et permissions</li>
                 </ul>
@@ -696,13 +704,201 @@ const UserManual = () => {
             </Card>
           </section>
 
+
+          {/* Programmation enseignants */}
+          <section id="enseignants">
+            <Card className="print:shadow-none print:border-none">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-primary" />
+                  13. Programmation des Enseignants
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p>
+                  Deux catégories de personnel coexistent : le personnel administratif (8h–16h, lundi au vendredi)
+                  et le corps enseignant (jusqu'à 6 heures de cours par semaine, réparties librement).
+                </p>
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="creneaux">
+                    <AccordionTrigger>Créer les créneaux de cours</AccordionTrigger>
+                    <AccordionContent>
+                      <ol className="list-decimal list-inside space-y-2">
+                        <li>Menu <strong>RH</strong> → <strong>Programmation enseignants</strong></li>
+                        <li>Sélectionnez l'enseignant</li>
+                        <li>Ajoutez un créneau : jour, heure de début, heure de fin</li>
+                        <li>Un enseignant peut être programmé pour 2, 4 ou 6 heures — ou ne pas être programmé du tout</li>
+                      </ol>
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="presence-ens">
+                    <AccordionTrigger>Présence des enseignants</AccordionTrigger>
+                    <AccordionContent>
+                      <p>
+                        Dans la page <strong>Présence</strong>, les enseignants sont détectés automatiquement et affichés
+                        dans une section distincte de celle du personnel administratif. La présence est évaluée à la fois
+                        par rapport aux créneaux programmés et au volume horaire hebdomadaire réalisé.
+                      </p>
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="secretariat">
+                    <AccordionTrigger>Qui gère ces horaires ?</AccordionTrigger>
+                    <AccordionContent>
+                      <p>Le <strong>Secrétariat Académique</strong> crée les horaires de cours et gère la présence des enseignants, y compris lorsqu'elle s'inscrit dans le suivi global de l'organisation.</p>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* Paie */}
+          <section id="paie">
+            <Card className="print:shadow-none print:border-none">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary" />
+                  14. Paie et États d'Émargement
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="upload-mef">
+                    <AccordionTrigger>Importer l'état d'émargement du MEF</AccordionTrigger>
+                    <AccordionContent>
+                      <ol className="list-decimal list-inside space-y-2">
+                        <li>Menu <strong>Paie</strong></li>
+                        <li>Cliquez sur "Nouveau document" et choisissez le mois et l'année</li>
+                        <li>Téléversez le PDF mensuel livré par le MEF</li>
+                        <li>Les données (NIF, nom, poste, brut, ISR, CAS, net) sont extraites automatiquement</li>
+                      </ol>
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="suivi-paie">
+                    <AccordionTrigger>Vérifier que chaque employé a été payé</AccordionTrigger>
+                    <AccordionContent>
+                      <p>
+                        Ouvrez le document pour voir la liste détaillée. Chaque ligne est rapprochée d'un employé via son NIF.
+                        Vous pouvez marquer chaque employé comme <strong>Payé</strong> et suivre le taux de paiement global du mois.
+                      </p>
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="pdf-interne">
+                    <AccordionTrigger>Générer un état interne</AccordionTrigger>
+                    <AccordionContent>
+                      <p>Depuis le détail d'un mois, générez un PDF d'émargement interne (mise en page similaire à celle du MEF) destiné à la signature des employés.</p>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* Avantages sociaux */}
+          <section id="avantages">
+            <Card className="print:shadow-none print:border-none">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Heart className="h-5 w-5 text-primary" />
+                  15. Avantages Sociaux
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="ti-kat">
+                    <AccordionTrigger>Ti Kat</AccordionTrigger>
+                    <AccordionContent>
+                      <p className="mb-2">Le montant est calculé automatiquement selon la formule :</p>
+                      <p className="font-medium">(Salaire brut × pourcentage défini) + Montant fixe (le cas échéant)</p>
+                      <p className="text-sm text-muted-foreground mt-2">Le pourcentage et le montant fixe se configurent dans les paramètres du module.</p>
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="gratifications">
+                    <AccordionTrigger>Gratifications</AccordionTrigger>
+                    <AccordionContent>
+                      <ul className="list-disc list-inside space-y-1">
+                        <li>Pâques</li>
+                        <li>Fête des mères</li>
+                        <li>Rentrée scolaire</li>
+                        <li>Fin d'année</li>
+                      </ul>
+                      <p className="text-sm text-muted-foreground mt-2">Chaque versement est enregistré par employé, avec suivi des paiements effectués.</p>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* Retraites */}
+          <section id="retraites">
+            <Card className="print:shadow-none print:border-none">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-primary" />
+                  16. Suivi des Retraites
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p>
+                  Le responsable RH visualise la progression de chaque employé vers la retraite : âge, ancienneté,
+                  et barres de progression basées sur les seuils de <strong>55 ans</strong> d'âge et <strong>25 ans</strong> de service.
+                </p>
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Employés déjà éligibles</li>
+                  <li>Employés éligibles dans moins de 5 ans</li>
+                  <li>Filtrage et export de la liste</li>
+                </ul>
+              </CardContent>
+            </Card>
+          </section>
+
+          {/* Mouvements & exports */}
+          <section id="mouvements">
+            <Card className="print:shadow-none print:border-none">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Briefcase className="h-5 w-5 text-primary" />
+                  17. Mouvements de Personnel et Listes
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Accordion type="single" collapsible className="w-full">
+                  <AccordionItem value="mouvements">
+                    <AccordionTrigger>Registre des mouvements</AccordionTrigger>
+                    <AccordionContent>
+                      <p>Enregistrez les promotions, mutations, transferts et changements de catégorie, avec la structure d'origine et la structure de destination.</p>
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="listes">
+                    <AccordionTrigger>Générer la liste des employés</AccordionTrigger>
+                    <AccordionContent>
+                      <ol className="list-decimal list-inside space-y-2">
+                        <li>Menu <strong>Employés</strong> → bouton <strong>Exporter</strong></li>
+                        <li>Choisissez le regroupement : liste entière, par catégorie, par poste, par structure ou par sexe</li>
+                        <li>Choisissez le format : PDF ou Excel</li>
+                      </ol>
+                    </AccordionContent>
+                  </AccordionItem>
+                  <AccordionItem value="kit">
+                    <AccordionTrigger>Kit d'onboarding</AccordionTrigger>
+                    <AccordionContent>
+                      <p>Depuis les paramètres, téléchargez le kit (PDF + Excel) pour collecter structures, catégories, postes et employés, puis réimportez le fichier Excel rempli via "Importer le kit rempli".</p>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </CardContent>
+            </Card>
+          </section>
+
+
           {/* Rôles */}
           <section id="roles">
             <Card className="print:shadow-none print:border-none">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="h-5 w-5 text-primary" />
-                  13. Gestion des Rôles
+                  18. Gestion des Rôles
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -729,6 +925,14 @@ const UserManual = () => {
                     <p className="text-sm text-muted-foreground">Validation des demandes de congés</p>
                   </div>
                   <div className="p-3 border rounded-lg">
+                    <p className="font-medium">Secrétariat Académique</p>
+                    <p className="text-sm text-muted-foreground">Création des horaires de cours et gestion de la présence des enseignants</p>
+                  </div>
+                  <div className="p-3 border rounded-lg">
+                    <p className="font-medium">Secrétaire</p>
+                    <p className="text-sm text-muted-foreground">Assistance RH, pointage QR, accès restreint à la configuration</p>
+                  </div>
+                  <div className="p-3 border rounded-lg">
                     <p className="font-medium">Employé</p>
                     <p className="text-sm text-muted-foreground">Accès à son profil, QR Code, demandes de congé et candidatures internes</p>
                   </div>
@@ -743,7 +947,7 @@ const UserManual = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Settings className="h-5 w-5 text-primary" />
-                  14. Paramètres
+                  19. Paramètres
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -844,7 +1048,7 @@ const UserManual = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="h-5 w-5 text-primary" />
-                  15. Administration Plateforme
+                  20. Administration Plateforme
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
