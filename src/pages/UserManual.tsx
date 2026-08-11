@@ -702,6 +702,8 @@ const UserManual = () => {
                 </Accordion>
               </CardContent>
             </Card>
+          </section>
+
 
           {/* Programmation enseignants */}
           <section id="enseignants">
