@@ -173,11 +173,28 @@ const StructureImportDialog = ({ organizationId, existingUnits, onImported }: Pr
         </DialogHeader>
 
         <div className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/40 p-3">
+            <p className="text-sm text-muted-foreground">
+              Utilisez le modèle officiel (colonnes attendues + exemple rempli) pour éviter les
+              erreurs d'import.
+            </p>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => downloadOfficialStructureTemplate()}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Modèle Excel officiel
+            </Button>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="structure-file">Fichier Excel (.xlsx)</Label>
             <Input id="structure-file" type="file" accept=".xlsx,.xls" onChange={handleFile} />
             {fileName && <p className="text-xs text-muted-foreground">{fileName}</p>}
           </div>
+
 
           {rows.length > 0 && (
             <>
