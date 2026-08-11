@@ -16,6 +16,7 @@ interface OrganizationalUnitsProps {
 
 const OrganizationalUnits = ({ organizationId }: OrganizationalUnitsProps) => {
   const [units, setUnits] = useState<any[]>([]);
+  const [orgName, setOrgName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -24,6 +25,12 @@ const OrganizationalUnits = ({ organizationId }: OrganizationalUnitsProps) => {
   useEffect(() => {
     if (!organizationId) return;
     loadUnits();
+    supabase
+      .from("organizations")
+      .select("name")
+      .eq("id", organizationId)
+      .maybeSingle()
+      .then(({ data }) => setOrgName(data?.name ?? null));
   }, [organizationId]);
 
   const loadUnits = async () => {
