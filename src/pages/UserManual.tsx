@@ -1,15 +1,54 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, BookOpen, Users, QrCode, Calendar, Settings, Shield, Building, FileText, Mail, Briefcase, Star, Heart } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Download, BookOpen, Users, QrCode, Calendar, Settings, Shield, Building, FileText, Mail, Briefcase, Star, Heart, Search, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+
+const normalize = (value: string) =>
+  value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
 const UserManual = () => {
   const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [matchCount, setMatchCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    const root = contentRef.current;
+    if (!root) return;
+
+    const terms = normalize(query).split(/\s+/).filter(Boolean);
+    const sections = Array.from(root.querySelectorAll<HTMLElement>("section[id]"));
+    const tocItems = Array.from(document.querySelectorAll<HTMLElement>("[data-toc-item]"));
+
+    if (terms.length === 0) {
+      sections.forEach((s) => s.classList.remove("hidden"));
+      tocItems.forEach((i) => i.classList.remove("hidden"));
+      setMatchCount(null);
+      return;
+    }
+
+    const visibleIds = new Set<string>();
+    sections.forEach((section) => {
+      const text = normalize(section.textContent || "");
+      const isMatch = terms.every((t) => text.includes(t));
+      section.classList.toggle("hidden", !isMatch);
+      if (isMatch) visibleIds.add(section.id);
+    });
+
+    tocItems.forEach((item) => {
+      item.classList.toggle("hidden", !visibleIds.has(item.dataset.tocItem || ""));
+    });
+
+    setMatchCount(visibleIds.size);
+  }, [query]);
 
   const handlePrint = () => {
     window.print();
   };
+
 
   return (
     <div className="min-h-screen bg-background">
