@@ -304,6 +304,15 @@ export default function PendingApprovals() {
           </Table>
         </CardContent>
       </Card>
+      {organization?.id && (
+        <LinkAccountDialog
+          open={!!linkProfile}
+          onOpenChange={(v) => !v && setLinkProfile(null)}
+          organizationId={organization.id}
+          signupProfile={linkProfile}
+          onDone={fetchPendingProfiles}
+        />
+      )}
     </div>
   );
 }
