@@ -182,3 +182,66 @@ export const downloadOfficialStructureTemplate = (orgName?: string | null) => {
   );
 };
 
+
+const TYPE_LABEL_MAP: Record<string, string> = {
+  direction_generale: "Direction Générale",
+  direction_technique: "Direction Technique",
+  departement: "Département",
+  service: "Service",
+  section: "Section",
+};
+
+export interface ExportableUnit {
+  id: string;
+  name: string;
+  type: string;
+  parent_id?: string | null;
+  description?: string | null;
+}
+
+// Export des structures existantes au format du modèle officiel (corrigible puis réimportable)
+export const downloadExistingStructuresExcel = (
+  units: ExportableUnit[],
+  orgName?: string | null
+) => {
+  const byId = new Map(units.map((u) => [u.id, u]));
+  const wb = XLSX.utils.book_new();
+
+  const readme = [
+    ["EXPORT DES STRUCTURES ADMINISTRATIVES — AYITI RH"],
+    ["Institution :", orgName || ""],
+    ["Date d'export :", new Date().toLocaleDateString("fr-FR")],
+    ["Nombre d'unités :", units.length],
+    [],
+    ["Corrigez l'onglet « Structures » puis réimportez ce fichier dans AYITI RH."],
+    ["Colonne « type » : " + TYPES.join(" / ")],
+    ["Colonne « parent » : nom exact de l'unité de rattachement (vide si au sommet)."],
+    ["Les unités déjà existantes seront signalées à l'import : renommez-les pour créer de nouvelles unités."],
+  ];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(readme), "LISEZ-MOI");
+
+  const rows: (string | number)[][] = [
+    ["nom", "type", "parent", "responsable", "observations"],
+  ];
+  units.forEach((u) => {
+    rows.push([
+      u.name || "",
+      TYPE_LABEL_MAP[u.type] || u.type || "",
+      (u.parent_id && byId.get(u.parent_id)?.name) || "",
+      "",
+      u.description || "",
+    ]);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  (ws as any)["!cols"] = [{ wch: 42 }, { wch: 22 }, { wch: 42 }, { wch: 26 }, { wch: 34 }];
+  XLSX.utils.book_append_sheet(wb, ws, "Structures");
+
+  const help = [["types_autorises"], ...TYPES.map((t) => [t])];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(help), "Types");
+
+  const out = XLSX.write(wb, { type: "array", bookType: "xlsx" });
+  triggerDownload(
+    new Blob([out], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }),
+    "Structures-existantes-AYITI-RH.xlsx"
+  );
+};

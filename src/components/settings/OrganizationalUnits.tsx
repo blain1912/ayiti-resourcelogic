@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Download } from "lucide-react";
+import { downloadExistingStructuresExcel } from "@/utils/structureCollectionForm";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,6 +82,16 @@ const OrganizationalUnits = ({ organizationId }: OrganizationalUnitsProps) => {
           </div>
           <div className="flex flex-wrap items-center gap-2">
           <StructureCollectionButton organizationName={orgName} />
+          <Button
+            type="button"
+            variant="outline"
+            disabled={units.length === 0}
+            onClick={() => downloadExistingStructuresExcel(units, orgName)}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            {language === "fr" ? "Exporter Excel" : "Export Excel"}
+          </Button>
+
           <StructureImportDialog
             organizationId={organizationId}
             existingUnits={units}
