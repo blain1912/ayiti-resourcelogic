@@ -200,6 +200,34 @@ const PayrollDetail = () => {
     });
   }, [rows, statusFilter, filter]);
 
+  // Double emploi (cumul de postes) : un même NIF peut apparaître sur plusieurs
+  // lignes de paie (une par poste). On garde une seule fiche employé et on
+  // signale simplement le cumul avec son total net.
+  const cumulByNif = useMemo(() => {
+    const map = new Map<string, { rowIds: string[]; totalNet: number }>();
+    rows.forEach((r) => {
+      const key = (r.nif || "").replace(/[\s-]/g, "");
+      if (!key) return;
+      const entry = map.get(key) || { rowIds: [], totalNet: 0 };
+      entry.rowIds.push(r.id);
+      entry.totalNet += Number(r.montant_net);
+      map.set(key, entry);
+    });
+    return map;
+  }, [rows]);
+
+  const cumulInfo = (r: PayrollRow) => {
+    const key = (r.nif || "").replace(/[\s-]/g, "");
+    const entry = key ? cumulByNif.get(key) : undefined;
+    if (!entry || entry.rowIds.length < 2) return null;
+    return {
+      index: entry.rowIds.indexOf(r.id) + 1,
+      count: entry.rowIds.length,
+      totalNet: entry.totalNet,
+    };
+  };
+
+
   const stats = useMemo(() => {
     const total = rows.length;
     const paid = rows.filter((r) => r.status === "paye").length;
