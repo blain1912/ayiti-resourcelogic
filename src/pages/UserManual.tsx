@@ -1,15 +1,54 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Download, BookOpen, Users, QrCode, Calendar, Settings, Shield, Building, FileText, Mail, Briefcase, Star, Heart } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, Download, BookOpen, Users, QrCode, Calendar, Settings, Shield, Building, FileText, Mail, Briefcase, Star, Heart, Search, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+
+const normalize = (value: string) =>
+  value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
 const UserManual = () => {
   const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [matchCount, setMatchCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    const root = contentRef.current;
+    if (!root) return;
+
+    const terms = normalize(query).split(/\s+/).filter(Boolean);
+    const sections = Array.from(root.querySelectorAll<HTMLElement>("section[id]"));
+    const tocItems = Array.from(document.querySelectorAll<HTMLElement>("[data-toc-item]"));
+
+    if (terms.length === 0) {
+      sections.forEach((s) => s.classList.remove("hidden"));
+      tocItems.forEach((i) => i.classList.remove("hidden"));
+      setMatchCount(null);
+      return;
+    }
+
+    const visibleIds = new Set<string>();
+    sections.forEach((section) => {
+      const text = normalize(section.textContent || "");
+      const isMatch = terms.every((t) => text.includes(t));
+      section.classList.toggle("hidden", !isMatch);
+      if (isMatch) visibleIds.add(section.id);
+    });
+
+    tocItems.forEach((item) => {
+      item.classList.toggle("hidden", !visibleIds.has(item.dataset.tocItem || ""));
+    });
+
+    setMatchCount(visibleIds.size);
+  }, [query]);
 
   const handlePrint = () => {
     window.print();
   };
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -32,10 +71,40 @@ const UserManual = () => {
               <p className="text-primary-foreground/80">Système de Gestion des Ressources Humaines</p>
             </div>
           </div>
+
+          <div className="mt-6 print:hidden">
+            <div className="relative max-w-xl">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary-foreground/70" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Rechercher une fonctionnalité (ex : paie, retraites, avantages sociaux)"
+                aria-label="Rechercher dans le manuel"
+                className="pl-9 pr-9 bg-primary-foreground/10 border-primary-foreground/30 text-primary-foreground placeholder:text-primary-foreground/60"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  aria-label="Effacer la recherche"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-primary-foreground/70 hover:text-primary-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+            {matchCount !== null && (
+              <p className="mt-2 text-sm text-primary-foreground/80">
+                {matchCount === 0
+                  ? "Aucune section ne correspond à votre recherche."
+                  : `${matchCount} section${matchCount > 1 ? "s" : ""} correspondante${matchCount > 1 ? "s" : ""}.`}
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="container mx-auto py-8 px-4 max-w-4xl">
+      <div className="container mx-auto py-8 px-4 max-w-4xl" ref={contentRef}>
         {/* Table des matières */}
         <Card className="mb-8 print:shadow-none print:border-none">
           <CardHeader>
@@ -46,26 +115,26 @@ const UserManual = () => {
           </CardHeader>
           <CardContent>
             <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-              <li><a href="#introduction" className="hover:text-primary">Introduction</a></li>
-              <li><a href="#connexion" className="hover:text-primary">Connexion et Inscription</a></li>
-              <li><a href="#dashboard" className="hover:text-primary">Tableau de Bord</a></li>
-              <li><a href="#employes" className="hover:text-primary">Gestion des Employés</a></li>
-              <li><a href="#presence" className="hover:text-primary">Gestion des Présences</a></li>
-              <li><a href="#conges" className="hover:text-primary">Gestion des Congés</a></li>
-              <li><a href="#correspondance" className="hover:text-primary">Correspondance Administrative</a></li>
-              <li><a href="#recrutement" className="hover:text-primary">Recrutement</a></li>
-              <li><a href="#evaluations" className="hover:text-primary">Évaluations</a></li>
-              <li><a href="#cartes-voeux" className="hover:text-primary">Cartes de Vœux</a></li>
-              <li><a href="#badges" className="hover:text-primary">Badges Employés</a></li>
-              <li><a href="#horaires" className="hover:text-primary">Horaires Spéciaux</a></li>
-              <li><a href="#enseignants" className="hover:text-primary">Programmation des Enseignants</a></li>
-              <li><a href="#paie" className="hover:text-primary">Paie et États d'Émargement</a></li>
-              <li><a href="#avantages" className="hover:text-primary">Avantages Sociaux</a></li>
-              <li><a href="#retraites" className="hover:text-primary">Suivi des Retraites</a></li>
-              <li><a href="#mouvements" className="hover:text-primary">Mouvements de Personnel et Listes</a></li>
-              <li><a href="#roles" className="hover:text-primary">Gestion des Rôles</a></li>
-              <li><a href="#parametres" className="hover:text-primary">Paramètres</a></li>
-              <li><a href="#super-admin" className="hover:text-primary">Administration Plateforme</a></li>
+              <li data-toc-item="introduction"><a href="#introduction" className="hover:text-primary">Introduction</a></li>
+              <li data-toc-item="connexion"><a href="#connexion" className="hover:text-primary">Connexion et Inscription</a></li>
+              <li data-toc-item="dashboard"><a href="#dashboard" className="hover:text-primary">Tableau de Bord</a></li>
+              <li data-toc-item="employes"><a href="#employes" className="hover:text-primary">Gestion des Employés</a></li>
+              <li data-toc-item="presence"><a href="#presence" className="hover:text-primary">Gestion des Présences</a></li>
+              <li data-toc-item="conges"><a href="#conges" className="hover:text-primary">Gestion des Congés</a></li>
+              <li data-toc-item="correspondance"><a href="#correspondance" className="hover:text-primary">Correspondance Administrative</a></li>
+              <li data-toc-item="recrutement"><a href="#recrutement" className="hover:text-primary">Recrutement</a></li>
+              <li data-toc-item="evaluations"><a href="#evaluations" className="hover:text-primary">Évaluations</a></li>
+              <li data-toc-item="cartes-voeux"><a href="#cartes-voeux" className="hover:text-primary">Cartes de Vœux</a></li>
+              <li data-toc-item="badges"><a href="#badges" className="hover:text-primary">Badges Employés</a></li>
+              <li data-toc-item="horaires"><a href="#horaires" className="hover:text-primary">Horaires Spéciaux</a></li>
+              <li data-toc-item="enseignants"><a href="#enseignants" className="hover:text-primary">Programmation des Enseignants</a></li>
+              <li data-toc-item="paie"><a href="#paie" className="hover:text-primary">Paie et États d'Émargement</a></li>
+              <li data-toc-item="avantages"><a href="#avantages" className="hover:text-primary">Avantages Sociaux</a></li>
+              <li data-toc-item="retraites"><a href="#retraites" className="hover:text-primary">Suivi des Retraites</a></li>
+              <li data-toc-item="mouvements"><a href="#mouvements" className="hover:text-primary">Mouvements de Personnel et Listes</a></li>
+              <li data-toc-item="roles"><a href="#roles" className="hover:text-primary">Gestion des Rôles</a></li>
+              <li data-toc-item="parametres"><a href="#parametres" className="hover:text-primary">Paramètres</a></li>
+              <li data-toc-item="super-admin"><a href="#super-admin" className="hover:text-primary">Administration Plateforme</a></li>
             </ol>
           </CardContent>
         </Card>
