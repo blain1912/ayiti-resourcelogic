@@ -4,7 +4,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, Plus, MoreVertical, Eye, Trash2, FileText, Upload } from "lucide-react";
+import { Search, Plus, MoreVertical, Eye, Trash2, FileText, Upload, Mail } from "lucide-react";
+import { InviteEmployeeDialog } from "@/components/employees/InviteEmployeeDialog";
 import enartsPayload from "@/data/enartsImportPayload.json";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "@/hooks/useOrganization";
@@ -62,6 +63,7 @@ export default function Employees() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
+  const [inviteEmployee, setInviteEmployee] = useState<Employee | null>(null);
 
   useEffect(() => {
     if (organization?.id) {
@@ -319,6 +321,10 @@ export default function Employees() {
                             <Eye className="mr-2 h-4 w-4" />
                             Voir le profil
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => setInviteEmployee(employee)}>
+                            <Mail className="mr-2 h-4 w-4" />
+                            Inviter à se connecter
+                          </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-destructive focus:text-destructive"
                             onClick={() => {
@@ -347,6 +353,11 @@ export default function Employees() {
           onOpenChange={setExportOpen}
         />
       )}
+      <InviteEmployeeDialog
+        open={!!inviteEmployee}
+        onOpenChange={(v) => !v && setInviteEmployee(null)}
+        profile={inviteEmployee ? { id: inviteEmployee.id, full_name: inviteEmployee.full_name } : null}
+      />
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

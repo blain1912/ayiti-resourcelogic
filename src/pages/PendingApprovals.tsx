@@ -13,7 +13,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Clock } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Link2 } from "lucide-react";
+import { LinkAccountDialog } from "@/components/employees/LinkAccountDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -39,6 +40,7 @@ export default function PendingApprovals() {
   const { organization } = useOrganization();
   const [profiles, setProfiles] = useState<PendingProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [linkProfile, setLinkProfile] = useState<PendingProfile | null>(null);
 
   useEffect(() => {
     if (organization?.id) {
@@ -233,6 +235,15 @@ export default function PendingApprovals() {
                     <TableCell className="text-right">
                       {profile.approval_status === "pending" && (
                         <div className="flex justify-end gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="gap-1"
+                            onClick={() => setLinkProfile(profile)}
+                          >
+                            <Link2 className="h-3 w-3" />
+                            Lier à une fiche
+                          </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button size="sm" variant="default" className="gap-1">
@@ -293,6 +304,15 @@ export default function PendingApprovals() {
           </Table>
         </CardContent>
       </Card>
+      {organization?.id && (
+        <LinkAccountDialog
+          open={!!linkProfile}
+          onOpenChange={(v) => !v && setLinkProfile(null)}
+          organizationId={organization.id}
+          signupProfile={linkProfile}
+          onDone={fetchPendingProfiles}
+        />
+      )}
     </div>
   );
 }
