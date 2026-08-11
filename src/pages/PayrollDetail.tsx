@@ -64,6 +64,7 @@ const PayrollDetail = () => {
   const [rows, setRows] = useState<PayrollRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [extracting, setExtracting] = useState(false);
+  const [creatingEmployees, setCreatingEmployees] = useState(false);
   const [orgName, setOrgName] = useState<string>("");
   const [filter, setFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "paye" | "non_paye">("all");
@@ -114,6 +115,32 @@ const PayrollDetail = () => {
       toast({ title: "Erreur d'extraction", description: err.message, variant: "destructive" });
     } finally {
       setExtracting(false);
+    }
+  };
+
+  const handleCreateEmployees = async () => {
+    const missing = rows.filter((r) => !r.profile_id).length;
+    if (!missing) {
+      toast({ title: "Rien à créer", description: "Toutes les lignes sont déjà liées à un employé." });
+      return;
+    }
+    if (!confirm(`Créer les fiches employés pour les ${missing} ligne(s) non liée(s) ?`)) return;
+    setCreatingEmployees(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-employees-from-emargement", {
+        body: { emargement_document_id: id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({
+        title: "Import terminé",
+        description: `${data.created} employé(s) créé(s) · ${data.linked} lié(s) · ${data.skipped} ignoré(s)${data.errors?.length ? ` · ${data.errors.length} erreur(s)` : ""}`,
+      });
+      load();
+    } catch (err: any) {
+      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+    } finally {
+      setCreatingEmployees(false);
     }
   };
 
@@ -310,7 +337,12 @@ const PayrollDetail = () => {
               {extracting ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Sparkles className="h-4 w-4 mr-1" />}
               {rows.length ? "Ré-extraire" : "Extraction automatique"}
             </Button>
+            <Button variant="outline" size="sm" onClick={handleCreateEmployees} disabled={creatingEmployees || !rows.length}>
+              {creatingEmployees ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Users className="h-4 w-4 mr-1" />}
+              Créer les employés manquants
+            </Button>
             <Button variant="outline" size="sm" onClick={generatePDF} disabled={!rows.length}>
+
               <FileDown className="h-4 w-4 mr-1" /> Générer PDF interne
             </Button>
             <Button variant="outline" size="sm" onClick={exportPaymentTracking} disabled={!rows.length}>
