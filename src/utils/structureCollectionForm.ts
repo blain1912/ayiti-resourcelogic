@@ -129,3 +129,56 @@ export const downloadStructureFormExcel = (orgName?: string | null) => {
     "Fiche-collecte-structures.xlsx"
   );
 };
+
+// Modèle officiel : structure des colonnes + exemple complet rempli
+export const downloadOfficialStructureTemplate = (orgName?: string | null) => {
+  const wb = XLSX.utils.book_new();
+
+  const readme = [
+    ["MODÈLE OFFICIEL — IMPORT DES STRUCTURES ADMINISTRATIVES (AYITI RH)"],
+    ["Institution :", orgName || ""],
+    [],
+    ["Règles à respecter impérativement :"],
+    ["• Onglet à remplir : « Structures » (ne pas le renommer)."],
+    ["• Ligne 1 = en-têtes des colonnes : ne pas la modifier, ne pas ajouter de colonne."],
+    ["• nom : obligatoire, unique, écrit exactement de la même façon partout."],
+    ["• type : une valeur parmi " + TYPES.join(" / ") + "."],
+    ["• parent : nom exact d'une unité déjà listée (vide pour l'unité au sommet)."],
+    ["• responsable / observations : facultatifs."],
+    ["• Une seule Direction Générale ; les autres unités doivent avoir un parent."],
+    ["• Pas de dépendance circulaire (A dépend de B qui dépend de A)."],
+    [],
+    ["Astuce : consultez l'onglet « Exemple rempli » avant de saisir vos données."],
+  ];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(readme), "LISEZ-MOI");
+
+  const header = ["nom", "type", "parent", "responsable", "observations"];
+  const example: (string | number)[][] = [
+    header,
+    ["Direction Générale", "Direction Générale", "", "Jean Baptiste", "Unité au sommet"],
+    ["Direction Administrative", "Direction Technique", "Direction Générale", "Marie Pierre", ""],
+    ["Direction des Ressources Humaines", "Direction Technique", "Direction Générale", "Natacha Lamande", ""],
+    ["Département du Personnel", "Département", "Direction des Ressources Humaines", "", ""],
+    ["Service de la Paie", "Service", "Département du Personnel", "Paul Joseph", ""],
+    ["Section Archives", "Section", "Service de la Paie", "", ""],
+  ];
+  const wsEx = XLSX.utils.aoa_to_sheet(example);
+  (wsEx as any)["!cols"] = [{ wch: 42 }, { wch: 22 }, { wch: 42 }, { wch: 26 }, { wch: 34 }];
+  XLSX.utils.book_append_sheet(wb, wsEx, "Exemple rempli");
+
+  const rows: (string | number)[][] = [header];
+  for (let i = 0; i < 60; i++) rows.push(["", "", "", "", ""]);
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  (ws as any)["!cols"] = [{ wch: 42 }, { wch: 22 }, { wch: 42 }, { wch: 26 }, { wch: 34 }];
+  XLSX.utils.book_append_sheet(wb, ws, "Structures");
+
+  const help = [["types_autorises"], ...TYPES.map((t) => [t])];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(help), "Types");
+
+  const out = XLSX.write(wb, { type: "array", bookType: "xlsx" });
+  triggerDownload(
+    new Blob([out], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }),
+    "Modele-officiel-structures-AYITI-RH.xlsx"
+  );
+};
+
