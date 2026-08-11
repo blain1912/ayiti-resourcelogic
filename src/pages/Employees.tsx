@@ -63,6 +63,7 @@ export default function Employees() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [employeeToDelete, setEmployeeToDelete] = useState<Employee | null>(null);
   const [exportOpen, setExportOpen] = useState(false);
+  const [inviteEmployee, setInviteEmployee] = useState<Employee | null>(null);
 
   useEffect(() => {
     if (organization?.id) {
