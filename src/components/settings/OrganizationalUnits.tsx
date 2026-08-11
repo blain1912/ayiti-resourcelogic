@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Download } from "lucide-react";
+import { downloadExistingStructuresExcel } from "@/utils/structureCollectionForm";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
