@@ -117,6 +117,32 @@ const PayrollDetail = () => {
     }
   };
 
+  const handleCreateEmployees = async () => {
+    const missing = rows.filter((r) => !r.profile_id).length;
+    if (!missing) {
+      toast({ title: "Rien à créer", description: "Toutes les lignes sont déjà liées à un employé." });
+      return;
+    }
+    if (!confirm(`Créer les fiches employés pour les ${missing} ligne(s) non liée(s) ?`)) return;
+    setCreatingEmployees(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("create-employees-from-emargement", {
+        body: { emargement_document_id: id },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      toast({
+        title: "Import terminé",
+        description: `${data.created} employé(s) créé(s) · ${data.linked} lié(s) · ${data.skipped} ignoré(s)${data.errors?.length ? ` · ${data.errors.length} erreur(s)` : ""}`,
+      });
+      load();
+    } catch (err: any) {
+      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+    } finally {
+      setCreatingEmployees(false);
+    }
+  };
+
   const togglePaid = async (row: PayrollRow) => {
     const newStatus = row.status === "paye" ? "non_paye" : "paye";
     const updates: any = {
