@@ -14,8 +14,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Loader2, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
+import { Upload, Loader2, AlertTriangle, CheckCircle2, XCircle, Download } from "lucide-react";
 import { toast } from "sonner";
+import { downloadOfficialStructureTemplate } from "@/utils/structureCollectionForm";
+
 import {
   normalize,
   validateStructures,
