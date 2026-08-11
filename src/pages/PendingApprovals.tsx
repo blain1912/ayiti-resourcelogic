@@ -13,7 +13,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, XCircle, Clock } from "lucide-react";
+import { CheckCircle, XCircle, Clock, Link2 } from "lucide-react";
+import { LinkAccountDialog } from "@/components/employees/LinkAccountDialog";
 import {
   AlertDialog,
   AlertDialogAction,
