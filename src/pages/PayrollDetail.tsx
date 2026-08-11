@@ -64,6 +64,7 @@ const PayrollDetail = () => {
   const [rows, setRows] = useState<PayrollRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [extracting, setExtracting] = useState(false);
+  const [creatingEmployees, setCreatingEmployees] = useState(false);
   const [orgName, setOrgName] = useState<string>("");
   const [filter, setFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "paye" | "non_paye">("all");
@@ -336,7 +337,12 @@ const PayrollDetail = () => {
               {extracting ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Sparkles className="h-4 w-4 mr-1" />}
               {rows.length ? "Ré-extraire" : "Extraction automatique"}
             </Button>
+            <Button variant="outline" size="sm" onClick={handleCreateEmployees} disabled={creatingEmployees || !rows.length}>
+              {creatingEmployees ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Users className="h-4 w-4 mr-1" />}
+              Créer les employés manquants
+            </Button>
             <Button variant="outline" size="sm" onClick={generatePDF} disabled={!rows.length}>
+
               <FileDown className="h-4 w-4 mr-1" /> Générer PDF interne
             </Button>
             <Button variant="outline" size="sm" onClick={exportPaymentTracking} disabled={!rows.length}>
