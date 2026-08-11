@@ -80,6 +80,16 @@ const OrganizationalUnits = ({ organizationId }: OrganizationalUnitsProps) => {
           </div>
           <div className="flex flex-wrap items-center gap-2">
           <StructureCollectionButton organizationName={orgName} />
+          <Button
+            type="button"
+            variant="outline"
+            disabled={units.length === 0}
+            onClick={() => downloadExistingStructuresExcel(units, orgName)}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            {language === "fr" ? "Exporter Excel" : "Export Excel"}
+          </Button>
+
           <StructureImportDialog
             organizationId={organizationId}
             existingUnits={units}
