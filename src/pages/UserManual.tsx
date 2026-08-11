@@ -85,26 +85,26 @@ const UserManual = () => {
           </CardHeader>
           <CardContent>
             <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-              <li><a href="#introduction" className="hover:text-primary">Introduction</a></li>
-              <li><a href="#connexion" className="hover:text-primary">Connexion et Inscription</a></li>
-              <li><a href="#dashboard" className="hover:text-primary">Tableau de Bord</a></li>
-              <li><a href="#employes" className="hover:text-primary">Gestion des Employés</a></li>
-              <li><a href="#presence" className="hover:text-primary">Gestion des Présences</a></li>
-              <li><a href="#conges" className="hover:text-primary">Gestion des Congés</a></li>
-              <li><a href="#correspondance" className="hover:text-primary">Correspondance Administrative</a></li>
-              <li><a href="#recrutement" className="hover:text-primary">Recrutement</a></li>
-              <li><a href="#evaluations" className="hover:text-primary">Évaluations</a></li>
-              <li><a href="#cartes-voeux" className="hover:text-primary">Cartes de Vœux</a></li>
-              <li><a href="#badges" className="hover:text-primary">Badges Employés</a></li>
-              <li><a href="#horaires" className="hover:text-primary">Horaires Spéciaux</a></li>
-              <li><a href="#enseignants" className="hover:text-primary">Programmation des Enseignants</a></li>
-              <li><a href="#paie" className="hover:text-primary">Paie et États d'Émargement</a></li>
-              <li><a href="#avantages" className="hover:text-primary">Avantages Sociaux</a></li>
-              <li><a href="#retraites" className="hover:text-primary">Suivi des Retraites</a></li>
-              <li><a href="#mouvements" className="hover:text-primary">Mouvements de Personnel et Listes</a></li>
-              <li><a href="#roles" className="hover:text-primary">Gestion des Rôles</a></li>
-              <li><a href="#parametres" className="hover:text-primary">Paramètres</a></li>
-              <li><a href="#super-admin" className="hover:text-primary">Administration Plateforme</a></li>
+              <li data-toc-item="introduction"><a href="#introduction" className="hover:text-primary">Introduction</a></li>
+              <li data-toc-item="connexion"><a href="#connexion" className="hover:text-primary">Connexion et Inscription</a></li>
+              <li data-toc-item="dashboard"><a href="#dashboard" className="hover:text-primary">Tableau de Bord</a></li>
+              <li data-toc-item="employes"><a href="#employes" className="hover:text-primary">Gestion des Employés</a></li>
+              <li data-toc-item="presence"><a href="#presence" className="hover:text-primary">Gestion des Présences</a></li>
+              <li data-toc-item="conges"><a href="#conges" className="hover:text-primary">Gestion des Congés</a></li>
+              <li data-toc-item="correspondance"><a href="#correspondance" className="hover:text-primary">Correspondance Administrative</a></li>
+              <li data-toc-item="recrutement"><a href="#recrutement" className="hover:text-primary">Recrutement</a></li>
+              <li data-toc-item="evaluations"><a href="#evaluations" className="hover:text-primary">Évaluations</a></li>
+              <li data-toc-item="cartes-voeux"><a href="#cartes-voeux" className="hover:text-primary">Cartes de Vœux</a></li>
+              <li data-toc-item="badges"><a href="#badges" className="hover:text-primary">Badges Employés</a></li>
+              <li data-toc-item="horaires"><a href="#horaires" className="hover:text-primary">Horaires Spéciaux</a></li>
+              <li data-toc-item="enseignants"><a href="#enseignants" className="hover:text-primary">Programmation des Enseignants</a></li>
+              <li data-toc-item="paie"><a href="#paie" className="hover:text-primary">Paie et États d'Émargement</a></li>
+              <li data-toc-item="avantages"><a href="#avantages" className="hover:text-primary">Avantages Sociaux</a></li>
+              <li data-toc-item="retraites"><a href="#retraites" className="hover:text-primary">Suivi des Retraites</a></li>
+              <li data-toc-item="mouvements"><a href="#mouvements" className="hover:text-primary">Mouvements de Personnel et Listes</a></li>
+              <li data-toc-item="roles"><a href="#roles" className="hover:text-primary">Gestion des Rôles</a></li>
+              <li data-toc-item="parametres"><a href="#parametres" className="hover:text-primary">Paramètres</a></li>
+              <li data-toc-item="super-admin"><a href="#super-admin" className="hover:text-primary">Administration Plateforme</a></li>
             </ol>
           </CardContent>
         </Card>
