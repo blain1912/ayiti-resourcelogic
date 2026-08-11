@@ -145,7 +145,7 @@ const UserManual = () => {
         </div>
       </div>
 
-      <div className="container mx-auto py-8 px-4 max-w-4xl" ref={contentRef}>
+      <div id="manual-content" className="container mx-auto py-8 px-4 max-w-4xl" ref={contentRef}>
         {/* Table des matières */}
         <Card className="mb-8 print:shadow-none print:border-none">
           <CardHeader>
