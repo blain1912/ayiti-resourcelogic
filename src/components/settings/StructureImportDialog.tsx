@@ -14,25 +14,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Upload, Loader2, AlertTriangle } from "lucide-react";
+import { Upload, Loader2, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
-
-type UnitType = "direction_generale" | "direction_technique" | "service" | "section" | "departement";
-
-interface ParsedRow {
-  name: string;
-  type: UnitType;
-  parent: string;
-  issue?: string;
-}
-
-const normalize = (v: string) =>
-  v
-    .toString()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
+import {
+  normalize,
+  validateStructures,
+  typeLabel,
+  type StructureRow,
+  type UnitType,
+  type ValidatedRow,
+} from "@/lib/structureValidation";
 
 const detectType = (raw: string): UnitType => {
   const t = normalize(raw);
@@ -51,12 +42,14 @@ interface Props {
 
 const StructureImportDialog = ({ organizationId, existingUnits, onImported }: Props) => {
   const [open, setOpen] = useState(false);
-  const [rows, setRows] = useState<ParsedRow[]>([]);
+  const [rows, setRows] = useState<ValidatedRow[]>([]);
+  const [counts, setCounts] = useState({ errorCount: 0, warningCount: 0 });
   const [fileName, setFileName] = useState("");
   const [importing, setImporting] = useState(false);
 
   const reset = () => {
     setRows([]);
+    setCounts({ errorCount: 0, warningCount: 0 });
     setFileName("");
   };
 
@@ -68,36 +61,36 @@ const StructureImportDialog = ({ organizationId, existingUnits, onImported }: Pr
       const wb = XLSX.read(await file.arrayBuffer(), { type: "array" });
       const sheetName =
         wb.SheetNames.find((n) => normalize(n).includes("structure")) || wb.SheetNames[0];
-      const raw = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: "" }) as Record<string, any>[];
+      const raw = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { defval: "" }) as Record<
+        string,
+        any
+      >[];
 
       const pick = (r: Record<string, any>, keys: string[]) => {
         const entry = Object.entries(r).find(([k]) => keys.includes(normalize(k)));
         return entry ? String(entry[1]).trim() : "";
       };
 
-      const parsed: ParsedRow[] = raw
+      const parsed: StructureRow[] = raw
         .map((r) => ({
           name: pick(r, ["nom", "name", "nom de l'unite", "nom exact de l'unite", "structure"]),
           type: detectType(pick(r, ["type", "type d'unite"])),
           parent: pick(r, ["parent", "rattachee a", "rattache a", "unite parente", "depend de"]),
         }))
-        .filter((r) => r.name && normalize(r.name) !== "exemple")
-        .filter((r) => !normalize(r.parent).startsWith("—"));
+        .filter((r) => r.name)
+        .map((r) => ({ ...r, parent: r.parent.replace(/^[—–-]$/, "") }))
+        .filter((r) => !normalize(r.name).startsWith("exemple"));
 
-      const names = new Set(parsed.map((r) => normalize(r.name)));
-      existingUnits.forEach((u) => names.add(normalize(u.name)));
+      const result = validateStructures(parsed, existingUnits);
+      setRows(result.rows);
+      setCounts({ errorCount: result.errorCount, warningCount: result.warningCount });
 
-      const withIssues = parsed.map((r) => {
-        if (existingUnits.some((u) => normalize(u.name) === normalize(r.name)))
-          return { ...r, issue: "Existe déjà — sera ignorée" };
-        if (r.parent && !names.has(normalize(r.parent)))
-          return { ...r, issue: "Parent introuvable — sera créée sans rattachement" };
-        return r;
-      });
-
-      setRows(withIssues);
-      if (withIssues.length === 0) toast.error("Aucune structure valide trouvée dans le fichier");
-      else toast.success(`${withIssues.length} structure(s) détectée(s)`);
+      if (result.rows.length === 0) toast.error("Aucune structure trouvée dans le fichier");
+      else if (result.errorCount)
+        toast.warning(
+          `${result.rows.length - result.errorCount} ligne(s) valide(s), ${result.errorCount} bloquée(s)`
+        );
+      else toast.success(`${result.rows.length} structure(s) prête(s) à importer`);
     } catch (err) {
       console.error(err);
       toast.error("Fichier Excel illisible. Utilisez la fiche de collecte fournie.");
@@ -107,24 +100,22 @@ const StructureImportDialog = ({ organizationId, existingUnits, onImported }: Pr
     }
   };
 
+  const importable = rows.filter((r) => !r.skip);
+
   const runImport = async () => {
     setImporting(true);
     const idByName = new Map<string, string>();
     existingUnits.forEach((u) => idByName.set(normalize(u.name), u.id));
 
-    const pending = rows.filter(
-      (r) => !existingUnits.some((u) => normalize(u.name) === normalize(r.name))
-    );
     let inserted = 0;
     const errors: string[] = [];
-    let remaining = [...pending];
+    let remaining = [...importable];
 
-    // Plusieurs passes pour résoudre la hiérarchie parent -> enfant
-    for (let pass = 0; pass < 6 && remaining.length; pass++) {
-      const next: ParsedRow[] = [];
+    for (let pass = 0; pass < 8 && remaining.length; pass++) {
+      const next: ValidatedRow[] = [];
       for (const r of remaining) {
         const parentKey = normalize(r.parent);
-        if (r.parent && !idByName.has(parentKey) && pass < 5) {
+        if (r.parent && !idByName.has(parentKey) && pass < 7) {
           next.push(r);
           continue;
         }
@@ -177,7 +168,7 @@ const StructureImportDialog = ({ organizationId, existingUnits, onImported }: Pr
           <DialogTitle>Importer les structures administratives</DialogTitle>
           <DialogDescription>
             Chargez la fiche de collecte Excel remplie (colonnes : nom, type, parent). Les
-            dépendances sont recréées automatiquement.
+            dépendances sont vérifiées puis recréées automatiquement.
           </DialogDescription>
         </DialogHeader>
 
@@ -189,37 +180,78 @@ const StructureImportDialog = ({ organizationId, existingUnits, onImported }: Pr
           </div>
 
           {rows.length > 0 && (
-            <div className="max-h-72 overflow-auto border rounded-md">
-              <table className="w-full text-sm">
-                <thead className="bg-muted sticky top-0">
-                  <tr>
-                    <th className="text-left p-2">Nom</th>
-                    <th className="text-left p-2">Type</th>
-                    <th className="text-left p-2">Rattachée à</th>
-                    <th className="text-left p-2">Statut</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows.map((r, i) => (
-                    <tr key={i} className="border-t">
-                      <td className="p-2">{r.name}</td>
-                      <td className="p-2 text-muted-foreground">{r.type}</td>
-                      <td className="p-2 text-muted-foreground">{r.parent || "—"}</td>
-                      <td className="p-2">
-                        {r.issue ? (
-                          <Badge variant="secondary" className="gap-1">
-                            <AlertTriangle className="h-3 w-3" />
-                            {r.issue}
-                          </Badge>
-                        ) : (
-                          <Badge>Prêt</Badge>
-                        )}
-                      </td>
+            <>
+              <div className="flex flex-wrap gap-2 text-sm">
+                <Badge className="gap-1">
+                  <CheckCircle2 className="h-3 w-3" />
+                  {importable.length} importable(s)
+                </Badge>
+                {counts.warningCount > 0 && (
+                  <Badge variant="secondary" className="gap-1">
+                    <AlertTriangle className="h-3 w-3" />
+                    {counts.warningCount} avertissement(s)
+                  </Badge>
+                )}
+                {counts.errorCount > 0 && (
+                  <Badge variant="destructive" className="gap-1">
+                    <XCircle className="h-3 w-3" />
+                    {counts.errorCount} bloquée(s)
+                  </Badge>
+                )}
+              </div>
+
+              <div className="max-h-72 overflow-auto border rounded-md">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted sticky top-0">
+                    <tr>
+                      <th className="text-left p-2">Nom</th>
+                      <th className="text-left p-2">Type</th>
+                      <th className="text-left p-2">Rattachée à</th>
+                      <th className="text-left p-2">Contrôles</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {rows.map((r, i) => (
+                      <tr key={i} className="border-t align-top">
+                        <td className="p-2">{r.name}</td>
+                        <td className="p-2 text-muted-foreground">{typeLabel(r.type)}</td>
+                        <td className="p-2 text-muted-foreground">{r.parent || "—"}</td>
+                        <td className="p-2 space-y-1">
+                          {r.issues.length === 0 ? (
+                            <Badge className="gap-1">
+                              <CheckCircle2 className="h-3 w-3" />
+                              OK
+                            </Badge>
+                          ) : (
+                            r.issues.map((issue, k) => (
+                              <Badge
+                                key={k}
+                                variant={issue.level === "error" ? "destructive" : "secondary"}
+                                className="gap-1 whitespace-normal text-left"
+                              >
+                                {issue.level === "error" ? (
+                                  <XCircle className="h-3 w-3 shrink-0" />
+                                ) : (
+                                  <AlertTriangle className="h-3 w-3 shrink-0" />
+                                )}
+                                {issue.message}
+                              </Badge>
+                            ))
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {counts.errorCount > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Les lignes en rouge ne seront pas importées. Corrigez le fichier Excel puis
+                  rechargez-le pour les inclure.
+                </p>
+              )}
+            </>
           )}
         </div>
 
@@ -227,9 +259,9 @@ const StructureImportDialog = ({ organizationId, existingUnits, onImported }: Pr
           <Button variant="outline" onClick={() => setOpen(false)} disabled={importing}>
             Annuler
           </Button>
-          <Button onClick={runImport} disabled={importing || rows.length === 0}>
+          <Button onClick={runImport} disabled={importing || importable.length === 0}>
             {importing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            Importer {rows.length > 0 ? `(${rows.length})` : ""}
+            Importer {importable.length > 0 ? `(${importable.length})` : ""}
           </Button>
         </DialogFooter>
       </DialogContent>
