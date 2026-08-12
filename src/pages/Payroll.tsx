@@ -31,10 +31,16 @@ interface EmargementDoc {
   created_at: string;
 }
 
-const MONTHS = [
-  "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
-  "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre",
-];
+import {
+  FISCAL_MONTHS,
+  MONTH_NAMES,
+  fiscalYearStart,
+  fiscalYearLabel,
+  fiscalYearOptions,
+  calendarYearForFiscalMonth,
+  fiscalYearOf,
+  fiscalMonthOrder,
+} from "@/lib/fiscalYear";
 
 const Payroll = () => {
   const [organizationId, setOrganizationId] = useState<string | null>(null);
@@ -43,8 +49,10 @@ const Payroll = () => {
   const [uploading, setUploading] = useState(false);
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState<string>(String(new Date().getMonth() + 1));
-  const [year, setYear] = useState<string>(String(new Date().getFullYear()));
+  const [fiscalYear, setFiscalYear] = useState<string>(String(fiscalYearStart()));
+  const year = String(calendarYearForFiscalMonth(parseInt(fiscalYear), parseInt(month)));
   const fileRef = useRef<HTMLInputElement>(null);
+
 
   useEffect(() => {
     (async () => {
@@ -97,7 +105,7 @@ const Payroll = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Non authentifié");
 
-      const periodLabel = `${MONTHS[parseInt(month) - 1]} ${year}`;
+      const periodLabel = `${MONTH_NAMES[parseInt(month) - 1]} ${year} (${fiscalYearLabel(parseInt(fiscalYear))})`;
       const path = `${organizationId}/${year}-${month.padStart(2, "0")}-${Date.now()}-${file.name}`;
 
       const { data: up, error: upErr } = await supabase.storage
@@ -152,8 +160,25 @@ const Payroll = () => {
     return `${(b / (1024 * 1024)).toFixed(2)} Mo`;
   };
 
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 6 }, (_, i) => String(currentYear - i));
+  const fiscalYears = fiscalYearOptions(6);
+
+  const docFiscalYear = (d: EmargementDoc): number | null => {
+    if (!d.upload_date) return null;
+    const [y, m] = d.upload_date.split("-").map(Number);
+    if (!y || !m) return null;
+    return fiscalYearOf(y, m);
+  };
+
+  const sortedDocs = [...docs].sort((a, b) => {
+    const fa = docFiscalYear(a) ?? -1;
+    const fb = docFiscalYear(b) ?? -1;
+    if (fa !== fb) return fb - fa;
+    const ma = Number(a.upload_date?.split("-")[1]) || 0;
+    const mb = Number(b.upload_date?.split("-")[1]) || 0;
+    return fiscalMonthOrder(mb) - fiscalMonthOrder(ma);
+  });
+
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -187,28 +212,40 @@ const Payroll = () => {
               <div className="space-y-4 py-2">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
+                    <Label>Exercice fiscal</Label>
+                    <select
+                      value={fiscalYear}
+                      onChange={(e) => setFiscalYear(e.target.value)}
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      {fiscalYears.map((y) => (
+                        <option key={y} value={y}>{`${y}-${y + 1}`}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
                     <Label>Mois</Label>
                     <select
                       value={month}
                       onChange={(e) => setMonth(e.target.value)}
                       className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
                     >
-                      {MONTHS.map((m, i) => (
-                        <option key={m} value={i + 1}>{m}</option>
+                      {FISCAL_MONTHS.map((m) => (
+                        <option key={m.value} value={m.value}>{m.label}</option>
                       ))}
                     </select>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Année</Label>
-                    <select
-                      value={year}
-                      onChange={(e) => setYear(e.target.value)}
-                      className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-                    >
-                      {years.map((y) => <option key={y} value={y}>{y}</option>)}
-                    </select>
-                  </div>
                 </div>
+
+                <p className="text-xs text-muted-foreground">
+                  L'exercice fiscal court du 1<sup>er</sup> octobre {fiscalYear} au 30 septembre{" "}
+                  {parseInt(fiscalYear) + 1}. Période sélectionnée :{" "}
+                  <span className="font-medium text-foreground">
+                    {MONTH_NAMES[parseInt(month) - 1]} {year}
+                  </span>
+                  .
+                </p>
+
 
                 <div className="space-y-2">
                   <Label>Fichier PDF</Label>
@@ -261,6 +298,7 @@ const Payroll = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>Exercice</TableHead>
                       <TableHead>Période</TableHead>
                       <TableHead>Fichier</TableHead>
                       <TableHead>Taille</TableHead>
@@ -269,14 +307,22 @@ const Payroll = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {docs.map((d) => (
+                    {sortedDocs.map((d) => (
                       <TableRow key={d.id}>
+                        <TableCell>
+                          <Badge variant="outline" className="whitespace-nowrap">
+                            {docFiscalYear(d) !== null
+                              ? `${docFiscalYear(d)}-${(docFiscalYear(d) as number) + 1}`
+                              : "—"}
+                          </Badge>
+                        </TableCell>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                             {d.period_label || "—"}
                           </div>
                         </TableCell>
+
                         <TableCell className="text-sm">{d.file_name}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{formatSize(d.file_size)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
