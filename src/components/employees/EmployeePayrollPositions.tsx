@@ -378,11 +378,20 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
               <CardDescription>Écarts de montants par poste entre deux exercices fiscaux</CardDescription>
             </div>
             <div className="flex flex-wrap items-center gap-2">
+              <Select value={compareMode} onValueChange={(v) => setCompareMode(v as "net" | "brut")}>
+                <SelectTrigger className="w-[130px]">
+                  <SelectValue placeholder="Base" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="net">Net</SelectItem>
+                  <SelectItem value="brut">Brut</SelectItem>
+                </SelectContent>
+              </Select>
               <Select
                 value={compareA !== null ? String(compareA) : ""}
                 onValueChange={(v) => setCompareA(Number(v))}
               >
-                <SelectTrigger className="w-[170px]">
+                <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Exercice A" />
                 </SelectTrigger>
                 <SelectContent>
@@ -398,7 +407,7 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
                 value={compareB !== null ? String(compareB) : ""}
                 onValueChange={(v) => setCompareB(Number(v))}
               >
-                <SelectTrigger className="w-[170px]">
+                <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Exercice B" />
                 </SelectTrigger>
                 <SelectContent>
