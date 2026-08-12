@@ -672,6 +672,16 @@ export default function EmployeeProfile() {
               <EmployeeSchedule profileId={profile.id} />
             </TabsContent>
 
+            <TabsContent value="payroll">
+              <EmployeePayrollPositions
+                nif={profile.nif}
+                profileId={profile.id}
+                organizationId={profile.organization_id}
+              />
+            </TabsContent>
+
+
+
             <TabsContent value="documents">
               <EmployeeDocuments
                 profileId={profile.id}
