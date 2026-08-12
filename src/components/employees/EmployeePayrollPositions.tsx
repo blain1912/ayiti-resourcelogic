@@ -57,6 +57,25 @@ function fiscalYearFromPeriod(period?: string | null): number | null {
   return fiscalYearOf(year, month);
 }
 
+function findTopPostes(
+  lines: { poste: string; deltaNet: number; deltaBrut: number; pct: number | null; pctBrut: number | null }[],
+  mode: "net" | "brut"
+) {
+  const absDelta = (l: typeof lines[0]) => Math.abs(mode === "brut" ? l.deltaBrut : l.deltaNet);
+  const absPct = (l: typeof lines[0]) => {
+    const p = mode === "brut" ? l.pctBrut : l.pct;
+    return p === null ? 0 : Math.abs(p);
+  };
+
+  const maxDelta = lines.length ? Math.max(...lines.map(absDelta)) : 0;
+  const maxPct = lines.length ? Math.max(...lines.map(absPct)) : 0;
+
+  return {
+    topDelta: new Set(lines.filter((l) => absDelta(l) > 0 && absDelta(l) === maxDelta).map((l) => l.poste)),
+    topPct: new Set(lines.filter((l) => absPct(l) > 0 && absPct(l) === maxPct).map((l) => l.poste)),
+  };
+}
+
 export function EmployeePayrollPositions({ nif, profileId, organizationId }: Props) {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<PaymentRow[]>([]);
