@@ -28,9 +28,38 @@ interface PaymentRow {
 const fmt = (n: number) =>
   `${(n || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} HTG`;
 
+const ALL_YEARS = "all";
+
+function parsePeriodYear(period?: string | null): number | null {
+  if (!period) return null;
+  const match = period.match(/\d{4}/);
+  return match ? Number(match[0]) : null;
+}
+
+function parsePeriodMonth(period?: string | null): number | null {
+  if (!period) return null;
+  const lower = period.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const idx = MONTH_NAMES.findIndex((m) =>
+    lower.includes(
+      m.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    )
+  );
+  return idx >= 0 ? idx + 1 : null;
+}
+
+function fiscalYearFromPeriod(period?: string | null): number | null {
+  const year = parsePeriodYear(period);
+  const month = parsePeriodMonth(period);
+  if (!year || !month) return null;
+  return fiscalYearOf(year, month);
+}
+
 export function EmployeePayrollPositions({ nif, profileId, organizationId }: Props) {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<PaymentRow[]>([]);
+  const [selectedFiscalYear, setSelectedFiscalYear] = useState<string>(ALL_YEARS);
+
+  const yearOptions = useMemo(() => fiscalYearOptions(6), []);
 
   useEffect(() => {
     const load = async () => {
@@ -48,9 +77,15 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
         const { data, error } = await query;
         if (error) throw error;
         setRows((data as PaymentRow[]) || []);
+
+        // Default to current fiscal year if data exists for it
+        const currentStart = fiscalYearOf(new Date().getFullYear(), new Date().getMonth() + 1);
+        const hasCurrent = (data as PaymentRow[])?.some((r) => fiscalYearFromPeriod(r.period) === currentStart);
+        setSelectedFiscalYear(hasCurrent ? String(currentStart) : ALL_YEARS);
       } catch (e) {
         console.error("Erreur chargement paie employé:", e);
         setRows([]);
+        setSelectedFiscalYear(ALL_YEARS);
       } finally {
         setLoading(false);
       }
@@ -58,7 +93,13 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
     load();
   }, [nif, profileId, organizationId]);
 
-  const byPoste = rows.reduce<Record<string, { count: number; brut: number; net: number; paid: number }>>(
+  const filteredRows = useMemo(() => {
+    if (selectedFiscalYear === ALL_YEARS) return rows;
+    const target = Number(selectedFiscalYear);
+    return rows.filter((r) => fiscalYearFromPeriod(r.period) === target);
+  }, [rows, selectedFiscalYear]);
+
+  const byPoste = filteredRows.reduce<Record<string, { count: number; brut: number; net: number; paid: number }>>(
     (acc, r) => {
       const key = r.poste?.trim() || "Poste non précisé";
       acc[key] = acc[key] || { count: 0, brut: 0, net: 0, paid: 0 };
@@ -72,8 +113,8 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
   );
 
   const postes = Object.entries(byPoste);
-  const totalNet = rows.reduce((s, r) => s + (Number(r.montant_net) || 0), 0);
-  const totalBrut = rows.reduce((s, r) => s + (Number(r.montant_brut) || 0), 0);
+  const totalNet = filteredRows.reduce((s, r) => s + (Number(r.montant_net) || 0), 0);
+  const totalBrut = filteredRows.reduce((s, r) => s + (Number(r.montant_brut) || 0), 0);
 
   if (loading) {
     return (
