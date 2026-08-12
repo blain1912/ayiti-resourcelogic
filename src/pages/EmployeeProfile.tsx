@@ -9,7 +9,7 @@ import { EmployeeDocuments } from "@/components/employees/EmployeeDocuments";
 import { EmployeeSchedule } from "@/components/employees/EmployeeSchedule";
 import { ProfileTextGenerator } from "@/components/employees/ProfileTextGenerator";
 import { toast } from "@/hooks/use-toast";
-import { AlertCircle, CheckCircle, Clock, Download, CreditCard, Printer, FileText, Sparkles } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, Download, CreditCard, Printer, FileText, Sparkles, Briefcase } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useProfessorGrades } from "@/hooks/useProfessorGrades";
 import { QRCodeSVG } from "qrcode.react";
