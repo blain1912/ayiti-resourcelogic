@@ -526,7 +526,7 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {comparison.lines.map((l) => {
+                  {visibleLines.map((l) => {
                     const valA = compareMode === "brut" ? l.brutA : l.netA;
                     const valB = compareMode === "brut" ? l.brutB : l.netB;
                     const delta = compareMode === "brut" ? l.deltaBrut : l.deltaNet;
