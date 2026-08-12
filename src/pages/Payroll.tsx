@@ -281,6 +281,7 @@ const Payroll = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>Exercice</TableHead>
                       <TableHead>Période</TableHead>
                       <TableHead>Fichier</TableHead>
                       <TableHead>Taille</TableHead>
@@ -289,14 +290,22 @@ const Payroll = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {docs.map((d) => (
+                    {sortedDocs.map((d) => (
                       <TableRow key={d.id}>
+                        <TableCell>
+                          <Badge variant="outline" className="whitespace-nowrap">
+                            {docFiscalYear(d) !== null
+                              ? `${docFiscalYear(d)}-${(docFiscalYear(d) as number) + 1}`
+                              : "—"}
+                          </Badge>
+                        </TableCell>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4 text-muted-foreground" />
                             {d.period_label || "—"}
                           </div>
                         </TableCell>
+
                         <TableCell className="text-sm">{d.file_name}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">{formatSize(d.file_size)}</TableCell>
                         <TableCell className="text-sm text-muted-foreground">
