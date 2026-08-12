@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -91,6 +92,8 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
   const [compareB, setCompareB] = useState<number | null>(null);
   const [compareMode, setCompareMode] = useState<"net" | "brut">("net");
   const [detailPoste, setDetailPoste] = useState<string | null>(null);
+  const [minDeltaHtg, setMinDeltaHtg] = useState<string>("");
+  const [minPct, setMinPct] = useState<string>("");
 
   const yearOptions = useMemo(() => fiscalYearOptions(6), []);
 
@@ -214,6 +217,19 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
     () => findTopPostes(comparison.lines, compareMode),
     [comparison.lines, compareMode]
   );
+
+  const thresholdDelta = minDeltaHtg.trim() === "" ? null : Number(minDeltaHtg);
+  const thresholdPct = minPct.trim() === "" ? null : Number(minPct);
+
+  const visibleLines = useMemo(() => {
+    return comparison.lines.filter((l) => {
+      const delta = compareMode === "brut" ? l.deltaBrut : l.deltaNet;
+      const pct = compareMode === "brut" ? l.pctBrut : l.pct;
+      if (thresholdDelta !== null && !isNaN(thresholdDelta) && Math.abs(delta) < thresholdDelta) return false;
+      if (thresholdPct !== null && !isNaN(thresholdPct) && (pct === null || Math.abs(pct) < thresholdPct)) return false;
+      return true;
+    });
+  }, [comparison.lines, compareMode, thresholdDelta, thresholdPct]);
 
 
   const employeeName = rows[0]?.nom_complet || "Employé";
@@ -451,11 +467,47 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
               </Select>
             </div>
           </div>
+          <div className="mt-3 flex flex-col sm:flex-row sm:items-end gap-2 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground whitespace-nowrap">Seuil écart HTG :</span>
+              <Input
+                type="number"
+                min={0}
+                placeholder="ex: 5000"
+                value={minDeltaHtg}
+                onChange={(e) => setMinDeltaHtg(e.target.value)}
+                className="w-[140px]"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground whitespace-nowrap">Seuil variation % :</span>
+              <Input
+                type="number"
+                min={0}
+                placeholder="ex: 10"
+                value={minPct}
+                onChange={(e) => setMinPct(e.target.value)}
+                className="w-[120px]"
+              />
+            </div>
+            {(minDeltaHtg || minPct) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setMinDeltaHtg("");
+                  setMinPct("");
+                }}
+              >
+                Réinitialiser les filtres
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
-          {comparison.lines.length === 0 ? (
+          {visibleLines.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4">
-              Aucune donnée de paie sur les exercices sélectionnés.
+              Aucune donnée de paie correspondant aux critères sélectionnés.
             </p>
           ) : (
             <div className="overflow-x-auto">
@@ -474,7 +526,7 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {comparison.lines.map((l) => {
+                  {visibleLines.map((l) => {
                     const valA = compareMode === "brut" ? l.brutA : l.netA;
                     const valB = compareMode === "brut" ? l.brutB : l.netB;
                     const delta = compareMode === "brut" ? l.deltaBrut : l.deltaNet;
