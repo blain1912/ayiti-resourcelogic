@@ -505,9 +505,9 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
           </div>
         </CardHeader>
         <CardContent>
-          {comparison.lines.length === 0 ? (
+          {visibleLines.length === 0 ? (
             <p className="text-sm text-muted-foreground py-4">
-              Aucune donnée de paie sur les exercices sélectionnés.
+              Aucune donnée de paie correspondant aux critères sélectionnés.
             </p>
           ) : (
             <div className="overflow-x-auto">
