@@ -160,8 +160,8 @@ const Payroll = () => {
     return `${(b / (1024 * 1024)).toFixed(2)} Mo`;
   };
 
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 6 }, (_, i) => String(currentYear - i));
+  const fiscalYears = fiscalYearOptions(6);
+
 
   return (
     <div className="min-h-screen bg-background">
