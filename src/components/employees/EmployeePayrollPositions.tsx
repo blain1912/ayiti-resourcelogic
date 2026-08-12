@@ -130,15 +130,32 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Briefcase className="h-5 w-5" />
-            Postes rattachés au NIF
-            {postes.length > 1 && <Badge variant="secondary">Cumul de postes</Badge>}
-          </CardTitle>
-          <CardDescription>
-            {nif ? `NIF ${nif} — ` : ""}
-            {postes.length} poste(s) détecté(s) sur {rows.length} ligne(s) de paie
-          </CardDescription>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Briefcase className="h-5 w-5" />
+                Postes rattachés au NIF
+                {postes.length > 1 && <Badge variant="secondary">Cumul de postes</Badge>}
+              </CardTitle>
+              <CardDescription>
+                {nif ? `NIF ${nif} — ` : ""}
+                {postes.length} poste(s) détecté(s) sur {filteredRows.length} ligne(s) de paie
+              </CardDescription>
+            </div>
+            <Select value={selectedFiscalYear} onValueChange={setSelectedFiscalYear}>
+              <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder="Exercice fiscal" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_YEARS}>Tous les exercices</SelectItem>
+                {yearOptions.map((start) => (
+                  <SelectItem key={start} value={String(start)}>
+                    {fiscalYearLabel(start)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
           {postes.length === 0 ? (
