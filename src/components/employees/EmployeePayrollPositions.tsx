@@ -433,66 +433,76 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
                   <TableRow>
                     <TableHead>Poste</TableHead>
                     <TableHead className="text-right">
-                      Net {compareA !== null ? fiscalYearLabel(compareA) : "A"}
+                      {compareMode === "brut" ? "Brut" : "Net"} {compareA !== null ? fiscalYearLabel(compareA) : "A"}
                     </TableHead>
                     <TableHead className="text-right">
-                      Net {compareB !== null ? fiscalYearLabel(compareB) : "B"}
+                      {compareMode === "brut" ? "Brut" : "Net"} {compareB !== null ? fiscalYearLabel(compareB) : "B"}
                     </TableHead>
                     <TableHead className="text-right">Écart</TableHead>
                     <TableHead className="text-right">Variation</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {comparison.lines.map((l) => (
-                    <TableRow key={l.poste}>
-                      <TableCell className="font-medium">{l.poste}</TableCell>
-                      <TableCell className="text-right">{fmt(l.netA)}</TableCell>
-                      <TableCell className="text-right">{fmt(l.netB)}</TableCell>
-                      <TableCell
-                        className={`text-right font-semibold ${
-                          l.deltaNet > 0
-                            ? "text-emerald-600"
-                            : l.deltaNet < 0
-                            ? "text-destructive"
-                            : "text-muted-foreground"
-                        }`}
-                      >
-                        {l.deltaNet > 0 ? "+" : ""}
-                        {fmt(l.deltaNet)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {l.pct === null ? (
-                          <Badge variant="secondary">Nouveau</Badge>
-                        ) : (
-                          <span
-                            className={
-                              l.pct > 0
-                                ? "text-emerald-600"
-                                : l.pct < 0
-                                ? "text-destructive"
-                                : "text-muted-foreground"
-                            }
-                          >
-                            {l.pct > 0 ? "+" : ""}
-                            {l.pct.toFixed(1)} %
-                          </span>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {comparison.lines.map((l) => {
+                    const valA = compareMode === "brut" ? l.brutA : l.netA;
+                    const valB = compareMode === "brut" ? l.brutB : l.netB;
+                    const delta = compareMode === "brut" ? l.deltaBrut : l.deltaNet;
+                    const pct = compareMode === "brut" ? l.pctBrut : l.pct;
+                    return (
+                      <TableRow key={l.poste}>
+                        <TableCell className="font-medium">{l.poste}</TableCell>
+                        <TableCell className="text-right">{fmt(valA)}</TableCell>
+                        <TableCell className="text-right">{fmt(valB)}</TableCell>
+                        <TableCell
+                          className={`text-right font-semibold ${
+                            delta > 0
+                              ? "text-emerald-600"
+                              : delta < 0
+                              ? "text-destructive"
+                              : "text-muted-foreground"
+                          }`}
+                        >
+                          {delta > 0 ? "+" : ""}
+                          {fmt(delta)}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {pct === null ? (
+                            <Badge variant="secondary">Nouveau</Badge>
+                          ) : (
+                            <span
+                              className={
+                                pct > 0
+                                  ? "text-emerald-600"
+                                  : pct < 0
+                                  ? "text-destructive"
+                                  : "text-muted-foreground"
+                              }
+                            >
+                              {pct > 0 ? "+" : ""}
+                              {pct.toFixed(1)} %
+                            </span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                   <TableRow>
-                    <TableCell className="font-semibold">Total net</TableCell>
-                    <TableCell className="text-right font-semibold">{fmt(comparison.totalNetA)}</TableCell>
-                    <TableCell className="text-right font-semibold">{fmt(comparison.totalNetB)}</TableCell>
+                    <TableCell className="font-semibold">Total {compareMode === "brut" ? "brut" : "net"}</TableCell>
+                    <TableCell className="text-right font-semibold">
+                      {fmt(compareMode === "brut" ? comparison.totalBrutA : comparison.totalNetA)}
+                    </TableCell>
+                    <TableCell className="text-right font-semibold">
+                      {fmt(compareMode === "brut" ? comparison.totalBrutB : comparison.totalNetB)}
+                    </TableCell>
                     <TableCell
                       className={`text-right font-semibold ${
-                        comparison.totalNetB - comparison.totalNetA >= 0
+                        (compareMode === "brut" ? comparison.totalBrutB - comparison.totalBrutA : comparison.totalNetB - comparison.totalNetA) >= 0
                           ? "text-emerald-600"
                           : "text-destructive"
                       }`}
                     >
-                      {comparison.totalNetB - comparison.totalNetA > 0 ? "+" : ""}
-                      {fmt(comparison.totalNetB - comparison.totalNetA)}
+                      {(compareMode === "brut" ? comparison.totalBrutB - comparison.totalBrutA : comparison.totalNetB - comparison.totalNetA) > 0 ? "+" : ""}
+                      {fmt(compareMode === "brut" ? comparison.totalBrutB - comparison.totalBrutA : comparison.totalNetB - comparison.totalNetA)}
                     </TableCell>
                     <TableCell />
                   </TableRow>
