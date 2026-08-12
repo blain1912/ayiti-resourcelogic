@@ -203,6 +203,11 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
     };
   }, [rows, compareA, compareB]);
 
+  const { topDelta, topPct } = useMemo(
+    () => findTopPostes(comparison.lines, compareMode),
+    [comparison.lines, compareMode]
+  );
+
 
   const employeeName = rows[0]?.nom_complet || "Employé";
   const periodLabel =
