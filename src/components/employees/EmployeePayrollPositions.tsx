@@ -627,6 +627,77 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
           </CardContent>
         </Card>
       )}
+      <Dialog open={detailPoste !== null} onOpenChange={(open) => !open && setDetailPoste(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5" />
+              Détail du poste : {detailPoste}
+            </DialogTitle>
+            <DialogDescription>
+              Lignes de paie composant les montants comparés sur les exercices{" "}
+              {compareA !== null ? fiscalYearLabel(compareA) : "—"} et{" "}
+              {compareB !== null ? fiscalYearLabel(compareB) : "—"}.
+            </DialogDescription>
+          </DialogHeader>
+
+          {detailPoste && (
+            <div className="space-y-6">
+              {[
+                { year: compareA, label: compareA !== null ? fiscalYearLabel(compareA) : "Exercice A" },
+                { year: compareB, label: compareB !== null ? fiscalYearLabel(compareB) : "Exercice B" },
+              ].map(({ year, label }) => {
+                const detailRows = rows.filter(
+                  (r) =>
+                    fiscalYearFromPeriod(r.period) === year &&
+                    (r.poste?.trim() || "Poste non précisé") === detailPoste
+                );
+                const totalBrut = detailRows.reduce((s, r) => s + (Number(r.montant_brut) || 0), 0);
+                const totalNet = detailRows.reduce((s, r) => s + (Number(r.montant_net) || 0), 0);
+                return (
+                  <div key={label} className="space-y-2">
+                    <h4 className="text-sm font-semibold">{label}</h4>
+                    {detailRows.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">Aucune ligne de paie pour cet exercice.</p>
+                    ) : (
+                      <div className="overflow-x-auto rounded-md border">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Période</TableHead>
+                              <TableHead className="text-right">Brut</TableHead>
+                              <TableHead className="text-right">Net</TableHead>
+                              <TableHead>Statut</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {detailRows.map((r) => (
+                              <TableRow key={r.id}>
+                                <TableCell>{r.period}</TableCell>
+                                <TableCell className="text-right">{fmt(Number(r.montant_brut))}</TableCell>
+                                <TableCell className="text-right font-medium">{fmt(Number(r.montant_net))}</TableCell>
+                                <TableCell>
+                                  <Badge variant={r.status === "paid" ? "default" : "secondary"}>{r.status}</Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                            <TableRow>
+                              <TableCell className="font-semibold">Total</TableCell>
+                              <TableCell className="text-right font-semibold">{fmt(totalBrut)}</TableCell>
+                              <TableCell className="text-right font-semibold">{fmt(totalNet)}</TableCell>
+                              <TableCell />
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
