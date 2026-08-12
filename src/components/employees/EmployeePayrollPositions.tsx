@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Briefcase, Loader2, FileDown, FileSpreadsheet, ArrowLeftRight } from "lucide-react";
+import { Briefcase, Loader2, FileDown, FileSpreadsheet, ArrowLeftRight, TrendingUp, Flame } from "lucide-react";
 import { fiscalYearLabel, fiscalYearOptions, fiscalYearOf, MONTH_NAMES } from "@/lib/fiscalYear";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -55,6 +55,25 @@ function fiscalYearFromPeriod(period?: string | null): number | null {
   const month = parsePeriodMonth(period);
   if (!year || !month) return null;
   return fiscalYearOf(year, month);
+}
+
+function findTopPostes(
+  lines: { poste: string; deltaNet: number; deltaBrut: number; pct: number | null; pctBrut: number | null }[],
+  mode: "net" | "brut"
+) {
+  const absDelta = (l: typeof lines[0]) => Math.abs(mode === "brut" ? l.deltaBrut : l.deltaNet);
+  const absPct = (l: typeof lines[0]) => {
+    const p = mode === "brut" ? l.pctBrut : l.pct;
+    return p === null ? 0 : Math.abs(p);
+  };
+
+  const maxDelta = lines.length ? Math.max(...lines.map(absDelta)) : 0;
+  const maxPct = lines.length ? Math.max(...lines.map(absPct)) : 0;
+
+  return {
+    topDelta: new Set(lines.filter((l) => absDelta(l) > 0 && absDelta(l) === maxDelta).map((l) => l.poste)),
+    topPct: new Set(lines.filter((l) => absPct(l) > 0 && absPct(l) === maxPct).map((l) => l.poste)),
+  };
 }
 
 export function EmployeePayrollPositions({ nif, profileId, organizationId }: Props) {
@@ -183,6 +202,11 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
       totalBrutB: lines.reduce((s, l) => s + l.brutB, 0),
     };
   }, [rows, compareA, compareB]);
+
+  const { topDelta, topPct } = useMemo(
+    () => findTopPostes(comparison.lines, compareMode),
+    [comparison.lines, compareMode]
+  );
 
 
   const employeeName = rows[0]?.nom_complet || "Employé";
@@ -448,9 +472,30 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
                     const valB = compareMode === "brut" ? l.brutB : l.netB;
                     const delta = compareMode === "brut" ? l.deltaBrut : l.deltaNet;
                     const pct = compareMode === "brut" ? l.pctBrut : l.pct;
+                    const isTopDelta = topDelta.has(l.poste);
+                    const isTopPct = topPct.has(l.poste);
                     return (
-                      <TableRow key={l.poste}>
-                        <TableCell className="font-medium">{l.poste}</TableCell>
+                      <TableRow
+                        key={l.poste}
+                        className={isTopDelta || isTopPct ? "bg-amber-50/50 dark:bg-amber-950/20" : undefined}
+                      >
+                        <TableCell className="font-medium">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span>{l.poste}</span>
+                            {isTopDelta && (
+                              <Badge variant="destructive" className="text-xs gap-1">
+                                <Flame className="h-3 w-3" />
+                                Top écart HTG
+                              </Badge>
+                            )}
+                            {isTopPct && (
+                              <Badge className="text-xs gap-1 bg-amber-500 hover:bg-amber-600 text-white">
+                                <TrendingUp className="h-3 w-3" />
+                                Top variation %
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="text-right">{fmt(valA)}</TableCell>
                         <TableCell className="text-right">{fmt(valB)}</TableCell>
                         <TableCell
@@ -508,6 +553,21 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
                   </TableRow>
                 </TableBody>
               </Table>
+              <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                <span className="font-medium">Légende :</span>
+                <span className="inline-flex items-center gap-1">
+                  <Flame className="h-3 w-3 text-destructive" />
+                  Poste avec le plus fort écart en HTG
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <TrendingUp className="h-3 w-3 text-amber-500" />
+                  Poste avec la plus forte variation en %
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <span className="inline-block w-3 h-3 rounded-sm bg-amber-50 dark:bg-amber-950/20 border border-amber-200" />
+                  Ligne mise en évidence
+                </span>
+              </div>
             </div>
           )}
         </CardContent>
