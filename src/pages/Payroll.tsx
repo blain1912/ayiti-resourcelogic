@@ -162,6 +162,23 @@ const Payroll = () => {
 
   const fiscalYears = fiscalYearOptions(6);
 
+  const docFiscalYear = (d: EmargementDoc): number | null => {
+    if (!d.upload_date) return null;
+    const [y, m] = d.upload_date.split("-").map(Number);
+    if (!y || !m) return null;
+    return fiscalYearOf(y, m);
+  };
+
+  const sortedDocs = [...docs].sort((a, b) => {
+    const fa = docFiscalYear(a) ?? -1;
+    const fb = docFiscalYear(b) ?? -1;
+    if (fa !== fb) return fb - fa;
+    const ma = Number(a.upload_date?.split("-")[1]) || 0;
+    const mb = Number(b.upload_date?.split("-")[1]) || 0;
+    return fiscalMonthOrder(mb) - fiscalMonthOrder(ma);
+  });
+
+
 
   return (
     <div className="min-h-screen bg-background">
