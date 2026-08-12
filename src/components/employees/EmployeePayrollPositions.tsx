@@ -63,6 +63,7 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
   const [selectedFiscalYear, setSelectedFiscalYear] = useState<string>(ALL_YEARS);
   const [compareA, setCompareA] = useState<number | null>(null);
   const [compareB, setCompareB] = useState<number | null>(null);
+  const [compareMode, setCompareMode] = useState<"net" | "brut">("net");
 
 
   const yearOptions = useMemo(() => fiscalYearOptions(6), []);
