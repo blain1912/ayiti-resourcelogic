@@ -119,6 +119,64 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
   const totalNet = filteredRows.reduce((s, r) => s + (Number(r.montant_net) || 0), 0);
   const totalBrut = filteredRows.reduce((s, r) => s + (Number(r.montant_brut) || 0), 0);
 
+  // ---- Comparaison de deux exercices fiscaux ----
+  const availableYears = useMemo(() => {
+    const set = new Set<number>();
+    rows.forEach((r) => {
+      const fy = fiscalYearFromPeriod(r.period);
+      if (fy) set.add(fy);
+    });
+    const list = Array.from(set).sort((a, b) => b - a);
+    return list.length ? list : yearOptions;
+  }, [rows, yearOptions]);
+
+  useEffect(() => {
+    if (availableYears.length && compareA === null) {
+      setCompareA(availableYears[0]);
+      setCompareB(availableYears[1] ?? availableYears[0] - 1);
+    }
+  }, [availableYears, compareA]);
+
+  const sumByPoste = (year: number | null) => {
+    const map: Record<string, { brut: number; net: number }> = {};
+    if (year === null) return map;
+    rows.forEach((r) => {
+      if (fiscalYearFromPeriod(r.period) !== year) return;
+      const key = r.poste?.trim() || "Poste non précisé";
+      map[key] = map[key] || { brut: 0, net: 0 };
+      map[key].brut += Number(r.montant_brut) || 0;
+      map[key].net += Number(r.montant_net) || 0;
+    });
+    return map;
+  };
+
+  const comparison = useMemo(() => {
+    const a = sumByPoste(compareA);
+    const b = sumByPoste(compareB);
+    const keys = Array.from(new Set([...Object.keys(a), ...Object.keys(b)])).sort();
+    const lines = keys.map((k) => {
+      const netA = a[k]?.net || 0;
+      const netB = b[k]?.net || 0;
+      const brutA = a[k]?.brut || 0;
+      const brutB = b[k]?.brut || 0;
+      return {
+        poste: k,
+        brutA,
+        brutB,
+        netA,
+        netB,
+        deltaNet: netB - netA,
+        pct: netA ? ((netB - netA) / netA) * 100 : null,
+      };
+    });
+    return {
+      lines,
+      totalNetA: lines.reduce((s, l) => s + l.netA, 0),
+      totalNetB: lines.reduce((s, l) => s + l.netB, 0),
+    };
+  }, [rows, compareA, compareB]);
+
+
   const employeeName = rows[0]?.nom_complet || "Employé";
   const periodLabel =
     selectedFiscalYear === ALL_YEARS ? "Tous les exercices" : fiscalYearLabel(Number(selectedFiscalYear));
