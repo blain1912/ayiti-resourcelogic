@@ -195,28 +195,40 @@ const Payroll = () => {
               <div className="space-y-4 py-2">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
+                    <Label>Exercice fiscal</Label>
+                    <select
+                      value={fiscalYear}
+                      onChange={(e) => setFiscalYear(e.target.value)}
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                    >
+                      {fiscalYears.map((y) => (
+                        <option key={y} value={y}>{`${y}-${y + 1}`}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
                     <Label>Mois</Label>
                     <select
                       value={month}
                       onChange={(e) => setMonth(e.target.value)}
                       className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
                     >
-                      {MONTHS.map((m, i) => (
-                        <option key={m} value={i + 1}>{m}</option>
+                      {FISCAL_MONTHS.map((m) => (
+                        <option key={m.value} value={m.value}>{m.label}</option>
                       ))}
                     </select>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Année</Label>
-                    <select
-                      value={year}
-                      onChange={(e) => setYear(e.target.value)}
-                      className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
-                    >
-                      {years.map((y) => <option key={y} value={y}>{y}</option>)}
-                    </select>
-                  </div>
                 </div>
+
+                <p className="text-xs text-muted-foreground">
+                  L'exercice fiscal court du 1<sup>er</sup> octobre {fiscalYear} au 30 septembre{" "}
+                  {parseInt(fiscalYear) + 1}. Période sélectionnée :{" "}
+                  <span className="font-medium text-foreground">
+                    {MONTH_NAMES[parseInt(month) - 1]} {year}
+                  </span>
+                  .
+                </p>
+
 
                 <div className="space-y-2">
                   <Label>Fichier PDF</Label>
