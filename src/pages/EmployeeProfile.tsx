@@ -8,6 +8,8 @@ import { EmployeeBadge } from "@/components/employees/EmployeeBadge";
 import { EmployeeDocuments } from "@/components/employees/EmployeeDocuments";
 import { EmployeeSchedule } from "@/components/employees/EmployeeSchedule";
 import { ProfileTextGenerator } from "@/components/employees/ProfileTextGenerator";
+import { EmployeePayrollPositions } from "@/components/employees/EmployeePayrollPositions";
+
 import { toast } from "@/hooks/use-toast";
 import { AlertCircle, CheckCircle, Clock, Download, CreditCard, Printer, FileText, Sparkles, Briefcase } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
