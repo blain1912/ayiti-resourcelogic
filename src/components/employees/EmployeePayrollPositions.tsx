@@ -170,13 +170,17 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
         netA,
         netB,
         deltaNet: netB - netA,
+        deltaBrut: brutB - brutA,
         pct: netA ? ((netB - netA) / netA) * 100 : null,
+        pctBrut: brutA ? ((brutB - brutA) / brutA) * 100 : null,
       };
     });
     return {
       lines,
       totalNetA: lines.reduce((s, l) => s + l.netA, 0),
       totalNetB: lines.reduce((s, l) => s + l.netB, 0),
+      totalBrutA: lines.reduce((s, l) => s + l.brutA, 0),
+      totalBrutB: lines.reduce((s, l) => s + l.brutB, 0),
     };
   }, [rows, compareA, compareB]);
 
