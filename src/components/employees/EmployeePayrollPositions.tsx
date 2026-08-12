@@ -224,19 +224,40 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
                 {postes.length} poste(s) détecté(s) sur {filteredRows.length} ligne(s) de paie
               </CardDescription>
             </div>
-            <Select value={selectedFiscalYear} onValueChange={setSelectedFiscalYear}>
-              <SelectTrigger className="w-[220px]">
-                <SelectValue placeholder="Exercice fiscal" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL_YEARS}>Tous les exercices</SelectItem>
-                {yearOptions.map((start) => (
-                  <SelectItem key={start} value={String(start)}>
-                    {fiscalYearLabel(start)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-wrap items-center gap-2">
+              <Select value={selectedFiscalYear} onValueChange={setSelectedFiscalYear}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Exercice fiscal" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_YEARS}>Tous les exercices</SelectItem>
+                  {yearOptions.map((start) => (
+                    <SelectItem key={start} value={String(start)}>
+                      {fiscalYearLabel(start)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportCsv}
+                disabled={filteredRows.length === 0}
+              >
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                CSV
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportPdf}
+                disabled={filteredRows.length === 0}
+              >
+                <FileDown className="h-4 w-4 mr-2" />
+                PDF
+              </Button>
+            </div>
+
           </div>
         </CardHeader>
         <CardContent>
