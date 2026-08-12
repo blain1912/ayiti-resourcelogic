@@ -31,10 +31,16 @@ interface EmargementDoc {
   created_at: string;
 }
 
-const MONTHS = [
-  "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
-  "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre",
-];
+import {
+  FISCAL_MONTHS,
+  MONTH_NAMES,
+  fiscalYearStart,
+  fiscalYearLabel,
+  fiscalYearOptions,
+  calendarYearForFiscalMonth,
+  fiscalYearOf,
+  fiscalMonthOrder,
+} from "@/lib/fiscalYear";
 
 const Payroll = () => {
   const [organizationId, setOrganizationId] = useState<string | null>(null);
@@ -43,8 +49,10 @@ const Payroll = () => {
   const [uploading, setUploading] = useState(false);
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState<string>(String(new Date().getMonth() + 1));
-  const [year, setYear] = useState<string>(String(new Date().getFullYear()));
+  const [fiscalYear, setFiscalYear] = useState<string>(String(fiscalYearStart()));
+  const year = String(calendarYearForFiscalMonth(parseInt(fiscalYear), parseInt(month)));
   const fileRef = useRef<HTMLInputElement>(null);
+
 
   useEffect(() => {
     (async () => {
