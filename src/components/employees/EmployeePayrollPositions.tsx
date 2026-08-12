@@ -5,7 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Briefcase, Loader2, FileDown, FileSpreadsheet, ArrowLeftRight, TrendingUp, Flame } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Briefcase, Loader2, FileDown, FileSpreadsheet, ArrowLeftRight, TrendingUp, Flame, Eye } from "lucide-react";
 import { fiscalYearLabel, fiscalYearOptions, fiscalYearOf, MONTH_NAMES } from "@/lib/fiscalYear";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -83,7 +90,7 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
   const [compareA, setCompareA] = useState<number | null>(null);
   const [compareB, setCompareB] = useState<number | null>(null);
   const [compareMode, setCompareMode] = useState<"net" | "brut">("net");
-
+  const [detailPoste, setDetailPoste] = useState<string | null>(null);
 
   const yearOptions = useMemo(() => fiscalYearOptions(6), []);
 
@@ -477,11 +484,15 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
                     return (
                       <TableRow
                         key={l.poste}
-                        className={isTopDelta || isTopPct ? "bg-amber-50/50 dark:bg-amber-950/20" : undefined}
+                        className={`cursor-pointer hover:bg-muted/50 transition-colors ${
+                          isTopDelta || isTopPct ? "bg-amber-50/50 dark:bg-amber-950/20" : ""
+                        }`}
+                        onClick={() => setDetailPoste(l.poste)}
                       >
                         <TableCell className="font-medium">
                           <div className="flex flex-wrap items-center gap-2">
                             <span>{l.poste}</span>
+                            <Eye className="h-3.5 w-3.5 text-muted-foreground ml-1" />
                             {isTopDelta && (
                               <Badge variant="destructive" className="text-xs gap-1">
                                 <Flame className="h-3 w-3" />
@@ -616,6 +627,77 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
           </CardContent>
         </Card>
       )}
+      <Dialog open={detailPoste !== null} onOpenChange={(open) => !open && setDetailPoste(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Briefcase className="h-5 w-5" />
+              Détail du poste : {detailPoste}
+            </DialogTitle>
+            <DialogDescription>
+              Lignes de paie composant les montants comparés sur les exercices{" "}
+              {compareA !== null ? fiscalYearLabel(compareA) : "—"} et{" "}
+              {compareB !== null ? fiscalYearLabel(compareB) : "—"}.
+            </DialogDescription>
+          </DialogHeader>
+
+          {detailPoste && (
+            <div className="space-y-6">
+              {[
+                { year: compareA, label: compareA !== null ? fiscalYearLabel(compareA) : "Exercice A" },
+                { year: compareB, label: compareB !== null ? fiscalYearLabel(compareB) : "Exercice B" },
+              ].map(({ year, label }) => {
+                const detailRows = rows.filter(
+                  (r) =>
+                    fiscalYearFromPeriod(r.period) === year &&
+                    (r.poste?.trim() || "Poste non précisé") === detailPoste
+                );
+                const totalBrut = detailRows.reduce((s, r) => s + (Number(r.montant_brut) || 0), 0);
+                const totalNet = detailRows.reduce((s, r) => s + (Number(r.montant_net) || 0), 0);
+                return (
+                  <div key={label} className="space-y-2">
+                    <h4 className="text-sm font-semibold">{label}</h4>
+                    {detailRows.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">Aucune ligne de paie pour cet exercice.</p>
+                    ) : (
+                      <div className="overflow-x-auto rounded-md border">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Période</TableHead>
+                              <TableHead className="text-right">Brut</TableHead>
+                              <TableHead className="text-right">Net</TableHead>
+                              <TableHead>Statut</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {detailRows.map((r) => (
+                              <TableRow key={r.id}>
+                                <TableCell>{r.period}</TableCell>
+                                <TableCell className="text-right">{fmt(Number(r.montant_brut))}</TableCell>
+                                <TableCell className="text-right font-medium">{fmt(Number(r.montant_net))}</TableCell>
+                                <TableCell>
+                                  <Badge variant={r.status === "paid" ? "default" : "secondary"}>{r.status}</Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                            <TableRow>
+                              <TableCell className="font-semibold">Total</TableCell>
+                              <TableCell className="text-right font-semibold">{fmt(totalBrut)}</TableCell>
+                              <TableCell className="text-right font-semibold">{fmt(totalNet)}</TableCell>
+                              <TableCell />
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
