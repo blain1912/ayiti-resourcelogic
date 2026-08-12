@@ -467,6 +467,43 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
               </Select>
             </div>
           </div>
+          <div className="mt-3 flex flex-col sm:flex-row sm:items-end gap-2 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground whitespace-nowrap">Seuil écart HTG :</span>
+              <Input
+                type="number"
+                min={0}
+                placeholder="ex: 5000"
+                value={minDeltaHtg}
+                onChange={(e) => setMinDeltaHtg(e.target.value)}
+                className="w-[140px]"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground whitespace-nowrap">Seuil variation % :</span>
+              <Input
+                type="number"
+                min={0}
+                placeholder="ex: 10"
+                value={minPct}
+                onChange={(e) => setMinPct(e.target.value)}
+                className="w-[120px]"
+              />
+            </div>
+            {(minDeltaHtg || minPct) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setMinDeltaHtg("");
+                  setMinPct("");
+                }}
+              >
+                Réinitialiser les filtres
+              </Button>
+            )}
+          </div>
+          </div>
         </CardHeader>
         <CardContent>
           {comparison.lines.length === 0 ? (
