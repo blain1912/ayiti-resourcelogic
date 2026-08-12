@@ -4,8 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Briefcase, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Briefcase, Loader2, FileDown, FileSpreadsheet } from "lucide-react";
 import { fiscalYearLabel, fiscalYearOptions, fiscalYearOf, MONTH_NAMES } from "@/lib/fiscalYear";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface Props {
   nif?: string | null;
@@ -116,7 +119,86 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
   const totalNet = filteredRows.reduce((s, r) => s + (Number(r.montant_net) || 0), 0);
   const totalBrut = filteredRows.reduce((s, r) => s + (Number(r.montant_brut) || 0), 0);
 
+  const employeeName = rows[0]?.nom_complet || "Employé";
+  const periodLabel =
+    selectedFiscalYear === ALL_YEARS ? "Tous les exercices" : fiscalYearLabel(Number(selectedFiscalYear));
+  const fileBase = `paie_${employeeName.replace(/\s+/g, "_")}_${periodLabel.replace(/\s+/g, "_")}`;
+
+  const handleExportCsv = () => {
+    const sep = ";";
+    const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const lines: string[] = [];
+    lines.push(esc(`Lignes de paie — ${employeeName}${nif ? ` (NIF ${nif})` : ""} — ${periodLabel}`));
+    lines.push("");
+    lines.push(["Poste", "Lignes", "Payées", "Total brut", "Total net"].map(esc).join(sep));
+    postes.forEach(([poste, s]) =>
+      lines.push([poste, s.count, s.paid, s.brut.toFixed(2), s.net.toFixed(2)].map(esc).join(sep))
+    );
+    lines.push(
+      ["Total cumulé", filteredRows.length, "", totalBrut.toFixed(2), totalNet.toFixed(2)].map(esc).join(sep)
+    );
+    lines.push("");
+    lines.push(["Période", "Poste", "Brut", "Net", "Statut"].map(esc).join(sep));
+    filteredRows.forEach((r) =>
+      lines.push(
+        [
+          r.period,
+          r.poste || "-",
+          Number(r.montant_brut || 0).toFixed(2),
+          Number(r.montant_net || 0).toFixed(2),
+          r.status,
+        ]
+          .map(esc)
+          .join(sep)
+      )
+    );
+
+    const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${fileBase}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportPdf = () => {
+    const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "letter" });
+    doc.setFontSize(14);
+    doc.text("Lignes de paie par poste", 40, 45);
+    doc.setFontSize(10);
+    doc.text(`${employeeName}${nif ? ` — NIF ${nif}` : ""}`, 40, 62);
+    doc.text(`Exercice : ${periodLabel}`, 40, 76);
+
+    autoTable(doc, {
+      startY: 95,
+      head: [["Poste", "Lignes", "Payées", "Total brut", "Total net"]],
+      body: postes.map(([poste, s]) => [poste, String(s.count), String(s.paid), fmt(s.brut), fmt(s.net)]),
+      foot: [["Total cumulé", String(filteredRows.length), "", fmt(totalBrut), fmt(totalNet)]],
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [30, 64, 120] },
+      footStyles: { fillColor: [235, 238, 245], textColor: 20 },
+    });
+
+    autoTable(doc, {
+      startY: (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 25,
+      head: [["Période", "Poste", "Brut", "Net", "Statut"]],
+      body: filteredRows.map((r) => [
+        r.period,
+        r.poste || "-",
+        fmt(Number(r.montant_brut)),
+        fmt(Number(r.montant_net)),
+        r.status,
+      ]),
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [30, 64, 120] },
+    });
+
+    doc.save(`${fileBase}.pdf`);
+  };
+
   if (loading) {
+
     return (
       <Card>
         <CardContent className="py-10 flex items-center justify-center text-muted-foreground">
@@ -142,19 +224,40 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
                 {postes.length} poste(s) détecté(s) sur {filteredRows.length} ligne(s) de paie
               </CardDescription>
             </div>
-            <Select value={selectedFiscalYear} onValueChange={setSelectedFiscalYear}>
-              <SelectTrigger className="w-[220px]">
-                <SelectValue placeholder="Exercice fiscal" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL_YEARS}>Tous les exercices</SelectItem>
-                {yearOptions.map((start) => (
-                  <SelectItem key={start} value={String(start)}>
-                    {fiscalYearLabel(start)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex flex-wrap items-center gap-2">
+              <Select value={selectedFiscalYear} onValueChange={setSelectedFiscalYear}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Exercice fiscal" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_YEARS}>Tous les exercices</SelectItem>
+                  {yearOptions.map((start) => (
+                    <SelectItem key={start} value={String(start)}>
+                      {fiscalYearLabel(start)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportCsv}
+                disabled={filteredRows.length === 0}
+              >
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                CSV
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportPdf}
+                disabled={filteredRows.length === 0}
+              >
+                <FileDown className="h-4 w-4 mr-2" />
+                PDF
+              </Button>
+            </div>
+
           </div>
         </CardHeader>
         <CardContent>
