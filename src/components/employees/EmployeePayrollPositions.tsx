@@ -484,11 +484,15 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
                     return (
                       <TableRow
                         key={l.poste}
-                        className={isTopDelta || isTopPct ? "bg-amber-50/50 dark:bg-amber-950/20" : undefined}
+                        className={`cursor-pointer hover:bg-muted/50 transition-colors ${
+                          isTopDelta || isTopPct ? "bg-amber-50/50 dark:bg-amber-950/20" : ""
+                        }`}
+                        onClick={() => setDetailPoste(l.poste)}
                       >
                         <TableCell className="font-medium">
                           <div className="flex flex-wrap items-center gap-2">
                             <span>{l.poste}</span>
+                            <Eye className="h-3.5 w-3.5 text-muted-foreground ml-1" />
                             {isTopDelta && (
                               <Badge variant="destructive" className="text-xs gap-1">
                                 <Flame className="h-3 w-3" />
