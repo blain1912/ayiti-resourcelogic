@@ -91,6 +91,8 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
   const [compareB, setCompareB] = useState<number | null>(null);
   const [compareMode, setCompareMode] = useState<"net" | "brut">("net");
   const [detailPoste, setDetailPoste] = useState<string | null>(null);
+  const [minDeltaHtg, setMinDeltaHtg] = useState<string>("");
+  const [minPct, setMinPct] = useState<string>("");
 
   const yearOptions = useMemo(() => fiscalYearOptions(6), []);
 
