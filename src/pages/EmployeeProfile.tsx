@@ -318,7 +318,7 @@ export default function EmployeeProfile() {
 
         {(profile?.profile_completed || !isOwner) && (
           <Tabs defaultValue="info" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="info">Informations</TabsTrigger>
               <TabsTrigger value="profile-text">
                 <Sparkles className="h-4 w-4 mr-2" />
@@ -327,6 +327,10 @@ export default function EmployeeProfile() {
               <TabsTrigger value="schedule">
                 <Clock className="h-4 w-4 mr-2" />
                 Horaires
+              </TabsTrigger>
+              <TabsTrigger value="payroll">
+                <Briefcase className="h-4 w-4 mr-2" />
+                Postes & Paie
               </TabsTrigger>
               <TabsTrigger value="documents">
                 <FileText className="h-4 w-4 mr-2" />
@@ -337,6 +341,7 @@ export default function EmployeeProfile() {
                 Badge
               </TabsTrigger>
             </TabsList>
+
 
             <TabsContent value="info" className="space-y-4">
               {showForm && profile?.profile_completed ? (
