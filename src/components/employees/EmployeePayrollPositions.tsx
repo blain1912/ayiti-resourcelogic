@@ -217,6 +217,19 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
     [comparison.lines, compareMode]
   );
 
+  const thresholdDelta = minDeltaHtg.trim() === "" ? null : Number(minDeltaHtg);
+  const thresholdPct = minPct.trim() === "" ? null : Number(minPct);
+
+  const visibleLines = useMemo(() => {
+    return comparison.lines.filter((l) => {
+      const delta = compareMode === "brut" ? l.deltaBrut : l.deltaNet;
+      const pct = compareMode === "brut" ? l.pctBrut : l.pct;
+      if (thresholdDelta !== null && !isNaN(thresholdDelta) && Math.abs(delta) < thresholdDelta) return false;
+      if (thresholdPct !== null && !isNaN(thresholdPct) && (pct === null || Math.abs(pct) < thresholdPct)) return false;
+      return true;
+    });
+  }, [comparison.lines, compareMode, thresholdDelta, thresholdPct]);
+
 
   const employeeName = rows[0]?.nom_complet || "Employé";
   const periodLabel =
