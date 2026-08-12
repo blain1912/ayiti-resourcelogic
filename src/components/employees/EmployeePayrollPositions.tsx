@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Briefcase, Loader2, FileDown, FileSpreadsheet } from "lucide-react";
+import { Briefcase, Loader2, FileDown, FileSpreadsheet, ArrowLeftRight } from "lucide-react";
 import { fiscalYearLabel, fiscalYearOptions, fiscalYearOf, MONTH_NAMES } from "@/lib/fiscalYear";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -61,6 +61,9 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<PaymentRow[]>([]);
   const [selectedFiscalYear, setSelectedFiscalYear] = useState<string>(ALL_YEARS);
+  const [compareA, setCompareA] = useState<number | null>(null);
+  const [compareB, setCompareB] = useState<number | null>(null);
+
 
   const yearOptions = useMemo(() => fiscalYearOptions(6), []);
 
@@ -118,6 +121,64 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
   const postes = Object.entries(byPoste);
   const totalNet = filteredRows.reduce((s, r) => s + (Number(r.montant_net) || 0), 0);
   const totalBrut = filteredRows.reduce((s, r) => s + (Number(r.montant_brut) || 0), 0);
+
+  // ---- Comparaison de deux exercices fiscaux ----
+  const availableYears = useMemo(() => {
+    const set = new Set<number>();
+    rows.forEach((r) => {
+      const fy = fiscalYearFromPeriod(r.period);
+      if (fy) set.add(fy);
+    });
+    const list = Array.from(set).sort((a, b) => b - a);
+    return list.length ? list : yearOptions;
+  }, [rows, yearOptions]);
+
+  useEffect(() => {
+    if (availableYears.length && compareA === null) {
+      setCompareA(availableYears[0]);
+      setCompareB(availableYears[1] ?? availableYears[0] - 1);
+    }
+  }, [availableYears, compareA]);
+
+  const sumByPoste = (year: number | null) => {
+    const map: Record<string, { brut: number; net: number }> = {};
+    if (year === null) return map;
+    rows.forEach((r) => {
+      if (fiscalYearFromPeriod(r.period) !== year) return;
+      const key = r.poste?.trim() || "Poste non précisé";
+      map[key] = map[key] || { brut: 0, net: 0 };
+      map[key].brut += Number(r.montant_brut) || 0;
+      map[key].net += Number(r.montant_net) || 0;
+    });
+    return map;
+  };
+
+  const comparison = useMemo(() => {
+    const a = sumByPoste(compareA);
+    const b = sumByPoste(compareB);
+    const keys = Array.from(new Set([...Object.keys(a), ...Object.keys(b)])).sort();
+    const lines = keys.map((k) => {
+      const netA = a[k]?.net || 0;
+      const netB = b[k]?.net || 0;
+      const brutA = a[k]?.brut || 0;
+      const brutB = b[k]?.brut || 0;
+      return {
+        poste: k,
+        brutA,
+        brutB,
+        netA,
+        netB,
+        deltaNet: netB - netA,
+        pct: netA ? ((netB - netA) / netA) * 100 : null,
+      };
+    });
+    return {
+      lines,
+      totalNetA: lines.reduce((s, l) => s + l.netA, 0),
+      totalNetB: lines.reduce((s, l) => s + l.netB, 0),
+    };
+  }, [rows, compareA, compareB]);
+
 
   const employeeName = rows[0]?.nom_complet || "Employé";
   const periodLabel =
@@ -300,6 +361,135 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
           )}
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <ArrowLeftRight className="h-5 w-5" />
+                Comparaison d'exercices
+              </CardTitle>
+              <CardDescription>Écarts de montants par poste entre deux exercices fiscaux</CardDescription>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Select
+                value={compareA !== null ? String(compareA) : ""}
+                onValueChange={(v) => setCompareA(Number(v))}
+              >
+                <SelectTrigger className="w-[170px]">
+                  <SelectValue placeholder="Exercice A" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableYears.map((y) => (
+                    <SelectItem key={`a-${y}`} value={String(y)}>
+                      {fiscalYearLabel(y)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <span className="text-muted-foreground text-sm">vs</span>
+              <Select
+                value={compareB !== null ? String(compareB) : ""}
+                onValueChange={(v) => setCompareB(Number(v))}
+              >
+                <SelectTrigger className="w-[170px]">
+                  <SelectValue placeholder="Exercice B" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableYears.map((y) => (
+                    <SelectItem key={`b-${y}`} value={String(y)}>
+                      {fiscalYearLabel(y)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {comparison.lines.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-4">
+              Aucune donnée de paie sur les exercices sélectionnés.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Poste</TableHead>
+                    <TableHead className="text-right">
+                      Net {compareA !== null ? fiscalYearLabel(compareA) : "A"}
+                    </TableHead>
+                    <TableHead className="text-right">
+                      Net {compareB !== null ? fiscalYearLabel(compareB) : "B"}
+                    </TableHead>
+                    <TableHead className="text-right">Écart</TableHead>
+                    <TableHead className="text-right">Variation</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {comparison.lines.map((l) => (
+                    <TableRow key={l.poste}>
+                      <TableCell className="font-medium">{l.poste}</TableCell>
+                      <TableCell className="text-right">{fmt(l.netA)}</TableCell>
+                      <TableCell className="text-right">{fmt(l.netB)}</TableCell>
+                      <TableCell
+                        className={`text-right font-semibold ${
+                          l.deltaNet > 0
+                            ? "text-emerald-600"
+                            : l.deltaNet < 0
+                            ? "text-destructive"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        {l.deltaNet > 0 ? "+" : ""}
+                        {fmt(l.deltaNet)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {l.pct === null ? (
+                          <Badge variant="secondary">Nouveau</Badge>
+                        ) : (
+                          <span
+                            className={
+                              l.pct > 0
+                                ? "text-emerald-600"
+                                : l.pct < 0
+                                ? "text-destructive"
+                                : "text-muted-foreground"
+                            }
+                          >
+                            {l.pct > 0 ? "+" : ""}
+                            {l.pct.toFixed(1)} %
+                          </span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  <TableRow>
+                    <TableCell className="font-semibold">Total net</TableCell>
+                    <TableCell className="text-right font-semibold">{fmt(comparison.totalNetA)}</TableCell>
+                    <TableCell className="text-right font-semibold">{fmt(comparison.totalNetB)}</TableCell>
+                    <TableCell
+                      className={`text-right font-semibold ${
+                        comparison.totalNetB - comparison.totalNetA >= 0
+                          ? "text-emerald-600"
+                          : "text-destructive"
+                      }`}
+                    >
+                      {comparison.totalNetB - comparison.totalNetA > 0 ? "+" : ""}
+                      {fmt(comparison.totalNetB - comparison.totalNetA)}
+                    </TableCell>
+                    <TableCell />
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+
 
       {filteredRows.length > 0 && (
         <Card>
