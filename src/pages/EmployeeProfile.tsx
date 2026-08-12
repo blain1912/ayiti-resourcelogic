@@ -8,8 +8,10 @@ import { EmployeeBadge } from "@/components/employees/EmployeeBadge";
 import { EmployeeDocuments } from "@/components/employees/EmployeeDocuments";
 import { EmployeeSchedule } from "@/components/employees/EmployeeSchedule";
 import { ProfileTextGenerator } from "@/components/employees/ProfileTextGenerator";
+import { EmployeePayrollPositions } from "@/components/employees/EmployeePayrollPositions";
+
 import { toast } from "@/hooks/use-toast";
-import { AlertCircle, CheckCircle, Clock, Download, CreditCard, Printer, FileText, Sparkles } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, Download, CreditCard, Printer, FileText, Sparkles, Briefcase } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useProfessorGrades } from "@/hooks/useProfessorGrades";
 import { QRCodeSVG } from "qrcode.react";
@@ -318,7 +320,7 @@ export default function EmployeeProfile() {
 
         {(profile?.profile_completed || !isOwner) && (
           <Tabs defaultValue="info" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="info">Informations</TabsTrigger>
               <TabsTrigger value="profile-text">
                 <Sparkles className="h-4 w-4 mr-2" />
@@ -327,6 +329,10 @@ export default function EmployeeProfile() {
               <TabsTrigger value="schedule">
                 <Clock className="h-4 w-4 mr-2" />
                 Horaires
+              </TabsTrigger>
+              <TabsTrigger value="payroll">
+                <Briefcase className="h-4 w-4 mr-2" />
+                Postes & Paie
               </TabsTrigger>
               <TabsTrigger value="documents">
                 <FileText className="h-4 w-4 mr-2" />
@@ -337,6 +343,7 @@ export default function EmployeeProfile() {
                 Badge
               </TabsTrigger>
             </TabsList>
+
 
             <TabsContent value="info" className="space-y-4">
               {showForm && profile?.profile_completed ? (
@@ -664,6 +671,16 @@ export default function EmployeeProfile() {
             <TabsContent value="schedule">
               <EmployeeSchedule profileId={profile.id} />
             </TabsContent>
+
+            <TabsContent value="payroll">
+              <EmployeePayrollPositions
+                nif={profile.nif}
+                profileId={profile.id}
+                organizationId={profile.organization_id}
+              />
+            </TabsContent>
+
+
 
             <TabsContent value="documents">
               <EmployeeDocuments
