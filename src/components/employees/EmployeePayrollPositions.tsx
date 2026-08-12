@@ -61,6 +61,9 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<PaymentRow[]>([]);
   const [selectedFiscalYear, setSelectedFiscalYear] = useState<string>(ALL_YEARS);
+  const [compareA, setCompareA] = useState<number | null>(null);
+  const [compareB, setCompareB] = useState<number | null>(null);
+
 
   const yearOptions = useMemo(() => fiscalYearOptions(6), []);
 
