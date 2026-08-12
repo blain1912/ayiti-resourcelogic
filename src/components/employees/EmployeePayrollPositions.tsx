@@ -198,11 +198,16 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
         </CardContent>
       </Card>
 
-      {rows.length > 0 && (
+      {filteredRows.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Détail des lignes de paie</CardTitle>
-            <CardDescription>Par période et par poste</CardDescription>
+            <CardDescription>
+              Par période et par poste
+              {selectedFiscalYear !== ALL_YEARS && (
+                <span className="ml-1">— {fiscalYearLabel(Number(selectedFiscalYear))}</span>
+              )}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -217,7 +222,7 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.map((r) => (
+                  {filteredRows.map((r) => (
                     <TableRow key={r.id}>
                       <TableCell>{r.period}</TableCell>
                       <TableCell>{r.poste || "-"}</TableCell>
