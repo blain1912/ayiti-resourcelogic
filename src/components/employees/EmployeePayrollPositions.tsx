@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Briefcase, Loader2 } from "lucide-react";
+import { fiscalYearLabel, fiscalYearOptions, fiscalYearOf, MONTH_NAMES } from "@/lib/fiscalYear";
 
 interface Props {
   nif?: string | null;
@@ -26,9 +28,38 @@ interface PaymentRow {
 const fmt = (n: number) =>
   `${(n || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} HTG`;
 
+const ALL_YEARS = "all";
+
+function parsePeriodYear(period?: string | null): number | null {
+  if (!period) return null;
+  const match = period.match(/\d{4}/);
+  return match ? Number(match[0]) : null;
+}
+
+function parsePeriodMonth(period?: string | null): number | null {
+  if (!period) return null;
+  const lower = period.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const idx = MONTH_NAMES.findIndex((m) =>
+    lower.includes(
+      m.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    )
+  );
+  return idx >= 0 ? idx + 1 : null;
+}
+
+function fiscalYearFromPeriod(period?: string | null): number | null {
+  const year = parsePeriodYear(period);
+  const month = parsePeriodMonth(period);
+  if (!year || !month) return null;
+  return fiscalYearOf(year, month);
+}
+
 export function EmployeePayrollPositions({ nif, profileId, organizationId }: Props) {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<PaymentRow[]>([]);
+  const [selectedFiscalYear, setSelectedFiscalYear] = useState<string>(ALL_YEARS);
+
+  const yearOptions = useMemo(() => fiscalYearOptions(6), []);
 
   useEffect(() => {
     const load = async () => {
@@ -46,9 +77,15 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
         const { data, error } = await query;
         if (error) throw error;
         setRows((data as PaymentRow[]) || []);
+
+        // Default to current fiscal year if data exists for it
+        const currentStart = fiscalYearOf(new Date().getFullYear(), new Date().getMonth() + 1);
+        const hasCurrent = (data as PaymentRow[])?.some((r) => fiscalYearFromPeriod(r.period) === currentStart);
+        setSelectedFiscalYear(hasCurrent ? String(currentStart) : ALL_YEARS);
       } catch (e) {
         console.error("Erreur chargement paie employé:", e);
         setRows([]);
+        setSelectedFiscalYear(ALL_YEARS);
       } finally {
         setLoading(false);
       }
@@ -56,7 +93,13 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
     load();
   }, [nif, profileId, organizationId]);
 
-  const byPoste = rows.reduce<Record<string, { count: number; brut: number; net: number; paid: number }>>(
+  const filteredRows = useMemo(() => {
+    if (selectedFiscalYear === ALL_YEARS) return rows;
+    const target = Number(selectedFiscalYear);
+    return rows.filter((r) => fiscalYearFromPeriod(r.period) === target);
+  }, [rows, selectedFiscalYear]);
+
+  const byPoste = filteredRows.reduce<Record<string, { count: number; brut: number; net: number; paid: number }>>(
     (acc, r) => {
       const key = r.poste?.trim() || "Poste non précisé";
       acc[key] = acc[key] || { count: 0, brut: 0, net: 0, paid: 0 };
@@ -70,8 +113,8 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
   );
 
   const postes = Object.entries(byPoste);
-  const totalNet = rows.reduce((s, r) => s + (Number(r.montant_net) || 0), 0);
-  const totalBrut = rows.reduce((s, r) => s + (Number(r.montant_brut) || 0), 0);
+  const totalNet = filteredRows.reduce((s, r) => s + (Number(r.montant_net) || 0), 0);
+  const totalBrut = filteredRows.reduce((s, r) => s + (Number(r.montant_brut) || 0), 0);
 
   if (loading) {
     return (
@@ -87,15 +130,32 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Briefcase className="h-5 w-5" />
-            Postes rattachés au NIF
-            {postes.length > 1 && <Badge variant="secondary">Cumul de postes</Badge>}
-          </CardTitle>
-          <CardDescription>
-            {nif ? `NIF ${nif} — ` : ""}
-            {postes.length} poste(s) détecté(s) sur {rows.length} ligne(s) de paie
-          </CardDescription>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Briefcase className="h-5 w-5" />
+                Postes rattachés au NIF
+                {postes.length > 1 && <Badge variant="secondary">Cumul de postes</Badge>}
+              </CardTitle>
+              <CardDescription>
+                {nif ? `NIF ${nif} — ` : ""}
+                {postes.length} poste(s) détecté(s) sur {filteredRows.length} ligne(s) de paie
+              </CardDescription>
+            </div>
+            <Select value={selectedFiscalYear} onValueChange={setSelectedFiscalYear}>
+              <SelectTrigger className="w-[220px]">
+                <SelectValue placeholder="Exercice fiscal" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL_YEARS}>Tous les exercices</SelectItem>
+                {yearOptions.map((start) => (
+                  <SelectItem key={start} value={String(start)}>
+                    {fiscalYearLabel(start)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardHeader>
         <CardContent>
           {postes.length === 0 ? (
@@ -126,7 +186,7 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
                   ))}
                   <TableRow>
                     <TableCell className="font-semibold">Total cumulé</TableCell>
-                    <TableCell className="text-right font-semibold">{rows.length}</TableCell>
+                    <TableCell className="text-right font-semibold">{filteredRows.length}</TableCell>
                     <TableCell />
                     <TableCell className="text-right font-semibold">{fmt(totalBrut)}</TableCell>
                     <TableCell className="text-right font-semibold">{fmt(totalNet)}</TableCell>
@@ -138,11 +198,16 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
         </CardContent>
       </Card>
 
-      {rows.length > 0 && (
+      {filteredRows.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Détail des lignes de paie</CardTitle>
-            <CardDescription>Par période et par poste</CardDescription>
+            <CardDescription>
+              Par période et par poste
+              {selectedFiscalYear !== ALL_YEARS && (
+                <span className="ml-1">— {fiscalYearLabel(Number(selectedFiscalYear))}</span>
+              )}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -157,7 +222,7 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.map((r) => (
+                  {filteredRows.map((r) => (
                     <TableRow key={r.id}>
                       <TableCell>{r.period}</TableCell>
                       <TableCell>{r.poste || "-"}</TableCell>
