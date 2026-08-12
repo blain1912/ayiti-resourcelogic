@@ -472,9 +472,30 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
                     const valB = compareMode === "brut" ? l.brutB : l.netB;
                     const delta = compareMode === "brut" ? l.deltaBrut : l.deltaNet;
                     const pct = compareMode === "brut" ? l.pctBrut : l.pct;
+                    const isTopDelta = topDelta.has(l.poste);
+                    const isTopPct = topPct.has(l.poste);
                     return (
-                      <TableRow key={l.poste}>
-                        <TableCell className="font-medium">{l.poste}</TableCell>
+                      <TableRow
+                        key={l.poste}
+                        className={isTopDelta || isTopPct ? "bg-amber-50/50 dark:bg-amber-950/20" : undefined}
+                      >
+                        <TableCell className="font-medium">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span>{l.poste}</span>
+                            {isTopDelta && (
+                              <Badge variant="destructive" className="text-xs gap-1">
+                                <Flame className="h-3 w-3" />
+                                Top écart HTG
+                              </Badge>
+                            )}
+                            {isTopPct && (
+                              <Badge className="text-xs gap-1 bg-amber-500 hover:bg-amber-600 text-white">
+                                <TrendingUp className="h-3 w-3" />
+                                Top variation %
+                              </Badge>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="text-right">{fmt(valA)}</TableCell>
                         <TableCell className="text-right">{fmt(valB)}</TableCell>
                         <TableCell
