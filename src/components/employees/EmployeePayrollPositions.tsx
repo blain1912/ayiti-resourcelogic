@@ -186,7 +186,7 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
                   ))}
                   <TableRow>
                     <TableCell className="font-semibold">Total cumulé</TableCell>
-                    <TableCell className="text-right font-semibold">{rows.length}</TableCell>
+                    <TableCell className="text-right font-semibold">{filteredRows.length}</TableCell>
                     <TableCell />
                     <TableCell className="text-right font-semibold">{fmt(totalBrut)}</TableCell>
                     <TableCell className="text-right font-semibold">{fmt(totalNet)}</TableCell>
