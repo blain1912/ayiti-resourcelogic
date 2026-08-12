@@ -503,7 +503,6 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
               </Button>
             )}
           </div>
-          </div>
         </CardHeader>
         <CardContent>
           {comparison.lines.length === 0 ? (
