@@ -553,6 +553,21 @@ export function EmployeePayrollPositions({ nif, profileId, organizationId }: Pro
                   </TableRow>
                 </TableBody>
               </Table>
+              <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                <span className="font-medium">Légende :</span>
+                <span className="inline-flex items-center gap-1">
+                  <Flame className="h-3 w-3 text-destructive" />
+                  Poste avec le plus fort écart en HTG
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <TrendingUp className="h-3 w-3 text-amber-500" />
+                  Poste avec la plus forte variation en %
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <span className="inline-block w-3 h-3 rounded-sm bg-amber-50 dark:bg-amber-950/20 border border-amber-200" />
+                  Ligne mise en évidence
+                </span>
+              </div>
             </div>
           )}
         </CardContent>
