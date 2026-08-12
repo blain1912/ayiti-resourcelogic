@@ -105,7 +105,7 @@ const Payroll = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Non authentifié");
 
-      const periodLabel = `${MONTHS[parseInt(month) - 1]} ${year}`;
+      const periodLabel = `${MONTH_NAMES[parseInt(month) - 1]} ${year} (${fiscalYearLabel(parseInt(fiscalYear))})`;
       const path = `${organizationId}/${year}-${month.padStart(2, "0")}-${Date.now()}-${file.name}`;
 
       const { data: up, error: upErr } = await supabase.storage
