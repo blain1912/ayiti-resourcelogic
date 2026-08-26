@@ -914,6 +914,35 @@ export type Database = {
           },
         ]
       }
+      institution_labels: {
+        Row: {
+          created_at: string
+          labels: Json
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          labels?: Json
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          labels?: Json
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "institution_labels_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_applications: {
         Row: {
           applicant_cv_url: string | null
@@ -1360,8 +1389,13 @@ export type Database = {
       }
       organizational_units: {
         Row: {
+          code: string | null
           created_at: string
+          description: string | null
+          display_order: number
           id: string
+          is_active: boolean
+          manager_profile_id: string | null
           name: string
           organization_id: string
           parent_id: string | null
@@ -1369,8 +1403,13 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          code?: string | null
           created_at?: string
+          description?: string | null
+          display_order?: number
           id?: string
+          is_active?: boolean
+          manager_profile_id?: string | null
           name: string
           organization_id: string
           parent_id?: string | null
@@ -1378,8 +1417,13 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          code?: string | null
           created_at?: string
+          description?: string | null
+          display_order?: number
           id?: string
+          is_active?: boolean
+          manager_profile_id?: string | null
           name?: string
           organization_id?: string
           parent_id?: string | null
@@ -1387,6 +1431,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "organizational_units_manager_profile_id_fkey"
+            columns: ["manager_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "organizational_units_organization_id_fkey"
             columns: ["organization_id"]
@@ -1426,6 +1477,7 @@ export type Database = {
           max_units: number
           max_users: number
           name: string
+          parent_organization_id: string | null
           pdf_font_size: number | null
           pdf_line_height: number | null
           pdf_margin: number | null
@@ -1460,6 +1512,7 @@ export type Database = {
           max_units?: number
           max_users?: number
           name: string
+          parent_organization_id?: string | null
           pdf_font_size?: number | null
           pdf_line_height?: number | null
           pdf_margin?: number | null
@@ -1494,6 +1547,7 @@ export type Database = {
           max_units?: number
           max_users?: number
           name?: string
+          parent_organization_id?: string | null
           pdf_font_size?: number | null
           pdf_line_height?: number | null
           pdf_margin?: number | null
@@ -1506,7 +1560,15 @@ export type Database = {
           type?: Database["public"]["Enums"]["organization_type"]
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "organizations_parent_organization_id_fkey"
+            columns: ["parent_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payroll_payments: {
         Row: {
@@ -1702,33 +1764,60 @@ export type Database = {
       }
       positions: {
         Row: {
-          category_id: string
+          category_id: string | null
+          code: string | null
           created_at: string
+          description: string | null
           id: string
           is_template: boolean | null
+          is_vacant: boolean
+          level: string | null
           name: string
+          notes: string | null
           organization_id: string | null
+          reports_to_position_id: string | null
+          responsibilities: string | null
           salary: number
+          status: string
+          unit_id: string | null
           updated_at: string
         }
         Insert: {
-          category_id: string
+          category_id?: string | null
+          code?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           is_template?: boolean | null
+          is_vacant?: boolean
+          level?: string | null
           name: string
+          notes?: string | null
           organization_id?: string | null
+          reports_to_position_id?: string | null
+          responsibilities?: string | null
           salary: number
+          status?: string
+          unit_id?: string | null
           updated_at?: string
         }
         Update: {
-          category_id?: string
+          category_id?: string | null
+          code?: string | null
           created_at?: string
+          description?: string | null
           id?: string
           is_template?: boolean | null
+          is_vacant?: boolean
+          level?: string | null
           name?: string
+          notes?: string | null
           organization_id?: string | null
+          reports_to_position_id?: string | null
+          responsibilities?: string | null
           salary?: number
+          status?: string
+          unit_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1744,6 +1833,20 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "positions_reports_to_position_id_fkey"
+            columns: ["reports_to_position_id"]
+            isOneToOne: false
+            referencedRelation: "positions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "positions_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "organizational_units"
             referencedColumns: ["id"]
           },
         ]
@@ -2464,6 +2567,13 @@ export type Database = {
         | "direction_generale"
         | "organisme_autonome"
         | "organisme_deconcentre"
+        | "institution_publique"
+        | "ambassade"
+        | "consulat_general"
+        | "consulat"
+        | "mission_permanente"
+        | "mission_diplomatique"
+        | "autre"
       pension_request_status:
         | "brouillon"
         | "soumis_drh"
@@ -2486,6 +2596,10 @@ export type Database = {
         | "service"
         | "section"
         | "departement"
+        | "cabinet"
+        | "bureau"
+        | "unite"
+        | "autre"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2690,6 +2804,13 @@ export const Constants = {
         "direction_generale",
         "organisme_autonome",
         "organisme_deconcentre",
+        "institution_publique",
+        "ambassade",
+        "consulat_general",
+        "consulat",
+        "mission_permanente",
+        "mission_diplomatique",
+        "autre",
       ],
       pension_request_status: [
         "brouillon",
@@ -2715,6 +2836,10 @@ export const Constants = {
         "service",
         "section",
         "departement",
+        "cabinet",
+        "bureau",
+        "unite",
+        "autre",
       ],
     },
   },
