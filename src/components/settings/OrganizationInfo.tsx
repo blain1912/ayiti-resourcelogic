@@ -99,7 +99,7 @@ const OrganizationInfo = ({ organization, onUpdate }: OrganizationInfoProps) => 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {language === "fr" ? "Type d'organisation" : "Organization Type"}
+                    {language === "fr" ? "Type d'institution" : "Institution Type"}
                   </FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
@@ -108,13 +108,21 @@ const OrganizationInfo = ({ organization, onUpdate }: OrganizationInfoProps) => 
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.entries(organizationTypes).map(([key, label]) => (
-                        <SelectItem key={key} value={key}>
-                          {label}
-                        </SelectItem>
+                      {(["public", "diplomatique", "autre"] as const).map((group) => (
+                        <div key={group}>
+                          <p className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                            {groupLabels[group]}
+                          </p>
+                          {INSTITUTION_TYPES.filter((t) => t.group === group).map((t) => (
+                            <SelectItem key={t.value} value={t.value}>
+                              {language === "fr" ? t.fr : t.en}
+                            </SelectItem>
+                          ))}
+                        </div>
                       ))}
                     </SelectContent>
                   </Select>
+
                   <FormMessage />
                 </FormItem>
               )}
