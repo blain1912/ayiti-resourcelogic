@@ -10,14 +10,16 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { INSTITUTION_TYPES, INSTITUTION_TYPE_VALUES } from "@/lib/institutionTypes";
 
 const formSchema = z.object({
   name: z.string().min(3, "Le nom doit contenir au moins 3 caractères"),
-  type: z.enum(["ministere", "direction_generale", "organisme_autonome", "organisme_deconcentre"]),
+  type: z.enum(INSTITUTION_TYPE_VALUES),
   late_threshold_time: z
     .string()
     .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Format attendu HH:MM"),
 });
+
 
 type FormData = z.infer<typeof formSchema>;
 
@@ -40,12 +42,12 @@ const OrganizationInfo = ({ organization, onUpdate }: OrganizationInfoProps) => 
     },
   });
 
-  const organizationTypes = {
-    ministere: language === "fr" ? "Ministère" : "Ministry",
-    direction_generale: language === "fr" ? "Direction Générale" : "General Directorate",
-    organisme_autonome: language === "fr" ? "Organisme Autonome" : "Autonomous Organization",
-    organisme_deconcentre: language === "fr" ? "Organisme Déconcentré" : "Decentralized Organization",
+  const groupLabels: Record<string, string> = {
+    public: language === "fr" ? "Administration publique" : "Public administration",
+    diplomatique: language === "fr" ? "Missions diplomatiques et consulaires" : "Diplomatic & consular missions",
+    autre: language === "fr" ? "Autre" : "Other",
   };
+
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
@@ -97,7 +99,7 @@ const OrganizationInfo = ({ organization, onUpdate }: OrganizationInfoProps) => 
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>
-                    {language === "fr" ? "Type d'organisation" : "Organization Type"}
+                    {language === "fr" ? "Type d'institution" : "Institution Type"}
                   </FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
@@ -106,13 +108,21 @@ const OrganizationInfo = ({ organization, onUpdate }: OrganizationInfoProps) => 
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.entries(organizationTypes).map(([key, label]) => (
-                        <SelectItem key={key} value={key}>
-                          {label}
-                        </SelectItem>
+                      {(["public", "diplomatique", "autre"] as const).map((group) => (
+                        <div key={group}>
+                          <p className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                            {groupLabels[group]}
+                          </p>
+                          {INSTITUTION_TYPES.filter((t) => t.group === group).map((t) => (
+                            <SelectItem key={t.value} value={t.value}>
+                              {language === "fr" ? t.fr : t.en}
+                            </SelectItem>
+                          ))}
+                        </div>
                       ))}
                     </SelectContent>
                   </Select>
+
                   <FormMessage />
                 </FormItem>
               )}

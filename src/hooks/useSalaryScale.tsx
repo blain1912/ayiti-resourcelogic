@@ -9,7 +9,30 @@ export interface Position {
   salary: number;
   organization_id: string | null;
   is_template?: boolean;
+  code?: string | null;
+  unit_id?: string | null;
+  level?: string | null;
+  reports_to_position_id?: string | null;
+  description?: string | null;
+  responsibilities?: string | null;
+  is_vacant?: boolean | null;
+  status?: string | null;
+  notes?: string | null;
 }
+
+/** Champs optionnels ajoutés par l'extension GRHPro (institutions et missions diplomatiques) */
+export interface PositionExtras {
+  code?: string | null;
+  unit_id?: string | null;
+  level?: string | null;
+  reports_to_position_id?: string | null;
+  description?: string | null;
+  responsibilities?: string | null;
+  is_vacant?: boolean | null;
+  status?: string | null;
+  notes?: string | null;
+}
+
 
 export interface EmployeeCategory {
   id: string;
@@ -105,14 +128,17 @@ export const useSalaryScale = (organizationId?: string | null, isTemplate: boole
   const createPosition = async (
     name: string,
     categoryId: string,
-    salary: number
+    salary: number,
+    extras?: PositionExtras
   ) => {
     try {
       const insertData: any = {
         name,
-        category_id: categoryId,
+        category_id: categoryId || null,
         salary,
+        ...(extras || {}),
       };
+
       if (isTemplate) {
         insertData.organization_id = null;
         insertData.is_template = true;

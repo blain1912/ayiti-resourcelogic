@@ -6,10 +6,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { institutionTypeLabel } from "@/lib/institutionTypes";
 import UnitForm from "./UnitForm";
 import UnitsList from "./UnitsList";
+import OrgChart from "./OrgChart";
 import StructureCollectionButton from "./StructureCollectionButton";
 import StructureImportDialog from "./StructureImportDialog";
 
@@ -19,7 +22,9 @@ interface OrganizationalUnitsProps {
 
 const OrganizationalUnits = ({ organizationId }: OrganizationalUnitsProps) => {
   const [units, setUnits] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<{ id: string; full_name: string | null }[]>([]);
   const [orgName, setOrgName] = useState<string | null>(null);
+  const [orgType, setOrgType] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -30,10 +35,19 @@ const OrganizationalUnits = ({ organizationId }: OrganizationalUnitsProps) => {
     loadUnits();
     supabase
       .from("organizations")
-      .select("name")
+      .select("name, type")
       .eq("id", organizationId)
       .maybeSingle()
-      .then(({ data }) => setOrgName(data?.name ?? null));
+      .then(({ data }) => {
+        setOrgName(data?.name ?? null);
+        setOrgType(data?.type ?? null);
+      });
+    supabase
+      .from("profiles")
+      .select("id, full_name")
+      .eq("organization_id", organizationId)
+      .order("full_name")
+      .then(({ data }) => setProfiles(data || []));
   }, [organizationId]);
 
   const loadUnits = async () => {
@@ -66,6 +80,14 @@ const OrganizationalUnits = ({ organizationId }: OrganizationalUnitsProps) => {
     return <p>{language === "fr" ? "Chargement..." : "Loading..."}</p>;
   }
 
+  const profileName = (id?: string | null) =>
+    profiles.find((p) => p.id === id)?.full_name ?? null;
+
+  const chartUnits = units.map((u) => ({
+    ...u,
+    manager_name: profileName((u as any).manager_profile_id),
+  }));
+
   return (
     <Card>
       <CardHeader>
@@ -75,9 +97,9 @@ const OrganizationalUnits = ({ organizationId }: OrganizationalUnitsProps) => {
               {language === "fr" ? "Structures Administratives" : "Administrative Units"}
             </CardTitle>
             <CardDescription>
-              {language === "fr" 
-                ? "Gérez les différentes structures de votre organisation" 
-                : "Manage your organization's different structures"}
+              {language === "fr"
+                ? "Gérez les différentes structures de votre institution, sur plusieurs niveaux"
+                : "Manage your institution's structures, across multiple levels"}
             </CardDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -110,10 +132,11 @@ const OrganizationalUnits = ({ organizationId }: OrganizationalUnitsProps) => {
                   {language === "fr" ? "Nouvelle structure administrative" : "New Administrative Unit"}
                 </DialogTitle>
               </DialogHeader>
-              <UnitForm 
-                organizationId={organizationId} 
+              <UnitForm
+                organizationId={organizationId}
                 units={units}
-                onSuccess={handleUnitCreated} 
+                profiles={profiles}
+                onSuccess={handleUnitCreated}
               />
             </DialogContent>
           </Dialog>
@@ -121,7 +144,22 @@ const OrganizationalUnits = ({ organizationId }: OrganizationalUnitsProps) => {
         </div>
       </CardHeader>
       <CardContent>
-        <UnitsList units={units} onUpdate={loadUnits} />
+        <Tabs defaultValue="list">
+          <TabsList className="mb-4">
+            <TabsTrigger value="list">{language === "fr" ? "Liste" : "List"}</TabsTrigger>
+            <TabsTrigger value="chart">{language === "fr" ? "Organigramme" : "Org chart"}</TabsTrigger>
+          </TabsList>
+          <TabsContent value="list">
+            <UnitsList units={units} onUpdate={loadUnits} />
+          </TabsContent>
+          <TabsContent value="chart">
+            <OrgChart
+              units={chartUnits}
+              organizationName={orgName}
+              organizationType={institutionTypeLabel(orgType, language)}
+            />
+          </TabsContent>
+        </Tabs>
       </CardContent>
     </Card>
   );
