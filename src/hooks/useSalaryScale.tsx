@@ -9,7 +9,30 @@ export interface Position {
   salary: number;
   organization_id: string | null;
   is_template?: boolean;
+  code?: string | null;
+  unit_id?: string | null;
+  level?: string | null;
+  reports_to_position_id?: string | null;
+  description?: string | null;
+  responsibilities?: string | null;
+  is_vacant?: boolean | null;
+  status?: string | null;
+  notes?: string | null;
 }
+
+/** Champs optionnels ajoutés par l'extension GRHPro (institutions et missions diplomatiques) */
+export interface PositionExtras {
+  code?: string | null;
+  unit_id?: string | null;
+  level?: string | null;
+  reports_to_position_id?: string | null;
+  description?: string | null;
+  responsibilities?: string | null;
+  is_vacant?: boolean | null;
+  status?: string | null;
+  notes?: string | null;
+}
+
 
 export interface EmployeeCategory {
   id: string;
