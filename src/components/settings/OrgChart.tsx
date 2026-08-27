@@ -87,14 +87,15 @@ const OrgChart = ({ units, organizationName, organizationType }: OrgChartProps) 
           variant="outline"
           size="sm"
           onClick={() =>
-            exportToPdf({
-              elementId: "org-chart-export",
-              fileName: `organigramme-${(organizationName || "institution")
+            exportToPdf(
+              "org-chart-export",
+              `organigramme-${(organizationName || "institution")
                 .toLowerCase()
                 .replace(/\s+/g, "-")}.pdf`,
-              orientation: "landscape",
-            })
+              `Organigramme — ${organizationName || "Institution"}`
+            )
           }
+
         >
           <Download className="h-4 w-4 mr-2" />
           Exporter l'organigramme (PDF)
