@@ -128,14 +128,17 @@ export const useSalaryScale = (organizationId?: string | null, isTemplate: boole
   const createPosition = async (
     name: string,
     categoryId: string,
-    salary: number
+    salary: number,
+    extras?: PositionExtras
   ) => {
     try {
       const insertData: any = {
         name,
-        category_id: categoryId,
+        category_id: categoryId || null,
         salary,
+        ...(extras || {}),
       };
+
       if (isTemplate) {
         insertData.organization_id = null;
         insertData.is_template = true;
