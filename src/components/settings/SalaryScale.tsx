@@ -31,6 +31,11 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Plus, Trash2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useSalaryScale } from "@/hooks/useSalaryScale";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -55,6 +60,26 @@ export default function SalaryScale() {
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [positionDialogOpen, setPositionDialogOpen] = useState(false);
 
+  // Champs étendus (extension institutions / missions diplomatiques)
+  const [positionCode, setPositionCode] = useState("");
+  const [positionUnitId, setPositionUnitId] = useState("none");
+  const [positionLevel, setPositionLevel] = useState("");
+  const [reportsTo, setReportsTo] = useState("none");
+  const [positionDescription, setPositionDescription] = useState("");
+  const [positionResponsibilities, setPositionResponsibilities] = useState("");
+  const [positionVacant, setPositionVacant] = useState(false);
+  const [units, setUnits] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    if (!organization?.id) return;
+    supabase
+      .from("organizational_units")
+      .select("id, name")
+      .eq("organization_id", organization.id)
+      .order("name")
+      .then(({ data }) => setUnits(data || []));
+  }, [organization?.id]);
+
   const handleCreateCategory = async () => {
     if (!categoryName.trim()) return;
     await createCategory(categoryName);
@@ -64,12 +89,28 @@ export default function SalaryScale() {
 
   const handleCreatePosition = async () => {
     if (!positionName.trim() || !selectedCategory || !positionSalary) return;
-    await createPosition(positionName, selectedCategory, parseFloat(positionSalary));
+    await createPosition(positionName, selectedCategory, parseFloat(positionSalary), {
+      code: positionCode.trim() || null,
+      unit_id: positionUnitId === "none" ? null : positionUnitId,
+      level: positionLevel.trim() || null,
+      reports_to_position_id: reportsTo === "none" ? null : reportsTo,
+      description: positionDescription.trim() || null,
+      responsibilities: positionResponsibilities.trim() || null,
+      is_vacant: positionVacant,
+    });
     setPositionName("");
     setSelectedCategory("");
     setPositionSalary("");
+    setPositionCode("");
+    setPositionUnitId("none");
+    setPositionLevel("");
+    setReportsTo("none");
+    setPositionDescription("");
+    setPositionResponsibilities("");
+    setPositionVacant(false);
     setPositionDialogOpen(false);
   };
+
 
   const getPositionsByCategory = (categoryId: string) => {
     return positions.filter((p) => p.category_id === categoryId);
