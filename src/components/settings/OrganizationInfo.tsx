@@ -42,12 +42,12 @@ const OrganizationInfo = ({ organization, onUpdate }: OrganizationInfoProps) => 
     },
   });
 
-  const organizationTypes = {
-    ministere: language === "fr" ? "Ministère" : "Ministry",
-    direction_generale: language === "fr" ? "Direction Générale" : "General Directorate",
-    organisme_autonome: language === "fr" ? "Organisme Autonome" : "Autonomous Organization",
-    organisme_deconcentre: language === "fr" ? "Organisme Déconcentré" : "Decentralized Organization",
+  const groupLabels: Record<string, string> = {
+    public: language === "fr" ? "Administration publique" : "Public administration",
+    diplomatique: language === "fr" ? "Missions diplomatiques et consulaires" : "Diplomatic & consular missions",
+    autre: language === "fr" ? "Autre" : "Other",
   };
+
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
