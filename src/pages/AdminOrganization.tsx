@@ -37,12 +37,10 @@ const AdminOrganization = () => {
     custom_domain: "",
   });
 
-  const organizationTypes = {
-    ministere: "Ministère",
-    direction_generale: "Direction Générale",
-    organisme_autonome: "Organisme Autonome",
-    organisme_deconcentre: "Organisme Déconcentré",
-  };
+  const organizationTypes = Object.fromEntries(
+    INSTITUTION_TYPES.map((t) => [t.value, t.fr])
+  ) as Record<OrganizationType, string>;
+
 
   useEffect(() => {
     checkAdminStatus();
