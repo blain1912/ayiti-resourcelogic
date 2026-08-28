@@ -11,10 +11,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { INSTITUTION_TYPES, INSTITUTION_TYPE_VALUES } from "@/lib/institutionTypes";
 
 const formSchema = z.object({
   name: z.string().min(3, "Le nom doit contenir au moins 3 caractères"),
-  type: z.enum(["ministere", "direction_generale", "organisme_autonome", "organisme_deconcentre"]),
+  type: z.enum(INSTITUTION_TYPE_VALUES),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -33,12 +34,13 @@ const OrganizationSetup = () => {
     },
   });
 
-  const organizationTypes = {
-    ministere: language === "fr" ? "Ministère" : "Ministry",
-    direction_generale: language === "fr" ? "Direction Générale" : "General Directorate",
-    organisme_autonome: language === "fr" ? "Organisme Autonome" : "Autonomous Organization",
-    organisme_deconcentre: language === "fr" ? "Organisme Déconcentré" : "Decentralized Organization",
+  const groupLabels: Record<string, string> = {
+    public: language === "fr" ? "Administration publique" : "Public administration",
+    diplomatique:
+      language === "fr" ? "Missions diplomatiques et consulaires" : "Diplomatic & consular missions",
+    autre: language === "fr" ? "Autre" : "Other",
   };
+
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
