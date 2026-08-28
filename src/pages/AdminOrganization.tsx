@@ -12,6 +12,8 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { OnboardingKitButton } from "@/components/OnboardingKitButton";
 
 import type { Database } from "@/integrations/supabase/types";
+import { INSTITUTION_TYPES } from "@/lib/institutionTypes";
+
 
 type OrganizationType = Database["public"]["Enums"]["organization_type"];
 
