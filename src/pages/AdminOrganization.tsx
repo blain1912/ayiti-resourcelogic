@@ -11,7 +11,9 @@ import { Building2, Plus, Trash2, Edit, Globe, Download, Upload } from "lucide-r
 import { useLanguage } from "@/contexts/LanguageContext";
 import { OnboardingKitButton } from "@/components/OnboardingKitButton";
 
-type OrganizationType = "ministere" | "direction_generale" | "organisme_autonome" | "organisme_deconcentre";
+import type { Database } from "@/integrations/supabase/types";
+
+type OrganizationType = Database["public"]["Enums"]["organization_type"];
 
 interface Organization {
   id: string;
