@@ -447,7 +447,7 @@ const Auth = () => {
                     <Label htmlFor="signup-type">Type d'utilisateur</Label>
                     <Select
                       value={signUpData.userType}
-                      onValueChange={(value: "responsable" | "employe" | "super_admin") =>
+                      onValueChange={(value: "responsable" | "employe") =>
                         setSignUpData({
                           ...signUpData,
                           userType: value,
@@ -461,16 +461,14 @@ const Auth = () => {
                       <SelectContent>
                         <SelectItem value="responsable">Responsable d'organisation</SelectItem>
                         <SelectItem value="employe">Employé</SelectItem>
-                        <SelectItem value="super_admin">Super administrateur</SelectItem>
                       </SelectContent>
                     </Select>
                     <p className="text-xs text-muted-foreground">
                       {signUpData.userType === "responsable"
-                        ? "Vous pourrez créer et gérer votre organisation"
-                        : signUpData.userType === "employe"
-                        ? "Rejoignez une organisation existante"
-                        : "Compte d'administration de la plateforme (sans organisation)"}
+                        ? "Vos droits d'accès dans GRHPro : vous pourrez créer et gérer votre organisation. Ce n'est pas votre poste professionnel."
+                        : "Vos droits d'accès dans GRHPro : rejoignez une organisation existante. Votre poste sera défini par votre organisation."}
                     </p>
+
                   </div>
                 )}
                 {!detectedOrganization && signUpData.userType === "employe" && (
