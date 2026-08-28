@@ -9,7 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Network, Plus, Trash2, Edit, ArrowLeft } from "lucide-react";
 
-type UnitType = "direction_generale" | "direction_technique" | "service" | "section" | "departement";
+import type { Database } from "@/integrations/supabase/types";
+
+type UnitType = Database["public"]["Enums"]["unit_type"];
 
 interface OrganizationalUnit {
   id: string;

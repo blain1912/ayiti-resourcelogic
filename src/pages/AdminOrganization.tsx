@@ -11,7 +11,11 @@ import { Building2, Plus, Trash2, Edit, Globe, Download, Upload } from "lucide-r
 import { useLanguage } from "@/contexts/LanguageContext";
 import { OnboardingKitButton } from "@/components/OnboardingKitButton";
 
-type OrganizationType = "ministere" | "direction_generale" | "organisme_autonome" | "organisme_deconcentre";
+import type { Database } from "@/integrations/supabase/types";
+import { INSTITUTION_TYPES } from "@/lib/institutionTypes";
+
+
+type OrganizationType = Database["public"]["Enums"]["organization_type"];
 
 interface Organization {
   id: string;
@@ -35,12 +39,10 @@ const AdminOrganization = () => {
     custom_domain: "",
   });
 
-  const organizationTypes = {
-    ministere: "Ministère",
-    direction_generale: "Direction Générale",
-    organisme_autonome: "Organisme Autonome",
-    organisme_deconcentre: "Organisme Déconcentré",
-  };
+  const organizationTypes = Object.fromEntries(
+    INSTITUTION_TYPES.map((t) => [t.value, t.fr])
+  ) as Record<OrganizationType, string>;
+
 
   useEffect(() => {
     checkAdminStatus();

@@ -166,11 +166,11 @@ export default function SalaryScale() {
                 Nouveau Poste
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[85vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Créer un Poste</DialogTitle>
                 <DialogDescription>
-                  Ajoutez un nouveau poste avec son salaire
+                  Définissez le poste, son rattachement et son salaire
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
@@ -189,14 +189,68 @@ export default function SalaryScale() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="position-name">Intitulé du poste</Label>
+                    <Input
+                      id="position-name"
+                      value={positionName}
+                      onChange={(e) => setPositionName(e.target.value)}
+                      placeholder="Ex: Consul général"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="position-code">Code du poste (optionnel)</Label>
+                    <Input
+                      id="position-code"
+                      value={positionCode}
+                      onChange={(e) => setPositionCode(e.target.value)}
+                      placeholder="Ex: CG-001"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Structure de rattachement (optionnel)</Label>
+                    <Select value={positionUnitId} onValueChange={setPositionUnitId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Aucune" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Aucune</SelectItem>
+                        {units.map((u) => (
+                          <SelectItem key={u.id} value={u.id}>
+                            {u.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="position-level">Niveau hiérarchique (optionnel)</Label>
+                    <Input
+                      id="position-level"
+                      value={positionLevel}
+                      onChange={(e) => setPositionLevel(e.target.value)}
+                      placeholder="Ex: Direction, Cadre, Exécution"
+                    />
+                  </div>
+                </div>
                 <div className="space-y-2">
-                  <Label htmlFor="position-name">Nom du poste</Label>
-                  <Input
-                    id="position-name"
-                    value={positionName}
-                    onChange={(e) => setPositionName(e.target.value)}
-                    placeholder="Ex: Directeur"
-                  />
+                  <Label>Supérieur hiérarchique (optionnel)</Label>
+                  <Select value={reportsTo} onValueChange={setReportsTo}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Aucun" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Aucun</SelectItem>
+                      {positions.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="salary">Salaire (HTG)</Label>
@@ -209,11 +263,40 @@ export default function SalaryScale() {
                     placeholder="Ex: 86400.00"
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="position-description">Description (optionnel)</Label>
+                  <Textarea
+                    id="position-description"
+                    rows={2}
+                    value={positionDescription}
+                    onChange={(e) => setPositionDescription(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="position-resp">Responsabilités (optionnel)</Label>
+                  <Textarea
+                    id="position-resp"
+                    rows={2}
+                    value={positionResponsibilities}
+                    onChange={(e) => setPositionResponsibilities(e.target.value)}
+                  />
+                </div>
+                <div className="flex items-center justify-between rounded-lg border p-3">
+                  <Label htmlFor="position-vacant" className="mb-0">
+                    Poste vacant
+                  </Label>
+                  <Switch
+                    id="position-vacant"
+                    checked={positionVacant}
+                    onCheckedChange={setPositionVacant}
+                  />
+                </div>
                 <Button onClick={handleCreatePosition} className="w-full">
                   Créer
                 </Button>
               </div>
             </DialogContent>
+
           </Dialog>
         </div>
       </CardHeader>
