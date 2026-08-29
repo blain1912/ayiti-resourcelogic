@@ -192,6 +192,9 @@ const Settings = () => {
             <TabsTrigger value="attendance">
               {language === "fr" ? "Présences" : "Attendance"}
             </TabsTrigger>
+            <TabsTrigger value="leaves">
+              {language === "fr" ? "Congés" : "Leaves"}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="organization" className="space-y-6">
