@@ -3627,6 +3627,13 @@ export type Database = {
         Args: { _date: string; _profile_id: string }
         Returns: Json
       }
+      hr_day_status_bulk: {
+        Args: { _date: string; _organization_id: string }
+        Returns: {
+          profile_id: string
+          status: Json
+        }[]
+      }
       hr_detect_conflicts: {
         Args: {
           _end: string
