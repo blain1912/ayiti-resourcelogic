@@ -192,6 +192,7 @@ const Settings = () => {
 
           <TabsContent value="organization" className="space-y-6">
             <OrganizationInfo organization={organization} onUpdate={refetchOrganization} />
+            <OrganizationDetails organization={organization} onUpdate={refetchOrganization} />
             <CustomizationSettings organization={organization} onUpdate={refetchOrganization} />
             <BadgeTemplateSelector organization={organization} onUpdate={refetchOrganization} />
             <SalaryScale />
