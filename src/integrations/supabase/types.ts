@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_audit_log: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          created_at: string
+          details: Json
+          id: string
+          new_value: string | null
+          old_value: string | null
+          organization_id: string
+          profile_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          organization_id: string
+          profile_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          created_at?: string
+          details?: Json
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          organization_id?: string
+          profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_audit_log_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "account_audit_log_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attendance: {
         Row: {
           created_at: string
@@ -1457,19 +1508,28 @@ export type Database = {
       organizations: {
         Row: {
           accent_color: string | null
+          acronym: string | null
+          address: string | null
           approval_status: string
           badge_border_style: string | null
           badge_footer_text: string | null
           badge_header_text: string | null
           badge_template: string | null
           badge_validity_months: number | null
+          city: string | null
+          country: string | null
           created_at: string
           custom_domain: string | null
           default_signer_name: string | null
           default_signer_title: string | null
           document_city: string | null
           document_header_text: string | null
+          head_name: string | null
+          head_title: string | null
+          host_city: string | null
+          host_country: string | null
           id: string
+          institutional_email: string | null
           late_threshold_time: string
           leave_policy: Json
           letterhead_url: string | null
@@ -1477,34 +1537,48 @@ export type Database = {
           max_units: number
           max_users: number
           name: string
+          notes: string | null
           parent_organization_id: string | null
           pdf_font_size: number | null
           pdf_line_height: number | null
           pdf_margin: number | null
           pdf_vertical_align: string | null
+          phone: string | null
           primary_color: string | null
+          representation_type: string | null
+          represented_country: string | null
           secondary_color: string | null
           subscription_expires_at: string | null
           subscription_started_at: string | null
           subscription_tier: Database["public"]["Enums"]["subscription_tier"]
           type: Database["public"]["Enums"]["organization_type"]
           updated_at: string
+          website: string | null
         }
         Insert: {
           accent_color?: string | null
+          acronym?: string | null
+          address?: string | null
           approval_status?: string
           badge_border_style?: string | null
           badge_footer_text?: string | null
           badge_header_text?: string | null
           badge_template?: string | null
           badge_validity_months?: number | null
+          city?: string | null
+          country?: string | null
           created_at?: string
           custom_domain?: string | null
           default_signer_name?: string | null
           default_signer_title?: string | null
           document_city?: string | null
           document_header_text?: string | null
+          head_name?: string | null
+          head_title?: string | null
+          host_city?: string | null
+          host_country?: string | null
           id?: string
+          institutional_email?: string | null
           late_threshold_time?: string
           leave_policy?: Json
           letterhead_url?: string | null
@@ -1512,34 +1586,48 @@ export type Database = {
           max_units?: number
           max_users?: number
           name: string
+          notes?: string | null
           parent_organization_id?: string | null
           pdf_font_size?: number | null
           pdf_line_height?: number | null
           pdf_margin?: number | null
           pdf_vertical_align?: string | null
+          phone?: string | null
           primary_color?: string | null
+          representation_type?: string | null
+          represented_country?: string | null
           secondary_color?: string | null
           subscription_expires_at?: string | null
           subscription_started_at?: string | null
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           type: Database["public"]["Enums"]["organization_type"]
           updated_at?: string
+          website?: string | null
         }
         Update: {
           accent_color?: string | null
+          acronym?: string | null
+          address?: string | null
           approval_status?: string
           badge_border_style?: string | null
           badge_footer_text?: string | null
           badge_header_text?: string | null
           badge_template?: string | null
           badge_validity_months?: number | null
+          city?: string | null
+          country?: string | null
           created_at?: string
           custom_domain?: string | null
           default_signer_name?: string | null
           default_signer_title?: string | null
           document_city?: string | null
           document_header_text?: string | null
+          head_name?: string | null
+          head_title?: string | null
+          host_city?: string | null
+          host_country?: string | null
           id?: string
+          institutional_email?: string | null
           late_threshold_time?: string
           leave_policy?: Json
           letterhead_url?: string | null
@@ -1547,18 +1635,23 @@ export type Database = {
           max_units?: number
           max_users?: number
           name?: string
+          notes?: string | null
           parent_organization_id?: string | null
           pdf_font_size?: number | null
           pdf_line_height?: number | null
           pdf_margin?: number | null
           pdf_vertical_align?: string | null
+          phone?: string | null
           primary_color?: string | null
+          representation_type?: string | null
+          represented_country?: string | null
           secondary_color?: string | null
           subscription_expires_at?: string | null
           subscription_started_at?: string | null
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
           type?: Database["public"]["Enums"]["organization_type"]
           updated_at?: string
+          website?: string | null
         }
         Relationships: [
           {
@@ -1891,6 +1984,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_status: string
           adresse_departement: string | null
           adresse_rue: string | null
           adresse_ville: string | null
@@ -1914,6 +2008,9 @@ export type Database = {
           full_name: string | null
           groupe_sanguin: string | null
           id: string
+          invitation_expires_at: string | null
+          invitation_sent_at: string | null
+          invited_by: string | null
           lieu_naissance: string | null
           nationalite: string | null
           nif: string | null
@@ -1934,10 +2031,11 @@ export type Database = {
           tel_2: string | null
           unit_id: string | null
           updated_at: string
-          user_id: string
+          user_id: string | null
           whatsapp: string | null
         }
         Insert: {
+          account_status?: string
           adresse_departement?: string | null
           adresse_rue?: string | null
           adresse_ville?: string | null
@@ -1965,6 +2063,9 @@ export type Database = {
           full_name?: string | null
           groupe_sanguin?: string | null
           id?: string
+          invitation_expires_at?: string | null
+          invitation_sent_at?: string | null
+          invited_by?: string | null
           lieu_naissance?: string | null
           nationalite?: string | null
           nif?: string | null
@@ -1987,10 +2088,11 @@ export type Database = {
           tel_2?: string | null
           unit_id?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string | null
           whatsapp?: string | null
         }
         Update: {
+          account_status?: string
           adresse_departement?: string | null
           adresse_rue?: string | null
           adresse_ville?: string | null
@@ -2018,6 +2120,9 @@ export type Database = {
           full_name?: string | null
           groupe_sanguin?: string | null
           id?: string
+          invitation_expires_at?: string | null
+          invitation_sent_at?: string | null
+          invited_by?: string | null
           lieu_naissance?: string | null
           nationalite?: string | null
           nif?: string | null
@@ -2040,7 +2145,7 @@ export type Database = {
           tel_2?: string | null
           unit_id?: string | null
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
           whatsapp?: string | null
         }
         Relationships: [
