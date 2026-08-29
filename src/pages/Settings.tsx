@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
 import OrganizationInfo from "@/components/settings/OrganizationInfo";
+import OrganizationDetails from "@/components/settings/OrganizationDetails";
 import OrganizationalUnits from "@/components/settings/OrganizationalUnits";
 import { SubscriptionInfo } from "@/components/settings/SubscriptionInfo";
 import { CustomizationSettings } from "@/components/settings/CustomizationSettings";
