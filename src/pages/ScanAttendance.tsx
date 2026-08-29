@@ -1,3 +1,4 @@
+import { PunchScanner } from "@/components/attendance/PunchScanner";
 import { ScanCentralQR } from "@/components/attendance/ScanCentralQR";
 import { Button } from "@/components/ui/button";
 import { QrCode } from "lucide-react";
