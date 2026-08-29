@@ -624,6 +624,10 @@ const Attendance = () => {
       </Card>
 
       {organization && (
+        <HrAbsenceContextPanel organizationId={organization.id} date={selectedDate} />
+      )}
+
+      {organization && (
         <TeacherAttendanceSection
           organizationId={organization.id}
           selectedDate={selectedDate}
