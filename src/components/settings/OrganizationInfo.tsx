@@ -47,10 +47,22 @@ const OrganizationInfo = ({ organization, onUpdate }: OrganizationInfoProps) => 
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: organization?.name || "",
-      type: organization?.type || "ministere",
+      type: normalizeType(organization?.type),
       late_threshold_time: (organization?.late_threshold_time || "08:30:00").slice(0, 5),
     },
   });
+
+  // L'organisation est chargée de façon asynchrone : on resynchronise le formulaire
+  // dès qu'elle arrive (sinon une ancienne organisation restait bloquée sur la valeur initiale).
+  useEffect(() => {
+    if (!organization) return;
+    form.reset({
+      name: organization.name || "",
+      type: normalizeType(organization.type),
+      late_threshold_time: (organization.late_threshold_time || "08:30:00").slice(0, 5),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [organization?.id, organization?.type, organization?.name, organization?.late_threshold_time]);
 
   const groupLabels: Record<string, string> = {
     public: language === "fr" ? "Administration publique" : "Public administration",
