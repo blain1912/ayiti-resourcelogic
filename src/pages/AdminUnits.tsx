@@ -36,13 +36,10 @@ const AdminUnits = () => {
     parent_id: null as string | null,
   });
 
-  const unitTypes = {
-    direction_generale: "Direction Générale",
-    direction_technique: "Direction Technique",
-    service: "Service",
-    section: "Section",
-    departement: "Département",
-  };
+  const unitTypes = Object.fromEntries(
+    STRUCTURE_TYPES.map((t) => [t.value, t.fr])
+  ) as Record<UnitType, string>;
+
 
   useEffect(() => {
     checkAccess();
