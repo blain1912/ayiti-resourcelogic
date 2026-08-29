@@ -15,6 +15,7 @@ import { useOrganization } from "@/hooks/useOrganization";
 import { Building2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { institutionTypeLabel } from "@/lib/institutionTypes";
 
 export default function Navbar() {
   const { language, setLanguage, t } = useLanguage();
