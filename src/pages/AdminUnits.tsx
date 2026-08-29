@@ -10,8 +10,10 @@ import { toast } from "sonner";
 import { Network, Plus, Trash2, Edit, ArrowLeft } from "lucide-react";
 
 import type { Database } from "@/integrations/supabase/types";
+import { STRUCTURE_TYPES } from "@/lib/institutionTypes";
 
 type UnitType = Database["public"]["Enums"]["unit_type"];
+
 
 interface OrganizationalUnit {
   id: string;
