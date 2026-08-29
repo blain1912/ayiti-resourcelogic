@@ -221,7 +221,7 @@ const Onboarding = () => {
                 <div className="p-4 bg-muted rounded-lg">
                   <h3 className="font-semibold mb-2">Organisation</h3>
                   <p className="text-sm text-muted-foreground">
-                    {formData.organizationName} - {organizationTypes[formData.organizationType]}
+                    {formData.organizationName} - {institutionTypeLabel(formData.organizationType)}
                   </p>
                 </div>
 
