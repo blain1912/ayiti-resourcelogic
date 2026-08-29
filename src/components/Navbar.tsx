@@ -15,6 +15,7 @@ import { useOrganization } from "@/hooks/useOrganization";
 import { Building2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { institutionTypeLabel } from "@/lib/institutionTypes";
 
 export default function Navbar() {
   const { language, setLanguage, t } = useLanguage();
@@ -99,10 +100,7 @@ export default function Navbar() {
                 </span>
                 {organization && (
                   <span className="text-xs text-muted-foreground leading-tight">
-                    {organization.type === "ministere" && "Ministère"}
-                    {organization.type === "direction_generale" && "Direction Générale"}
-                    {organization.type === "organisme_autonome" && "Organisme Autonome"}
-                    {organization.type === "organisme_deconcentre" && "Organisme Déconcentré"}
+                    {institutionTypeLabel(organization.type, language)}
                   </span>
                 )}
               </div>

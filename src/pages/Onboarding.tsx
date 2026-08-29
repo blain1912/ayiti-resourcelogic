@@ -9,8 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Building2, Shield, CheckCircle } from "lucide-react";
 import { z } from "zod";
+import {
+  INSTITUTION_TYPES,
+  institutionTypeLabel,
+  type InstitutionType,
+} from "@/lib/institutionTypes";
 
-type OrganizationType = "ministere" | "direction_generale" | "organisme_autonome" | "organisme_deconcentre";
+type OrganizationType = InstitutionType;
 type AppRole = "directeur_general" | "directeur_administratif" | "directeur_rh" | "employe";
 
 const nameSchema = z.string().trim().min(1, "Le nom est requis").max(200, "Le nom doit faire moins de 200 caractères");
@@ -27,11 +32,10 @@ const Onboarding = () => {
     role: "directeur_rh" as AppRole,
   });
 
-  const organizationTypes = {
-    ministere: "Ministère",
-    direction_generale: "Direction Générale",
-    organisme_autonome: "Organisme Autonome",
-    organisme_deconcentre: "Organisme Déconcentré",
+  const groupLabels: Record<string, string> = {
+    public: "Administration publique",
+    diplomatique: "Missions diplomatiques et consulaires",
+    autre: "Autre",
   };
 
   const roleLabels = {
@@ -186,10 +190,17 @@ const Onboarding = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.entries(organizationTypes).map(([key, label]) => (
-                        <SelectItem key={key} value={key}>
-                          {label}
-                        </SelectItem>
+                      {(["public", "diplomatique", "autre"] as const).map((group) => (
+                        <div key={group}>
+                          <p className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                            {groupLabels[group]}
+                          </p>
+                          {INSTITUTION_TYPES.filter((t) => t.group === group).map((t) => (
+                            <SelectItem key={t.value} value={t.value}>
+                              {t.fr}
+                            </SelectItem>
+                          ))}
+                        </div>
                       ))}
                     </SelectContent>
                   </Select>
@@ -210,7 +221,7 @@ const Onboarding = () => {
                 <div className="p-4 bg-muted rounded-lg">
                   <h3 className="font-semibold mb-2">Organisation</h3>
                   <p className="text-sm text-muted-foreground">
-                    {formData.organizationName} - {organizationTypes[formData.organizationType]}
+                    {formData.organizationName} - {institutionTypeLabel(formData.organizationType)}
                   </p>
                 </div>
 
