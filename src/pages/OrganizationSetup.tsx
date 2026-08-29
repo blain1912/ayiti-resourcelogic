@@ -11,11 +11,18 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { INSTITUTION_TYPES, INSTITUTION_TYPE_VALUES } from "@/lib/institutionTypes";
+import { INSTITUTION_TYPES, INSTITUTION_TYPE_VALUES, isDiplomaticInstitution } from "@/lib/institutionTypes";
 
 const formSchema = z.object({
   name: z.string().min(3, "Le nom doit contenir au moins 3 caractères"),
   type: z.enum(INSTITUTION_TYPE_VALUES),
+  // Champs facultatifs : l'assistant reste simple, tout se complète plus tard
+  acronym: z.string().max(50).optional(),
+  country: z.string().max(100).optional(),
+  city: z.string().max(100).optional(),
+  represented_country: z.string().max(100).optional(),
+  host_country: z.string().max(100).optional(),
+  host_city: z.string().max(100).optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -31,8 +38,17 @@ const OrganizationSetup = () => {
     defaultValues: {
       name: "",
       type: "ministere",
+      acronym: "",
+      country: "",
+      city: "",
+      represented_country: "",
+      host_country: "",
+      host_city: "",
     },
   });
+
+  const selectedType = form.watch("type");
+  const diplomatic = isDiplomaticInstitution(selectedType);
 
   const groupLabels: Record<string, string> = {
     public: language === "fr" ? "Administration publique" : "Public administration",
