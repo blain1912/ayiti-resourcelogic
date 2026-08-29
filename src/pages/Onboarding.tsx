@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { Building2, Shield, CheckCircle } from "lucide-react";
 import { z } from "zod";
 
-type OrganizationType = "ministere" | "direction_generale" | "organisme_autonome" | "organisme_deconcentre";
+type OrganizationType = InstitutionType;
 type AppRole = "directeur_general" | "directeur_administratif" | "directeur_rh" | "employe";
 
 const nameSchema = z.string().trim().min(1, "Le nom est requis").max(200, "Le nom doit faire moins de 200 caractères");
