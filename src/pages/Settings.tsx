@@ -229,6 +229,10 @@ const Settings = () => {
           <TabsContent value="units">
             <OrganizationalUnits organizationId={organization?.id} />
           </TabsContent>
+
+          <TabsContent value="attendance">
+            {organization && <AttendanceSettings organizationId={organization.id} />}
+          </TabsContent>
         </Tabs>
       </div>
     </div>
