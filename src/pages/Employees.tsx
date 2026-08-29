@@ -40,10 +40,14 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { EmployeeListExport } from "@/components/employees/EmployeeListExport";
+import { ACCOUNT_STATUS_LABELS, ACCOUNT_STATUS_VARIANTS, effectiveAccountStatus } from "@/lib/accountStatus";
 
 interface Employee {
   id: string;
   full_name: string | null;
+  email: string | null;
+  account_status: string | null;
+  invitation_expires_at: string | null;
   position_name: string | null;
   position_salary: number | null;
   unit_name: string | null;
@@ -81,6 +85,9 @@ export default function Employees() {
         .select(`
           id,
           full_name,
+          email,
+          account_status,
+          invitation_expires_at,
           position:positions(name, salary),
           unit:organizational_units(name)
         `)
@@ -91,6 +98,9 @@ export default function Employees() {
       const formattedEmployees: Employee[] = (data || []).map((profile: any) => ({
         id: profile.id,
         full_name: profile.full_name,
+        email: profile.email,
+        account_status: profile.account_status,
+        invitation_expires_at: profile.invitation_expires_at,
         position_name: profile.position?.name || null,
         position_salary: profile.position?.salary || null,
         unit_name: profile.unit?.name || null,
@@ -286,13 +296,14 @@ export default function Employees() {
                 <TableHead>{t("position")}</TableHead>
                 <TableHead>Salaire</TableHead>
                 <TableHead>Unité</TableHead>
+                <TableHead>Compte GRHPro</TableHead>
                 <TableHead className="text-right">{t("actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredEmployees.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                     Aucun employé trouvé
                   </TableCell>
                 </TableRow>
@@ -309,6 +320,15 @@ export default function Employees() {
                         : "-"}
                     </TableCell>
                     <TableCell>{employee.unit_name || "-"}</TableCell>
+                    <TableCell>
+                      {(() => {
+                        const st = effectiveAccountStatus(
+                          employee.account_status,
+                          employee.invitation_expires_at,
+                        );
+                        return <Badge variant={ACCOUNT_STATUS_VARIANTS[st]}>{ACCOUNT_STATUS_LABELS[st]}</Badge>;
+                      })()}
+                    </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -323,7 +343,7 @@ export default function Employees() {
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => setInviteEmployee(employee)}>
                             <Mail className="mr-2 h-4 w-4" />
-                            Inviter à se connecter
+                            Inviter à GRHPro
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-destructive focus:text-destructive"
@@ -356,7 +376,8 @@ export default function Employees() {
       <InviteEmployeeDialog
         open={!!inviteEmployee}
         onOpenChange={(v) => !v && setInviteEmployee(null)}
-        profile={inviteEmployee ? { id: inviteEmployee.id, full_name: inviteEmployee.full_name } : null}
+        profile={inviteEmployee}
+        onDone={fetchEmployees}
       />
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>

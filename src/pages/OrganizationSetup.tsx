@@ -11,11 +11,18 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { INSTITUTION_TYPES, INSTITUTION_TYPE_VALUES } from "@/lib/institutionTypes";
+import { INSTITUTION_TYPES, INSTITUTION_TYPE_VALUES, isDiplomaticInstitution } from "@/lib/institutionTypes";
 
 const formSchema = z.object({
   name: z.string().min(3, "Le nom doit contenir au moins 3 caractères"),
   type: z.enum(INSTITUTION_TYPE_VALUES),
+  // Champs facultatifs : l'assistant reste simple, tout se complète plus tard
+  acronym: z.string().max(50).optional(),
+  country: z.string().max(100).optional(),
+  city: z.string().max(100).optional(),
+  represented_country: z.string().max(100).optional(),
+  host_country: z.string().max(100).optional(),
+  host_city: z.string().max(100).optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -31,8 +38,17 @@ const OrganizationSetup = () => {
     defaultValues: {
       name: "",
       type: "ministere",
+      acronym: "",
+      country: "",
+      city: "",
+      represented_country: "",
+      host_country: "",
+      host_city: "",
     },
   });
+
+  const selectedType = form.watch("type");
+  const diplomatic = isDiplomaticInstitution(selectedType);
 
   const groupLabels: Record<string, string> = {
     public: language === "fr" ? "Administration publique" : "Public administration",
@@ -57,9 +73,19 @@ const OrganizationSetup = () => {
       }
 
       // Create organization
+      const clean = (v?: string) => (v && v.trim() !== "" ? v.trim() : null);
       const { data: organization, error: orgError } = await supabase
         .from("organizations")
-        .insert([{ name: data.name, type: data.type }])
+        .insert([{
+          name: data.name,
+          type: data.type,
+          acronym: clean(data.acronym),
+          country: clean(data.country),
+          city: clean(data.city),
+          represented_country: diplomatic ? clean(data.represented_country) : null,
+          host_country: diplomatic ? clean(data.host_country) : null,
+          host_city: diplomatic ? clean(data.host_city) : null,
+        } as any])
         .select()
         .single();
 
@@ -171,6 +197,60 @@ const OrganizationSetup = () => {
                   </FormItem>
                 )}
               />
+
+              <div className="grid gap-4 md:grid-cols-3">
+                {([
+                  { name: "acronym" as const, label: "Sigle (facultatif)", ph: "Ex : MENFP" },
+                  { name: "country" as const, label: "Pays (facultatif)", ph: "" },
+                  { name: "city" as const, label: "Ville (facultatif)", ph: "" },
+                ]).map((f) => (
+                  <FormField
+                    key={f.name}
+                    control={form.control}
+                    name={f.name}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{f.label}</FormLabel>
+                        <FormControl>
+                          <Input placeholder={f.ph} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ))}
+              </div>
+
+              {diplomatic && (
+                <div className="grid gap-4 md:grid-cols-3 rounded-md border p-4">
+                  {([
+                    { name: "represented_country" as const, label: "Pays représenté", ph: "Ex : Haïti" },
+                    { name: "host_country" as const, label: "Pays d'implantation", ph: "Ex : République dominicaine" },
+                    { name: "host_city" as const, label: "Ville d'implantation", ph: "Ex : Santiago" },
+                  ]).map((f) => (
+                    <FormField
+                      key={f.name}
+                      control={form.control}
+                      name={f.name}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{f.label}</FormLabel>
+                          <FormControl>
+                            <Input placeholder={f.ph} {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  ))}
+                </div>
+              )}
+
+              <p className="text-xs text-muted-foreground">
+                Ces informations complémentaires sont facultatives et pourront être complétées plus
+                tard dans Administration → Organisation.
+              </p>
+
 
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading 
