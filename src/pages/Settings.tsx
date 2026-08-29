@@ -236,6 +236,11 @@ const Settings = () => {
           <TabsContent value="attendance">
             {organization && <AttendanceSettings organizationId={organization.id} />}
           </TabsContent>
+
+          <TabsContent value="leaves" className="space-y-6">
+            {organization && <LeaveTypeSettings organizationId={organization.id} />}
+            {organization && <LeavePolicySettings organizationId={organization.id} />}
+          </TabsContent>
         </Tabs>
       </div>
     </div>
