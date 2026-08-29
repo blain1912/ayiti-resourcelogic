@@ -10,7 +10,17 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { INSTITUTION_TYPES, INSTITUTION_TYPE_VALUES } from "@/lib/institutionTypes";
+import {
+  INSTITUTION_TYPES,
+  INSTITUTION_TYPE_VALUES,
+  type InstitutionType,
+} from "@/lib/institutionTypes";
+
+/** Une organisation ancienne peut porter une valeur absente du référentiel : on ne la perd pas. */
+const normalizeType = (value?: string | null): InstitutionType =>
+  (INSTITUTION_TYPE_VALUES as readonly string[]).includes(value ?? "")
+    ? (value as InstitutionType)
+    : "autre";
 
 const formSchema = z.object({
   name: z.string().min(3, "Le nom doit contenir au moins 3 caractères"),
