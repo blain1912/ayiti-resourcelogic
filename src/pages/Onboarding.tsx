@@ -32,11 +32,10 @@ const Onboarding = () => {
     role: "directeur_rh" as AppRole,
   });
 
-  const organizationTypes = {
-    ministere: "Ministère",
-    direction_generale: "Direction Générale",
-    organisme_autonome: "Organisme Autonome",
-    organisme_deconcentre: "Organisme Déconcentré",
+  const groupLabels: Record<string, string> = {
+    public: "Administration publique",
+    diplomatique: "Missions diplomatiques et consulaires",
+    autre: "Autre",
   };
 
   const roleLabels = {
