@@ -7,14 +7,14 @@ type AssignmentInsert = Database["public"]["Tables"]["staff_assignments"]["Inser
 
 export type StaffAssignment = AssignmentRow & {
   unit?: { id: string; name: string } | null;
-  position?: { id: string; title: string | null } | null;
+  position?: { id: string; name: string | null } | null;
   supervisor?: { id: string; full_name: string | null; prenom: string | null; nom: string | null } | null;
   employee?: { id: string; full_name: string | null; prenom: string | null; nom: string | null } | null;
 };
 
 const SELECT = `*,
   unit:organizational_units!staff_assignments_unit_id_fkey(id, name),
-  position:positions!staff_assignments_position_id_fkey(id, title),
+  position:positions!staff_assignments_position_id_fkey(id, name),
   supervisor:profiles!staff_assignments_supervisor_profile_id_fkey(id, full_name, prenom, nom),
   employee:profiles!staff_assignments_profile_id_fkey(id, full_name, prenom, nom)`;
 
