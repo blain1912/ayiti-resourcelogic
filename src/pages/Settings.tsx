@@ -189,6 +189,9 @@ const Settings = () => {
             <TabsTrigger value="units">
               {language === "fr" ? "Structures Administratives" : "Administrative Units"}
             </TabsTrigger>
+            <TabsTrigger value="attendance">
+              {language === "fr" ? "Présences" : "Attendance"}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="organization" className="space-y-6">
