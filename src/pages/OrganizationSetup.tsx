@@ -198,6 +198,60 @@ const OrganizationSetup = () => {
                 )}
               />
 
+              <div className="grid gap-4 md:grid-cols-3">
+                {([
+                  { name: "acronym" as const, label: "Sigle (facultatif)", ph: "Ex : MENFP" },
+                  { name: "country" as const, label: "Pays (facultatif)", ph: "" },
+                  { name: "city" as const, label: "Ville (facultatif)", ph: "" },
+                ]).map((f) => (
+                  <FormField
+                    key={f.name}
+                    control={form.control}
+                    name={f.name}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{f.label}</FormLabel>
+                        <FormControl>
+                          <Input placeholder={f.ph} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ))}
+              </div>
+
+              {diplomatic && (
+                <div className="grid gap-4 md:grid-cols-3 rounded-md border p-4">
+                  {([
+                    { name: "represented_country" as const, label: "Pays représenté", ph: "Ex : Haïti" },
+                    { name: "host_country" as const, label: "Pays d'implantation", ph: "Ex : République dominicaine" },
+                    { name: "host_city" as const, label: "Ville d'implantation", ph: "Ex : Santiago" },
+                  ]).map((f) => (
+                    <FormField
+                      key={f.name}
+                      control={form.control}
+                      name={f.name}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{f.label}</FormLabel>
+                          <FormControl>
+                            <Input placeholder={f.ph} {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  ))}
+                </div>
+              )}
+
+              <p className="text-xs text-muted-foreground">
+                Ces informations complémentaires sont facultatives et pourront être complétées plus
+                tard dans Administration → Organisation.
+              </p>
+
+
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading 
                   ? (language === "fr" ? "Création..." : "Creating...") 
