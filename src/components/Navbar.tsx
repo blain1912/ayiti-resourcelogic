@@ -591,6 +591,24 @@ export default function Navbar() {
                     Congés
                   </Button>
                 </Link>
+                <Link to="/authorizations" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <Clock className="h-4 w-4" />
+                    Autorisations d'absence
+                  </Button>
+                </Link>
+                <Link to="/missions" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <Briefcase className="h-4 w-4" />
+                    Missions
+                  </Button>
+                </Link>
+                <Link to="/assignments" onClick={() => setMobileMenuOpen(false)}>
+                  <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
+                    <ArrowRightLeft className="h-4 w-4" />
+                    Affectations
+                  </Button>
+                </Link>
                 <Link to="/pension" onClick={() => setMobileMenuOpen(false)}>
                   <Button variant="ghost" size="sm" className="w-full justify-start gap-2">
                     <ShieldCheck className="h-4 w-4" />
