@@ -23,6 +23,7 @@ import { getQrEmail, getQrEmployeeId, getQrMatricule, getQrOrganizationId, parse
 import { LateHistoryTable } from "@/components/attendance/LateHistoryTable";
 import { TeacherAttendanceSection } from "@/components/attendance/TeacherAttendanceSection";
 import { useOrgTeacherSlots } from "@/hooks/useTeacherSchedules";
+import { AttendanceCorrections } from "@/components/attendance/AttendanceCorrections";
 
 interface Employee {
   id: string;
@@ -634,6 +635,10 @@ const Attendance = () => {
           organizationId={organization.id}
           lateThresholdTime={(organization as any).late_threshold_time}
         />
+      )}
+
+      {organization && (
+        <AttendanceCorrections organizationId={organization.id} canReview />
       )}
     </div>
   );

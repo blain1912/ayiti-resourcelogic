@@ -1,3 +1,4 @@
+import { PunchScanner } from "@/components/attendance/PunchScanner";
 import { ScanCentralQR } from "@/components/attendance/ScanCentralQR";
 import { Button } from "@/components/ui/button";
 import { QrCode } from "lucide-react";
@@ -13,7 +14,8 @@ const ScanAttendance = () => {
         </p>
       </div>
 
-      <div className="max-w-md mx-auto">
+      <div className="max-w-md mx-auto space-y-6">
+        <PunchScanner />
         <ScanCentralQR />
       </div>
 

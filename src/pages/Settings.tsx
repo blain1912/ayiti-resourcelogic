@@ -16,6 +16,7 @@ import SalaryScale from "@/components/settings/SalaryScale";
 import { ProfessorGrades } from "@/components/settings/ProfessorGrades";
 import { LeavePolicySettings } from "@/components/settings/LeavePolicySettings";
 import { LateNotificationSettings } from "@/components/settings/LateNotificationSettings";
+import { AttendanceSettings } from "@/components/settings/AttendanceSettings";
 import { OnboardingKitButton } from "@/components/OnboardingKitButton";
 import { Upload } from "lucide-react";
 
@@ -188,6 +189,9 @@ const Settings = () => {
             <TabsTrigger value="units">
               {language === "fr" ? "Structures Administratives" : "Administrative Units"}
             </TabsTrigger>
+            <TabsTrigger value="attendance">
+              {language === "fr" ? "Présences" : "Attendance"}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="organization" className="space-y-6">
@@ -224,6 +228,10 @@ const Settings = () => {
 
           <TabsContent value="units">
             <OrganizationalUnits organizationId={organization?.id} />
+          </TabsContent>
+
+          <TabsContent value="attendance">
+            {organization && <AttendanceSettings organizationId={organization.id} />}
           </TabsContent>
         </Tabs>
       </div>
