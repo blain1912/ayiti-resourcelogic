@@ -9,6 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Building2, Shield, CheckCircle } from "lucide-react";
 import { z } from "zod";
+import {
+  INSTITUTION_TYPES,
+  institutionTypeLabel,
+  type InstitutionType,
+} from "@/lib/institutionTypes";
 
 type OrganizationType = InstitutionType;
 type AppRole = "directeur_general" | "directeur_administratif" | "directeur_rh" | "employe";
