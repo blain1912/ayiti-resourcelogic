@@ -229,6 +229,24 @@ export default function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to="/authorizations" className="flex items-center cursor-pointer">
+                        <Clock className="h-4 w-4 mr-2" />
+                        Autorisations d'absence
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/missions" className="flex items-center cursor-pointer">
+                        <Briefcase className="h-4 w-4 mr-2" />
+                        Missions
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/assignments" className="flex items-center cursor-pointer">
+                        <ArrowRightLeft className="h-4 w-4 mr-2" />
+                        Affectations
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/pension" className="flex items-center cursor-pointer">
                         <ShieldCheck className="h-4 w-4 mr-2" />
                         Demande de pension
