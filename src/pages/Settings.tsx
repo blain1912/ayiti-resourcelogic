@@ -15,6 +15,7 @@ import { BadgeTemplateSelector } from "@/components/settings/BadgeTemplateSelect
 import SalaryScale from "@/components/settings/SalaryScale";
 import { ProfessorGrades } from "@/components/settings/ProfessorGrades";
 import { LeavePolicySettings } from "@/components/settings/LeavePolicySettings";
+import { LeaveTypeSettings } from "@/components/settings/LeaveTypeSettings";
 import { LateNotificationSettings } from "@/components/settings/LateNotificationSettings";
 import { AttendanceSettings } from "@/components/settings/AttendanceSettings";
 import { OnboardingKitButton } from "@/components/OnboardingKitButton";
