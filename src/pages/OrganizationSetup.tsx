@@ -73,9 +73,19 @@ const OrganizationSetup = () => {
       }
 
       // Create organization
+      const clean = (v?: string) => (v && v.trim() !== "" ? v.trim() : null);
       const { data: organization, error: orgError } = await supabase
         .from("organizations")
-        .insert([{ name: data.name, type: data.type }])
+        .insert([{
+          name: data.name,
+          type: data.type,
+          acronym: clean(data.acronym),
+          country: clean(data.country),
+          city: clean(data.city),
+          represented_country: diplomatic ? clean(data.represented_country) : null,
+          host_country: diplomatic ? clean(data.host_country) : null,
+          host_city: diplomatic ? clean(data.host_city) : null,
+        } as any])
         .select()
         .single();
 
