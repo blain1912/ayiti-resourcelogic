@@ -14,6 +14,91 @@ export type Database = {
   }
   public: {
     Tables: {
+      absence_authorizations: {
+        Row: {
+          approver_profile_id: string | null
+          attachment_url: string | null
+          authorization_type: string
+          comment: string | null
+          created_at: string
+          date: string
+          end_time: string | null
+          id: string
+          organization_id: string
+          profile_id: string
+          reason: string
+          requested_by: string | null
+          review_comment: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          start_time: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          approver_profile_id?: string | null
+          attachment_url?: string | null
+          authorization_type?: string
+          comment?: string | null
+          created_at?: string
+          date: string
+          end_time?: string | null
+          id?: string
+          organization_id: string
+          profile_id: string
+          reason: string
+          requested_by?: string | null
+          review_comment?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_time?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          approver_profile_id?: string | null
+          attachment_url?: string | null
+          authorization_type?: string
+          comment?: string | null
+          created_at?: string
+          date?: string
+          end_time?: string | null
+          id?: string
+          organization_id?: string
+          profile_id?: string
+          reason?: string
+          requested_by?: string | null
+          review_comment?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          start_time?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "absence_authorizations_approver_profile_id_fkey"
+            columns: ["approver_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "absence_authorizations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "absence_authorizations_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       account_audit_log: {
         Row: {
           action: string
@@ -1330,6 +1415,63 @@ export type Database = {
           },
         ]
       }
+      hr_audit_log: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          comment: string | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          new_value: Json | null
+          old_value: Json | null
+          organization_id: string
+          profile_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          comment?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          organization_id: string
+          profile_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          comment?: string | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          new_value?: Json | null
+          old_value?: Json | null
+          organization_id?: string
+          profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hr_audit_log_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hr_audit_log_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       institution_labels: {
         Row: {
           created_at: string
@@ -1541,35 +1683,114 @@ export type Database = {
         }
         Relationships: []
       }
+      leave_approvals: {
+        Row: {
+          approver_profile_id: string | null
+          approver_user_id: string | null
+          comment: string | null
+          created_at: string
+          decided_at: string | null
+          id: string
+          leave_request_id: string
+          organization_id: string
+          status: string
+          step_label: string
+          step_order: number
+          step_role: string | null
+          updated_at: string
+        }
+        Insert: {
+          approver_profile_id?: string | null
+          approver_user_id?: string | null
+          comment?: string | null
+          created_at?: string
+          decided_at?: string | null
+          id?: string
+          leave_request_id: string
+          organization_id: string
+          status?: string
+          step_label: string
+          step_order?: number
+          step_role?: string | null
+          updated_at?: string
+        }
+        Update: {
+          approver_profile_id?: string | null
+          approver_user_id?: string | null
+          comment?: string | null
+          created_at?: string
+          decided_at?: string | null
+          id?: string
+          leave_request_id?: string
+          organization_id?: string
+          status?: string
+          step_label?: string
+          step_order?: number
+          step_role?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_approvals_approver_profile_id_fkey"
+            columns: ["approver_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_approvals_leave_request_id_fkey"
+            columns: ["leave_request_id"]
+            isOneToOne: false
+            referencedRelation: "leave_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_approvals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leave_balances: {
         Row: {
+          carried_over_days: number
           created_at: string
           employee_id: string
           id: string
           leave_type: Database["public"]["Enums"]["leave_type"]
+          leave_type_id: string | null
           organization_id: string
+          reserved_days: number
           total_days: number
           updated_at: string
           used_days: number
           year: number
         }
         Insert: {
+          carried_over_days?: number
           created_at?: string
           employee_id: string
           id?: string
           leave_type: Database["public"]["Enums"]["leave_type"]
+          leave_type_id?: string | null
           organization_id: string
+          reserved_days?: number
           total_days?: number
           updated_at?: string
           used_days?: number
           year?: number
         }
         Update: {
+          carried_over_days?: number
           created_at?: string
           employee_id?: string
           id?: string
           leave_type?: Database["public"]["Enums"]["leave_type"]
+          leave_type_id?: string | null
           organization_id?: string
+          reserved_days?: number
           total_days?: number
           updated_at?: string
           used_days?: number
@@ -1584,6 +1805,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "leave_balances_leave_type_id_fkey"
+            columns: ["leave_type_id"]
+            isOneToOne: false
+            referencedRelation: "leave_types"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "leave_balances_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
@@ -1594,11 +1822,18 @@ export type Database = {
       }
       leave_requests: {
         Row: {
+          attachment_url: string | null
+          comment: string | null
           created_at: string
+          current_step: number
+          days_count: number | null
           employee_id: string
           end_date: string
+          half_day_end: boolean
+          half_day_start: boolean
           id: string
           leave_type: Database["public"]["Enums"]["leave_type"]
+          leave_type_id: string | null
           organization_id: string
           reason: string | null
           review_comment: string | null
@@ -1606,14 +1841,22 @@ export type Database = {
           reviewed_by: string | null
           start_date: string
           status: Database["public"]["Enums"]["leave_status"]
+          submitted_at: string | null
           updated_at: string
         }
         Insert: {
+          attachment_url?: string | null
+          comment?: string | null
           created_at?: string
+          current_step?: number
+          days_count?: number | null
           employee_id: string
           end_date: string
+          half_day_end?: boolean
+          half_day_start?: boolean
           id?: string
           leave_type: Database["public"]["Enums"]["leave_type"]
+          leave_type_id?: string | null
           organization_id: string
           reason?: string | null
           review_comment?: string | null
@@ -1621,14 +1864,22 @@ export type Database = {
           reviewed_by?: string | null
           start_date: string
           status?: Database["public"]["Enums"]["leave_status"]
+          submitted_at?: string | null
           updated_at?: string
         }
         Update: {
+          attachment_url?: string | null
+          comment?: string | null
           created_at?: string
+          current_step?: number
+          days_count?: number | null
           employee_id?: string
           end_date?: string
+          half_day_end?: boolean
+          half_day_start?: boolean
           id?: string
           leave_type?: Database["public"]["Enums"]["leave_type"]
+          leave_type_id?: string | null
           organization_id?: string
           reason?: string | null
           review_comment?: string | null
@@ -1636,6 +1887,7 @@ export type Database = {
           reviewed_by?: string | null
           start_date?: string
           status?: Database["public"]["Enums"]["leave_status"]
+          submitted_at?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1644,6 +1896,13 @@ export type Database = {
             columns: ["employee_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_requests_leave_type_id_fkey"
+            columns: ["leave_type_id"]
+            isOneToOne: false
+            referencedRelation: "leave_types"
             referencedColumns: ["id"]
           },
           {
@@ -1658,6 +1917,77 @@ export type Database = {
             columns: ["reviewed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leave_types: {
+        Row: {
+          accrual_mode: string
+          allows_carry_over: boolean
+          annual_entitlement_days: number | null
+          applicable_sexe: string | null
+          carry_over_expires_months: number | null
+          code: string
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          is_paid: boolean
+          label: string
+          legacy_enum: string | null
+          max_duration_days: number | null
+          organization_id: string
+          requires_justification: boolean
+          updated_at: string
+        }
+        Insert: {
+          accrual_mode?: string
+          allows_carry_over?: boolean
+          annual_entitlement_days?: number | null
+          applicable_sexe?: string | null
+          carry_over_expires_months?: number | null
+          code: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_paid?: boolean
+          label: string
+          legacy_enum?: string | null
+          max_duration_days?: number | null
+          organization_id: string
+          requires_justification?: boolean
+          updated_at?: string
+        }
+        Update: {
+          accrual_mode?: string
+          allows_carry_over?: boolean
+          annual_entitlement_days?: number | null
+          applicable_sexe?: string | null
+          carry_over_expires_months?: number | null
+          code?: string
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          is_paid?: boolean
+          label?: string
+          legacy_enum?: string | null
+          max_duration_days?: number | null
+          organization_id?: string
+          requires_justification?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_types_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -1711,6 +2041,146 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mission_participants: {
+        Row: {
+          created_at: string
+          id: string
+          mission_id: string
+          organization_id: string
+          profile_id: string
+          role_in_mission: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mission_id: string
+          organization_id: string
+          profile_id: string
+          role_in_mission?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mission_id?: string
+          organization_id?: string
+          profile_id?: string
+          role_in_mission?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mission_participants_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "missions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_participants_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mission_participants_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      missions: {
+        Row: {
+          authorized_by: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          created_by: string | null
+          destination: string | null
+          end_date: string
+          end_time: string | null
+          id: string
+          lead_profile_id: string | null
+          observations: string | null
+          organization_id: string
+          place: string | null
+          reference: string | null
+          start_date: string
+          start_time: string | null
+          status: string
+          subject: string
+          unit_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          authorized_by?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          destination?: string | null
+          end_date: string
+          end_time?: string | null
+          id?: string
+          lead_profile_id?: string | null
+          observations?: string | null
+          organization_id: string
+          place?: string | null
+          reference?: string | null
+          start_date: string
+          start_time?: string | null
+          status?: string
+          subject: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          authorized_by?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          destination?: string | null
+          end_date?: string
+          end_time?: string | null
+          id?: string
+          lead_profile_id?: string | null
+          observations?: string | null
+          organization_id?: string
+          place?: string | null
+          reference?: string | null
+          start_date?: string
+          start_time?: string | null
+          status?: string
+          subject?: string
+          unit_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "missions_lead_profile_id_fkey"
+            columns: ["lead_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "missions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "missions_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "organizational_units"
             referencedColumns: ["id"]
           },
         ]
@@ -2735,8 +3205,102 @@ export type Database = {
           },
         ]
       }
+      staff_assignments: {
+        Row: {
+          assignment_kind: string
+          comment: string | null
+          created_at: string
+          created_by: string | null
+          decision_reference: string | null
+          end_date: string | null
+          id: string
+          is_current: boolean
+          organization_id: string
+          position_id: string | null
+          profile_id: string
+          start_date: string
+          supervisor_profile_id: string | null
+          unit_id: string | null
+          updated_at: string
+          workload_percentage: number | null
+        }
+        Insert: {
+          assignment_kind?: string
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          decision_reference?: string | null
+          end_date?: string | null
+          id?: string
+          is_current?: boolean
+          organization_id: string
+          position_id?: string | null
+          profile_id: string
+          start_date: string
+          supervisor_profile_id?: string | null
+          unit_id?: string | null
+          updated_at?: string
+          workload_percentage?: number | null
+        }
+        Update: {
+          assignment_kind?: string
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          decision_reference?: string | null
+          end_date?: string | null
+          id?: string
+          is_current?: boolean
+          organization_id?: string
+          position_id?: string | null
+          profile_id?: string
+          start_date?: string
+          supervisor_profile_id?: string | null
+          unit_id?: string | null
+          updated_at?: string
+          workload_percentage?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_assignments_position_id_fkey"
+            columns: ["position_id"]
+            isOneToOne: false
+            referencedRelation: "positions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_assignments_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_assignments_supervisor_profile_id_fkey"
+            columns: ["supervisor_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_assignments_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "organizational_units"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff_movements: {
         Row: {
+          assignment_id: string | null
           created_at: string
           created_by: string
           decision_reference: string | null
@@ -2751,12 +3315,14 @@ export type Database = {
           movement_type: string
           notes: string | null
           organization_id: string
+          previous_assignment_id: string | null
           to_category: string | null
           to_position: string | null
           to_unit: string | null
           updated_at: string
         }
         Insert: {
+          assignment_id?: string | null
           created_at?: string
           created_by: string
           decision_reference?: string | null
@@ -2771,12 +3337,14 @@ export type Database = {
           movement_type: string
           notes?: string | null
           organization_id: string
+          previous_assignment_id?: string | null
           to_category?: string | null
           to_position?: string | null
           to_unit?: string | null
           updated_at?: string
         }
         Update: {
+          assignment_id?: string | null
           created_at?: string
           created_by?: string
           decision_reference?: string | null
@@ -2791,12 +3359,28 @@ export type Database = {
           movement_type?: string
           notes?: string | null
           organization_id?: string
+          previous_assignment_id?: string | null
           to_category?: string | null
           to_position?: string | null
           to_unit?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "staff_movements_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "staff_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_movements_previous_assignment_id_fkey"
+            columns: ["previous_assignment_id"]
+            isOneToOne: false
+            referencedRelation: "staff_assignments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_history: {
         Row: {
@@ -3039,6 +3623,19 @@ export type Database = {
         }
         Returns: boolean
       }
+      hr_day_status: {
+        Args: { _date: string; _profile_id: string }
+        Returns: Json
+      }
+      hr_detect_conflicts: {
+        Args: {
+          _end: string
+          _exclude_id?: string
+          _profile_id: string
+          _start: string
+        }
+        Returns: Json
+      }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       storage_path_in_user_org: {
         Args: { _path: string; _user_id: string }
@@ -3107,7 +3704,13 @@ export type Database = {
         | "mariage"
       greeting_card_status: "pending" | "approved" | "rejected" | "sent"
       job_posting_status: "draft" | "open" | "closed" | "filled"
-      leave_status: "pending" | "approved" | "rejected" | "cancelled"
+      leave_status:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "cancelled"
+        | "draft"
+        | "in_review"
       leave_type:
         | "conge_annuel"
         | "conge_maladie"
@@ -3343,7 +3946,14 @@ export const Constants = {
       ],
       greeting_card_status: ["pending", "approved", "rejected", "sent"],
       job_posting_status: ["draft", "open", "closed", "filled"],
-      leave_status: ["pending", "approved", "rejected", "cancelled"],
+      leave_status: [
+        "pending",
+        "approved",
+        "rejected",
+        "cancelled",
+        "draft",
+        "in_review",
+      ],
       leave_type: [
         "conge_annuel",
         "conge_maladie",

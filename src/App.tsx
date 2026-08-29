@@ -10,6 +10,9 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Employees from "./pages/Employees";
 import Leaves from "./pages/Leaves";
+import Authorizations from "./pages/Authorizations";
+import MissionsPage from "./pages/Missions";
+import Assignments from "./pages/Assignments";
 import Documents from "./pages/Documents";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
@@ -81,6 +84,9 @@ const App = () => (
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/employees" element={<ProtectedRoute><Employees /></ProtectedRoute>} />
             <Route path="/leaves" element={<ProtectedRoute><Leaves /></ProtectedRoute>} />
+            <Route path="/authorizations" element={<ProtectedRoute><Authorizations /></ProtectedRoute>} />
+            <Route path="/missions" element={<ProtectedRoute><MissionsPage /></ProtectedRoute>} />
+            <Route path="/assignments" element={<ProtectedRoute><Assignments /></ProtectedRoute>} />
             <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
             <Route path="/organization-setup" element={<ProtectedRoute><OrganizationSetup /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />

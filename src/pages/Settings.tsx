@@ -15,6 +15,7 @@ import { BadgeTemplateSelector } from "@/components/settings/BadgeTemplateSelect
 import SalaryScale from "@/components/settings/SalaryScale";
 import { ProfessorGrades } from "@/components/settings/ProfessorGrades";
 import { LeavePolicySettings } from "@/components/settings/LeavePolicySettings";
+import { LeaveTypeSettings } from "@/components/settings/LeaveTypeSettings";
 import { LateNotificationSettings } from "@/components/settings/LateNotificationSettings";
 import { AttendanceSettings } from "@/components/settings/AttendanceSettings";
 import { OnboardingKitButton } from "@/components/OnboardingKitButton";
@@ -192,6 +193,9 @@ const Settings = () => {
             <TabsTrigger value="attendance">
               {language === "fr" ? "Présences" : "Attendance"}
             </TabsTrigger>
+            <TabsTrigger value="leaves">
+              {language === "fr" ? "Congés" : "Leaves"}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="organization" className="space-y-6">
@@ -232,6 +236,11 @@ const Settings = () => {
 
           <TabsContent value="attendance">
             {organization && <AttendanceSettings organizationId={organization.id} />}
+          </TabsContent>
+
+          <TabsContent value="leaves" className="space-y-6">
+            {organization && <LeaveTypeSettings organizationId={organization.id} />}
+            {organization && <LeavePolicySettings organizationId={organization.id} />}
           </TabsContent>
         </Tabs>
       </div>

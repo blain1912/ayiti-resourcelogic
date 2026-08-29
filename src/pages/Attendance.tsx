@@ -24,6 +24,7 @@ import { LateHistoryTable } from "@/components/attendance/LateHistoryTable";
 import { TeacherAttendanceSection } from "@/components/attendance/TeacherAttendanceSection";
 import { useOrgTeacherSlots } from "@/hooks/useTeacherSchedules";
 import { AttendanceCorrections } from "@/components/attendance/AttendanceCorrections";
+import { HrAbsenceContextPanel } from "@/components/attendance/HrAbsenceContextPanel";
 
 interface Employee {
   id: string;
@@ -622,6 +623,10 @@ const Attendance = () => {
           </div>
         </CardContent>
       </Card>
+
+      {organization && (
+        <HrAbsenceContextPanel organizationId={organization.id} date={selectedDate} />
+      )}
 
       {organization && (
         <TeacherAttendanceSection
