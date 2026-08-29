@@ -23,6 +23,7 @@ import { getQrEmail, getQrEmployeeId, getQrMatricule, getQrOrganizationId, parse
 import { LateHistoryTable } from "@/components/attendance/LateHistoryTable";
 import { TeacherAttendanceSection } from "@/components/attendance/TeacherAttendanceSection";
 import { useOrgTeacherSlots } from "@/hooks/useTeacherSchedules";
+import { AttendanceCorrections } from "@/components/attendance/AttendanceCorrections";
 
 interface Employee {
   id: string;
