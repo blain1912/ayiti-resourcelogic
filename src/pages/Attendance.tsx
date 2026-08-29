@@ -625,7 +625,14 @@ const Attendance = () => {
       </Card>
 
       {organization && (
-        <HrAbsenceContextPanel organizationId={organization.id} date={selectedDate} />
+        <HrAbsenceContextPanel
+          organizationId={organization.id}
+          date={
+            selectedDate instanceof Date
+              ? selectedDate.toISOString().slice(0, 10)
+              : (selectedDate as string)
+          }
+        />
       )}
 
       {organization && (
