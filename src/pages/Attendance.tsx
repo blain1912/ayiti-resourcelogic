@@ -635,6 +635,10 @@ const Attendance = () => {
           lateThresholdTime={(organization as any).late_threshold_time}
         />
       )}
+
+      {organization && (
+        <AttendanceCorrections organizationId={organization.id} canReview />
+      )}
     </div>
   );
 };
