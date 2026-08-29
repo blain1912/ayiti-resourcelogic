@@ -10,8 +10,10 @@ import { toast } from "sonner";
 import { Network, Plus, Trash2, Edit, ArrowLeft } from "lucide-react";
 
 import type { Database } from "@/integrations/supabase/types";
+import { STRUCTURE_TYPES } from "@/lib/institutionTypes";
 
 type UnitType = Database["public"]["Enums"]["unit_type"];
+
 
 interface OrganizationalUnit {
   id: string;
@@ -36,13 +38,10 @@ const AdminUnits = () => {
     parent_id: null as string | null,
   });
 
-  const unitTypes = {
-    direction_generale: "Direction Générale",
-    direction_technique: "Direction Technique",
-    service: "Service",
-    section: "Section",
-    departement: "Département",
-  };
+  const unitTypes = Object.fromEntries(
+    STRUCTURE_TYPES.map((t) => [t.value, t.fr])
+  ) as Record<UnitType, string>;
+
 
   useEffect(() => {
     checkAccess();
