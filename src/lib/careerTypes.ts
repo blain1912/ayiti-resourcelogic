@@ -65,6 +65,8 @@ export interface CareerEventType {
   createsAssignment: boolean;
   /** Statut administratif proposé par défaut */
   suggestedStatus?: AdministrativeStatus;
+  /** Clôture l'affectation principale en cours (sans en créer de nouvelle) */
+  closesAssignment?: boolean;
   /** Réservé au réseau diplomatique et consulaire */
   diplomaticOnly?: boolean;
 }
@@ -85,11 +87,11 @@ export const CAREER_EVENT_TYPES: CareerEventType[] = [
   { value: "reintegration", label: "Réintégration", createsAssignment: true, suggestedStatus: "actif" },
   { value: "prise_de_poste", label: "Prise de poste (représentation)", createsAssignment: true, suggestedStatus: "actif", diplomaticOnly: true },
   { value: "changement_fonction", label: "Changement de fonction", createsAssignment: true, diplomaticOnly: true },
-  { value: "rappel", label: "Rappel", createsAssignment: false, diplomaticOnly: true },
-  { value: "fin_mission_diplomatique", label: "Fin de mission (représentation)", createsAssignment: false, diplomaticOnly: true },
-  { value: "fin_affectation", label: "Fin d'affectation", createsAssignment: false },
-  { value: "depart", label: "Départ de l'organisation", createsAssignment: false, suggestedStatus: "fin_contrat" },
-  { value: "retraite", label: "Départ à la retraite", createsAssignment: false, suggestedStatus: "retraite" },
+  { value: "rappel", label: "Rappel", createsAssignment: false, closesAssignment: true, diplomaticOnly: true },
+  { value: "fin_mission_diplomatique", label: "Fin de mission (représentation)", createsAssignment: false, closesAssignment: true, diplomaticOnly: true },
+  { value: "fin_affectation", label: "Fin d'affectation", createsAssignment: false, closesAssignment: true },
+  { value: "depart", label: "Départ de l'organisation", createsAssignment: false, closesAssignment: true, suggestedStatus: "fin_contrat" },
+  { value: "retraite", label: "Départ à la retraite", createsAssignment: false, closesAssignment: true, suggestedStatus: "retraite" },
   { value: "autre", label: "Autre décision administrative", createsAssignment: false },
 ];
 
