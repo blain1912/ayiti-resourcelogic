@@ -229,7 +229,30 @@ export function useLeaveRequests() {
     const request = requests.find(r => r.id === requestId);
     if (!request) return { error: "Request not found" };
 
-    const { error } = await supabase
+    // Auto-approbation interdite (double barrière : RLS serveur + garde UI)
+    if (status === "approved" && request.employee_id === userProfile.id) {
+      const message = "Vous ne pouvez pas approuver votre propre demande de congé.";
+      toast({ title: "Action refusée", description: message, variant: "destructive" });
+      return { error: message };
+    }
+
+    // Conflits avant validation (mission / autorisation / autre congé approuvé)
+    if (status === "approved") {
+      try {
+        const conflicts = (
+          await detectHrConflicts(request.employee_id, request.start_date, request.end_date, requestId)
+        ).filter(isBlockingConflict);
+        if (conflicts.length > 0) {
+          const message = `Conflit détecté : ${describeConflicts(conflicts)}`;
+          toast({ title: "Approbation bloquée", description: message, variant: "destructive" });
+          return { error: message };
+        }
+      } catch (conflictError) {
+        console.error("hr_detect_conflicts", conflictError);
+      }
+    }
+
+    const { data: updated, error } = await supabase
       .from("leave_requests")
       .update({
         status,
@@ -237,22 +260,43 @@ export function useLeaveRequests() {
         reviewed_at: new Date().toISOString(),
         review_comment: comment || null,
       })
-      .eq("id", requestId);
+      .eq("id", requestId)
+      .select("id")
+      .maybeSingle();
 
-    if (error) {
+    if (error || !updated) {
       console.error("Error updating leave request:", error);
       toast({
         title: "Erreur",
-        description: "Impossible de mettre à jour la demande",
+        description: error
+          ? "Impossible de mettre à jour la demande"
+          : "Action refusée : demande hors de votre périmètre ou auto-validation interdite.",
         variant: "destructive",
       });
-      return { error };
+      return { error: error ?? "not permitted" };
     }
+
+    await logHrEvent({
+      organization_id: request.organization_id,
+      profile_id: request.employee_id,
+      entity_type: "leave_request",
+      entity_id: requestId,
+      action: status,
+      old_value: {
+        status: request.status,
+        start_date: request.start_date,
+        end_date: request.end_date,
+        leave_type: request.leave_type,
+      },
+      new_value: { status, reviewed_by: userProfile.id },
+      comment: comment ?? null,
+    });
 
     toast({
       title: "Succès",
       description: `Demande ${status === "approved" ? "approuvée" : "rejetée"}`,
     });
+
 
     // Send email notification to employee
     if (request.employee?.email) {
