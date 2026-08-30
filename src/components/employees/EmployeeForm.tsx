@@ -255,6 +255,8 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
   const [anneesService, setAnneesService] = useState<number | null>(null);
   const [employeeCategories, setEmployeeCategories] = useState<Array<{ id: string; name: string }>>([]);
   const { user } = useAuth();
+  const { capabilities } = useOrganizationCapabilities();
+
 
   // Fetch employee categories from DB
   useEffect(() => {
@@ -376,19 +378,22 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
             <CardTitle>Informations personnelles</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="code_budgetaire"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Code budgétaire *</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {capabilities.supports_budget_code && (
+              <FormField
+                control={form.control}
+                name="code_budgetaire"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Code budgétaire *</FormLabel>
+                    <FormControl>
+                      <Input {...field} value={field.value ?? ""} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
 
             <FormField
               control={form.control}
