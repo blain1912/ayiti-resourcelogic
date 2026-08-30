@@ -595,9 +595,21 @@ const Attendance = () => {
                                 </div>
                               )}
                             </div>
+                          ) : getJustifiedStatus(employee.id) ? (
+                            <div className="space-y-1">
+                              <Badge variant="secondary">
+                                {hrDayStatusLabel(getJustifiedStatus(employee.id)!.status)}
+                              </Badge>
+                              {getJustifiedStatus(employee.id)!.detail && (
+                                <div className="text-xs text-muted-foreground line-clamp-2">
+                                  {getJustifiedStatus(employee.id)!.detail}
+                                </div>
+                              )}
+                            </div>
                           ) : (
                             <span className="text-muted-foreground text-sm">Non pointé</span>
                           )}
+
                         </TableCell>
                         <TableCell className="hidden sm:table-cell">
                           {attendanceRecord?.time ? (
