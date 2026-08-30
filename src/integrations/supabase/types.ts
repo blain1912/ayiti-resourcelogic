@@ -3402,6 +3402,7 @@ export type Database = {
           cancelled_reason: string | null
           created_at: string
           created_by: string
+          decision_date: string | null
           decision_reference: string | null
           document_id: string | null
           effective_date: string
@@ -3429,6 +3430,7 @@ export type Database = {
           cancelled_reason?: string | null
           created_at?: string
           created_by: string
+          decision_date?: string | null
           decision_reference?: string | null
           document_id?: string | null
           effective_date: string
@@ -3456,6 +3458,7 @@ export type Database = {
           cancelled_reason?: string | null
           created_at?: string
           created_by?: string
+          decision_date?: string | null
           decision_reference?: string | null
           document_id?: string | null
           effective_date?: string
@@ -3783,7 +3786,9 @@ export type Database = {
       hr_record_career_event: {
         Args: {
           _assignment_kind?: string
+          _close_assignment?: boolean
           _create_assignment?: boolean
+          _decision_date?: string
           _decision_reference?: string
           _document_id?: string
           _effective_date: string
