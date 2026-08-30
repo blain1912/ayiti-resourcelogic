@@ -3623,6 +3623,23 @@ export type Database = {
         }
         Returns: boolean
       }
+      hr_create_assignment: {
+        Args: {
+          _assignment_kind?: string
+          _comment?: string
+          _decision_reference?: string
+          _end_date?: string
+          _movement_type?: string
+          _organization_id: string
+          _position_id?: string
+          _profile_id: string
+          _start_date: string
+          _supervisor_profile_id?: string
+          _unit_id?: string
+          _workload_percentage?: number
+        }
+        Returns: string
+      }
       hr_day_status: {
         Args: { _date: string; _profile_id: string }
         Returns: Json
