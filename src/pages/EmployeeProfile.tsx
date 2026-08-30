@@ -16,6 +16,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useProfessorGrades } from "@/hooks/useProfessorGrades";
 import { QRCodeSVG } from "qrcode.react";
 import { useOrganization } from "@/hooks/useOrganization";
+import { useOrganizationCapabilities } from "@/hooks/useOrganizationCapabilities";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { buildEmployeeAttendanceQrValue } from "@/lib/attendanceQr";
 
@@ -31,6 +33,8 @@ export default function EmployeeProfile() {
   const [positions, setPositions] = useState<Array<{ id: string; name: string; salary: number }>>([]);
   const { grades: professorGrades } = useProfessorGrades(profile?.organization_id);
   const { organization } = useOrganization();
+  const { capabilities } = useOrganizationCapabilities();
+
   const [isOwner, setIsOwner] = useState(false);
   const [isHR, setIsHR] = useState(false);
 

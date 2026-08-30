@@ -1061,7 +1061,10 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
                       <SelectItem value="permanent">Permanent</SelectItem>
                       <SelectItem value="contractuel">Contractuel</SelectItem>
                       <SelectItem value="journalier">Journalier</SelectItem>
-                      <SelectItem value="professeur">Professeur</SelectItem>
+                      {(capabilities.supports_teaching_role || employmentType === "professeur") && (
+                        <SelectItem value="professeur">Professeur</SelectItem>
+                      )}
+
                     </SelectContent>
                   </Select>
                   <FormMessage />
