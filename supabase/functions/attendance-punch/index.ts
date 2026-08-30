@@ -260,7 +260,15 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (punchType === "arrivee") {
-      const status = PRESENT_LATE(lateMinutes);
+      // Le statut RH justifié prime sur "present"/"retard"
+      const status =
+        hr.status === "leave"
+          ? "conge"
+          : hr.status === "mission"
+          ? "mission"
+          : hr.status === "authorization"
+          ? "permission"
+          : PRESENT_LATE(lateMinutes);
       if (existing) {
         await admin
           .from("attendance")
