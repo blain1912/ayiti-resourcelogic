@@ -321,6 +321,7 @@ export function useLeaveRequests() {
   };
 
   const cancelRequest = async (requestId: string) => {
+    const request = requests.find((r) => r.id === requestId);
     const { error } = await supabase
       .from("leave_requests")
       .update({ status: "cancelled" })
@@ -336,10 +337,23 @@ export function useLeaveRequests() {
       return { error };
     }
 
+    if (request) {
+      await logHrEvent({
+        organization_id: request.organization_id,
+        profile_id: request.employee_id,
+        entity_type: "leave_request",
+        entity_id: requestId,
+        action: "cancelled",
+        old_value: { status: request.status },
+        new_value: { status: "cancelled" },
+      });
+    }
+
     toast({
       title: "Succès",
       description: "Demande annulée",
     });
+
     
     fetchRequests();
     return { error: null };
