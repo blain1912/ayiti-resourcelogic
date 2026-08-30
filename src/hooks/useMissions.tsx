@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { logHrEvent } from "@/lib/hrAudit";
+import { detectHrConflicts, isBlockingConflict, describeConflicts } from "@/hooks/useHrDayStatus";
 
 type MissionRow = Database["public"]["Tables"]["missions"]["Row"];
 type MissionInsert = Database["public"]["Tables"]["missions"]["Insert"];
