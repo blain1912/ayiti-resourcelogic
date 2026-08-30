@@ -547,10 +547,13 @@ export default function EmployeeProfile() {
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Code budgétaire</p>
-                        <p className="text-lg font-semibold">{profile.code_budgetaire || "Non renseigné"}</p>
-                      </div>
+                      {capabilities.supports_budget_code && (
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Code budgétaire</p>
+                          <p className="text-lg font-semibold">{profile.code_budgetaire || "Non renseigné"}</p>
+                        </div>
+                      )}
+
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Poste / Fonction</p>
                         <p className="text-lg">{positions.find(p => p.id === profile.position_id)?.name || "Non renseigné"}</p>
@@ -572,23 +575,37 @@ export default function EmployeeProfile() {
                         <p>{profile.employee_status || "Non renseigné"}</p>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-muted-foreground">Date d'entrée en fonction</p>
+                        <p className="text-sm font-medium text-muted-foreground">{capabilities.entry_date_label}</p>
                         <p>{profile.date_entree_fonction || "Non renseigné"}</p>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Catégorie</p>
                         <p>{profile.employee_category || "Non renseigné"}</p>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Niveau d'études</p>
-                        <p>{profile.niveau_etudes || "Non renseigné"}</p>
-                      </div>
                     </div>
                   </CardContent>
                 </Card>
 
+                {/* Formation et qualifications */}
+                {capabilities.supports_education_fields && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Formation et qualifications</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Niveau d'études</p>
+                          <p>{profile.niveau_etudes || "Non renseigné"}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Poste professeur en cumul */}
-                {(profile.professor_grade || profile.professor_code_budgetaire || profile.professor_salary) && (
+                {capabilities.supports_teaching_role && (profile.professor_grade || profile.professor_code_budgetaire || profile.professor_salary) && (
+
                   <Card className="border-accent/30 bg-accent/5">
                     <CardHeader>
                       <CardTitle>Poste cumulé — Professeur</CardTitle>
