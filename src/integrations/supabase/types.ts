@@ -991,38 +991,68 @@ export type Database = {
       }
       employee_documents: {
         Row: {
+          category: string
+          comment: string | null
+          confidentiality: string
           created_at: string
+          document_date: string | null
           document_type: string
+          effective_date: string | null
+          expires_at: string | null
           file_name: string
           file_size: number | null
           file_url: string
           id: string
+          is_archived: boolean
+          issuer: string | null
           organization_id: string
           profile_id: string
+          reference_number: string | null
+          title: string | null
           updated_at: string
           uploaded_by: string
         }
         Insert: {
+          category?: string
+          comment?: string | null
+          confidentiality?: string
           created_at?: string
+          document_date?: string | null
           document_type: string
+          effective_date?: string | null
+          expires_at?: string | null
           file_name: string
           file_size?: number | null
           file_url: string
           id?: string
+          is_archived?: boolean
+          issuer?: string | null
           organization_id: string
           profile_id: string
+          reference_number?: string | null
+          title?: string | null
           updated_at?: string
           uploaded_by: string
         }
         Update: {
+          category?: string
+          comment?: string | null
+          confidentiality?: string
           created_at?: string
+          document_date?: string | null
           document_type?: string
+          effective_date?: string | null
+          expires_at?: string | null
           file_name?: string
           file_size?: number | null
           file_url?: string
           id?: string
+          is_archived?: boolean
+          issuer?: string | null
           organization_id?: string
           profile_id?: string
+          reference_number?: string | null
+          title?: string | null
           updated_at?: string
           uploaded_by?: string
         }
@@ -2273,6 +2303,62 @@ export type Database = {
           },
         ]
       }
+      organization_required_documents: {
+        Row: {
+          applies_to_category: string | null
+          category: string
+          created_at: string
+          created_by: string | null
+          display_order: number
+          document_type: string | null
+          id: string
+          is_active: boolean
+          is_mandatory: boolean
+          label: string
+          organization_id: string
+          requires_expiry: boolean
+          updated_at: string
+        }
+        Insert: {
+          applies_to_category?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          document_type?: string | null
+          id?: string
+          is_active?: boolean
+          is_mandatory?: boolean
+          label: string
+          organization_id: string
+          requires_expiry?: boolean
+          updated_at?: string
+        }
+        Update: {
+          applies_to_category?: string | null
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          document_type?: string | null
+          id?: string
+          is_active?: boolean
+          is_mandatory?: boolean
+          label?: string
+          organization_id?: string
+          requires_expiry?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_required_documents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizational_units: {
         Row: {
           code: string | null
@@ -2820,6 +2906,9 @@ export type Database = {
       profiles: {
         Row: {
           account_status: string
+          administrative_status: string
+          administrative_status_comment: string | null
+          administrative_status_since: string | null
           adresse_departement: string | null
           adresse_rue: string | null
           adresse_ville: string | null
@@ -2834,6 +2923,7 @@ export type Database = {
           contact_urgence_whatsapp: string | null
           created_at: string
           date_entree_fonction: string | null
+          date_entree_organisation: string | null
           date_naissance: string | null
           email: string | null
           employee_category: string | null
@@ -2871,6 +2961,9 @@ export type Database = {
         }
         Insert: {
           account_status?: string
+          administrative_status?: string
+          administrative_status_comment?: string | null
+          administrative_status_since?: string | null
           adresse_departement?: string | null
           adresse_rue?: string | null
           adresse_ville?: string | null
@@ -2885,6 +2978,7 @@ export type Database = {
           contact_urgence_whatsapp?: string | null
           created_at?: string
           date_entree_fonction?: string | null
+          date_entree_organisation?: string | null
           date_naissance?: string | null
           email?: string | null
           employee_category?: string | null
@@ -2928,6 +3022,9 @@ export type Database = {
         }
         Update: {
           account_status?: string
+          administrative_status?: string
+          administrative_status_comment?: string | null
+          administrative_status_since?: string | null
           adresse_departement?: string | null
           adresse_rue?: string | null
           adresse_ville?: string | null
@@ -2942,6 +3039,7 @@ export type Database = {
           contact_urgence_whatsapp?: string | null
           created_at?: string
           date_entree_fonction?: string | null
+          date_entree_organisation?: string | null
           date_naissance?: string | null
           email?: string | null
           employee_category?: string | null
@@ -3301,9 +3399,11 @@ export type Database = {
       staff_movements: {
         Row: {
           assignment_id: string | null
+          cancelled_reason: string | null
           created_at: string
           created_by: string
           decision_reference: string | null
+          document_id: string | null
           effective_date: string
           employee_code: string | null
           employee_id: string
@@ -3312,10 +3412,13 @@ export type Database = {
           from_position: string | null
           from_unit: string | null
           id: string
+          is_cancelled: boolean
           movement_type: string
+          new_status: string | null
           notes: string | null
           organization_id: string
           previous_assignment_id: string | null
+          previous_status: string | null
           to_category: string | null
           to_position: string | null
           to_unit: string | null
@@ -3323,9 +3426,11 @@ export type Database = {
         }
         Insert: {
           assignment_id?: string | null
+          cancelled_reason?: string | null
           created_at?: string
           created_by: string
           decision_reference?: string | null
+          document_id?: string | null
           effective_date: string
           employee_code?: string | null
           employee_id: string
@@ -3334,10 +3439,13 @@ export type Database = {
           from_position?: string | null
           from_unit?: string | null
           id?: string
+          is_cancelled?: boolean
           movement_type: string
+          new_status?: string | null
           notes?: string | null
           organization_id: string
           previous_assignment_id?: string | null
+          previous_status?: string | null
           to_category?: string | null
           to_position?: string | null
           to_unit?: string | null
@@ -3345,9 +3453,11 @@ export type Database = {
         }
         Update: {
           assignment_id?: string | null
+          cancelled_reason?: string | null
           created_at?: string
           created_by?: string
           decision_reference?: string | null
+          document_id?: string | null
           effective_date?: string
           employee_code?: string | null
           employee_id?: string
@@ -3356,10 +3466,13 @@ export type Database = {
           from_position?: string | null
           from_unit?: string | null
           id?: string
+          is_cancelled?: boolean
           movement_type?: string
+          new_status?: string | null
           notes?: string | null
           organization_id?: string
           previous_assignment_id?: string | null
+          previous_status?: string | null
           to_category?: string | null
           to_position?: string | null
           to_unit?: string | null
@@ -3371,6 +3484,13 @@ export type Database = {
             columns: ["assignment_id"]
             isOneToOne: false
             referencedRelation: "staff_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_movements_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "employee_documents"
             referencedColumns: ["id"]
           },
           {
@@ -3659,6 +3779,24 @@ export type Database = {
           _start: string
         }
         Returns: Json
+      }
+      hr_record_career_event: {
+        Args: {
+          _assignment_kind?: string
+          _create_assignment?: boolean
+          _decision_reference?: string
+          _document_id?: string
+          _effective_date: string
+          _event_type: string
+          _new_status?: string
+          _notes?: string
+          _organization_id: string
+          _position_id?: string
+          _profile_id: string
+          _supervisor_profile_id?: string
+          _unit_id?: string
+        }
+        Returns: string
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
       storage_path_in_user_org: {

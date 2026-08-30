@@ -52,6 +52,7 @@ import OnboardingImport from "./pages/OnboardingImport";
 import About from "./pages/About";
 import Reports from "./pages/Reports";
 import StaffMovements from "./pages/StaffMovements";
+import RequiredDocuments from "./pages/RequiredDocuments";
 import Pension from "./pages/Pension";
 import PensionOverview from "./pages/PensionOverview";
 import Payroll from "./pages/Payroll";
@@ -88,6 +89,7 @@ const App = () => (
             <Route path="/missions" element={<ProtectedRoute><MissionsPage /></ProtectedRoute>} />
             <Route path="/assignments" element={<ProtectedRoute><Assignments /></ProtectedRoute>} />
             <Route path="/documents" element={<ProtectedRoute><Documents /></ProtectedRoute>} />
+            <Route path="/required-documents" element={<ProtectedRoute><RequiredDocuments /></ProtectedRoute>} />
             <Route path="/organization-setup" element={<ProtectedRoute><OrganizationSetup /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><EmployeeProfile /></ProtectedRoute>} />
