@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import type { FieldErrors } from "react-hook-form";
@@ -54,7 +54,7 @@ const employeeFormSchema = z.object({
   contact_urgence_tel: z.string().min(8, "Téléphone du contact requis"),
   contact_urgence_whatsapp: z.string().optional(),
   date_entree_fonction: z.date().optional(),
-  unit_id: z.string().min(1, "Direction/Service requis"),
+  unit_id: z.string().min(1, "Structure d'affectation requise"),
   employee_category: z.string().optional(),
   position_id: z.string().optional(),
   employment_type: z.enum(["permanent", "contractuel", "journalier", "professeur"], { required_error: "Type d'employé requis" }),
@@ -251,7 +251,6 @@ interface EmployeeFormProps {
 }
 
 export function EmployeeForm({ onSubmit, defaultValues, units, positions, professorGrades = [], isLoading }: EmployeeFormProps) {
-  const [selectedDirectionId, setSelectedDirectionId] = useState<string>("");
   const [anneesService, setAnneesService] = useState<number | null>(null);
   const [employeeCategories, setEmployeeCategories] = useState<Array<{ id: string; name: string }>>([]);
   const { user } = useAuth();
