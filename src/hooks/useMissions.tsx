@@ -114,9 +114,21 @@ export const useSaveMission = (organizationId?: string | null) => {
         if (insError) throw insError;
       }
 
+      await logHrEvent({
+        organization_id: organizationId!,
+        entity_type: "mission",
+        entity_id: missionId!,
+        action: mission.id ? "modified" : "created",
+        new_value: { ...mission, participants: participantIds },
+      });
+
       return missionId!;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["missions"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["missions"] });
+      qc.invalidateQueries({ queryKey: ["hr-day-status-bulk"] });
+      qc.invalidateQueries({ queryKey: ["hr-absence-context"] });
+    },
   });
 };
 
@@ -124,10 +136,29 @@ export const useUpdateMissionStatus = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase.from("missions").update({ status }).eq("id", id);
+      const { data: updated, error } = await supabase
+        .from("missions")
+        .update({ status })
+        .eq("id", id)
+        .select("id, organization_id, status")
+        .maybeSingle();
       if (error) throw error;
+      if (!updated) throw new Error("Action refusée : mission hors de votre périmètre.");
+
+      await logHrEvent({
+        organization_id: updated.organization_id,
+        entity_type: "mission",
+        entity_id: id,
+        action: status,
+        new_value: { status },
+      });
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["missions"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["missions"] });
+      qc.invalidateQueries({ queryKey: ["hr-day-status-bulk"] });
+      qc.invalidateQueries({ queryKey: ["hr-absence-context"] });
+    },
+
   });
 };
 
