@@ -52,77 +52,39 @@ export const useCurrentAssignments = (organizationId?: string | null) =>
   });
 
 /**
- * Crée une nouvelle affectation. L'affectation principale précédente est
- * clôturée (date de fin + is_current = false) au lieu d'être écrasée.
+ * Crée une nouvelle affectation via la fonction serveur atomique
+ * `hr_create_assignment` : la clôture de l'affectation principale précédente,
+ * la création de la nouvelle et l'écriture du journal RH se font en une seule
+ * transaction côté serveur. Les affectations temporaires / secondaires / en
+ * cumul ne clôturent jamais l'affectation principale.
  */
 export const useCreateAssignment = (organizationId?: string | null) => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({
       assignment,
-      closePrevious = true,
       movement,
     }: {
       assignment: Partial<AssignmentRow> & { profile_id: string; start_date: string };
       closePrevious?: boolean;
       movement?: { movement_type: string; comment?: string | null };
     }) => {
-      const { data: auth } = await supabase.auth.getUser();
-
-      let previousId: string | null = null;
-      if (closePrevious && (assignment.assignment_kind ?? "principale") === "principale") {
-        const { data: previous } = await supabase
-          .from("staff_assignments")
-          .select("id")
-          .eq("profile_id", assignment.profile_id)
-          .eq("assignment_kind", "principale")
-          .eq("is_current", true)
-          .order("start_date", { ascending: false })
-          .limit(1);
-
-        if (previous && previous.length > 0) {
-          previousId = previous[0].id;
-          const endDate = new Date(`${assignment.start_date}T00:00:00`);
-          endDate.setDate(endDate.getDate() - 1);
-          await supabase
-            .from("staff_assignments")
-            .update({ is_current: false, end_date: endDate.toISOString().slice(0, 10) })
-            .eq("id", previousId);
-        }
-      }
-
-      const { data: created, error } = await supabase
-        .from("staff_assignments")
-        .insert({
-          ...(assignment as AssignmentInsert),
-          organization_id: organizationId!,
-          created_by: auth?.user?.id ?? null,
-          is_current: assignment.end_date ? false : true,
-        })
-        .select("id")
-        .single();
-      if (error) throw error;
-
-      // Synchronise la fiche agent pour l'affectation principale courante
-      if ((assignment.assignment_kind ?? "principale") === "principale" && !assignment.end_date) {
-        await supabase
-          .from("profiles")
-          .update({ unit_id: assignment.unit_id ?? null, position_id: assignment.position_id ?? null })
-          .eq("id", assignment.profile_id);
-      }
-
-      await supabase.from("hr_audit_log").insert({
-        organization_id: organizationId!,
-        profile_id: assignment.profile_id,
-        actor_user_id: auth?.user?.id ?? null,
-        entity_type: "staff_assignment",
-        entity_id: created.id,
-        action: "created",
-        new_value: assignment as never,
-        comment: movement?.comment ?? null,
+      const { data, error } = await supabase.rpc("hr_create_assignment", {
+        _organization_id: organizationId!,
+        _profile_id: assignment.profile_id,
+        _start_date: assignment.start_date,
+        _unit_id: assignment.unit_id ?? null,
+        _position_id: assignment.position_id ?? null,
+        _supervisor_profile_id: assignment.supervisor_profile_id ?? null,
+        _assignment_kind: assignment.assignment_kind ?? "principale",
+        _workload_percentage: assignment.workload_percentage ?? null,
+        _end_date: assignment.end_date ?? null,
+        _decision_reference: assignment.decision_reference ?? null,
+        _comment: movement?.comment ?? assignment.comment ?? null,
+        _movement_type: movement?.movement_type ?? null,
       });
-
-      return created.id;
+      if (error) throw error;
+      return data as string;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["staff-assignments"] });
@@ -130,6 +92,7 @@ export const useCreateAssignment = (organizationId?: string | null) => {
     },
   });
 };
+
 
 export const useCloseAssignment = () => {
   const qc = useQueryClient();
