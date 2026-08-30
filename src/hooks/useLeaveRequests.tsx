@@ -152,14 +152,28 @@ export function useLeaveRequests() {
   }) => {
     if (!userProfile) return { error: "Profile not found" };
 
-    const { error } = await supabase.from("leave_requests").insert([{
+    // Moteur serveur de conflits (mission / autorisation / autre congé)
+    try {
+      const conflicts = (
+        await detectHrConflicts(userProfile.id, data.start_date, data.end_date)
+      ).filter(isBlockingConflict);
+      if (conflicts.length > 0) {
+        const message = `Conflit détecté : ${describeConflicts(conflicts)}`;
+        toast({ title: "Demande bloquée", description: message, variant: "destructive" });
+        return { error: message };
+      }
+    } catch (conflictError) {
+      console.error("hr_detect_conflicts", conflictError);
+    }
+
+    const { data: created, error } = await supabase.from("leave_requests").insert([{
       organization_id: userProfile.organization_id,
       employee_id: userProfile.id,
       leave_type: data.leave_type as "conge_annuel" | "conge_maladie" | "conge_maternite" | "conge_paternite" | "conge_sans_solde" | "conge_exceptionnel" | "conge_etudes",
       start_date: data.start_date,
       end_date: data.end_date,
       reason: data.reason || null,
-    }]);
+    }]).select("id").maybeSingle();
 
     if (error) {
       console.error("Error creating leave request:", error);
@@ -171,10 +185,21 @@ export function useLeaveRequests() {
       return { error };
     }
 
+    await logHrEvent({
+      organization_id: userProfile.organization_id,
+      profile_id: userProfile.id,
+      entity_type: "leave_request",
+      entity_id: created?.id ?? null,
+      action: "submitted",
+      new_value: data,
+      comment: data.reason ?? null,
+    });
+
     toast({
       title: "Succès",
       description: "Demande de congé soumise avec succès",
     });
+
 
     // Send email notification
     if (userProfile.email) {
