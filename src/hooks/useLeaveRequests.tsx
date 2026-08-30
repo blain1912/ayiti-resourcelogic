@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logHrEvent } from "@/lib/hrAudit";
+import { detectHrConflicts, isBlockingConflict, describeConflicts } from "@/hooks/useHrDayStatus";
+
 
 export interface LeaveRequest {
   id: string;
@@ -149,14 +152,28 @@ export function useLeaveRequests() {
   }) => {
     if (!userProfile) return { error: "Profile not found" };
 
-    const { error } = await supabase.from("leave_requests").insert([{
+    // Moteur serveur de conflits (mission / autorisation / autre congé)
+    try {
+      const conflicts = (
+        await detectHrConflicts(userProfile.id, data.start_date, data.end_date)
+      ).filter(isBlockingConflict);
+      if (conflicts.length > 0) {
+        const message = `Conflit détecté : ${describeConflicts(conflicts)}`;
+        toast({ title: "Demande bloquée", description: message, variant: "destructive" });
+        return { error: message };
+      }
+    } catch (conflictError) {
+      console.error("hr_detect_conflicts", conflictError);
+    }
+
+    const { data: created, error } = await supabase.from("leave_requests").insert([{
       organization_id: userProfile.organization_id,
       employee_id: userProfile.id,
       leave_type: data.leave_type as "conge_annuel" | "conge_maladie" | "conge_maternite" | "conge_paternite" | "conge_sans_solde" | "conge_exceptionnel" | "conge_etudes",
       start_date: data.start_date,
       end_date: data.end_date,
       reason: data.reason || null,
-    }]);
+    }]).select("id").maybeSingle();
 
     if (error) {
       console.error("Error creating leave request:", error);
@@ -168,10 +185,21 @@ export function useLeaveRequests() {
       return { error };
     }
 
+    await logHrEvent({
+      organization_id: userProfile.organization_id,
+      profile_id: userProfile.id,
+      entity_type: "leave_request",
+      entity_id: created?.id ?? null,
+      action: "submitted",
+      new_value: data,
+      comment: data.reason ?? null,
+    });
+
     toast({
       title: "Succès",
       description: "Demande de congé soumise avec succès",
     });
+
 
     // Send email notification
     if (userProfile.email) {
@@ -201,7 +229,30 @@ export function useLeaveRequests() {
     const request = requests.find(r => r.id === requestId);
     if (!request) return { error: "Request not found" };
 
-    const { error } = await supabase
+    // Auto-approbation interdite (double barrière : RLS serveur + garde UI)
+    if (status === "approved" && request.employee_id === userProfile.id) {
+      const message = "Vous ne pouvez pas approuver votre propre demande de congé.";
+      toast({ title: "Action refusée", description: message, variant: "destructive" });
+      return { error: message };
+    }
+
+    // Conflits avant validation (mission / autorisation / autre congé approuvé)
+    if (status === "approved") {
+      try {
+        const conflicts = (
+          await detectHrConflicts(request.employee_id, request.start_date, request.end_date, requestId)
+        ).filter(isBlockingConflict);
+        if (conflicts.length > 0) {
+          const message = `Conflit détecté : ${describeConflicts(conflicts)}`;
+          toast({ title: "Approbation bloquée", description: message, variant: "destructive" });
+          return { error: message };
+        }
+      } catch (conflictError) {
+        console.error("hr_detect_conflicts", conflictError);
+      }
+    }
+
+    const { data: updated, error } = await supabase
       .from("leave_requests")
       .update({
         status,
@@ -209,22 +260,43 @@ export function useLeaveRequests() {
         reviewed_at: new Date().toISOString(),
         review_comment: comment || null,
       })
-      .eq("id", requestId);
+      .eq("id", requestId)
+      .select("id")
+      .maybeSingle();
 
-    if (error) {
+    if (error || !updated) {
       console.error("Error updating leave request:", error);
       toast({
         title: "Erreur",
-        description: "Impossible de mettre à jour la demande",
+        description: error
+          ? "Impossible de mettre à jour la demande"
+          : "Action refusée : demande hors de votre périmètre ou auto-validation interdite.",
         variant: "destructive",
       });
-      return { error };
+      return { error: error ?? "not permitted" };
     }
+
+    await logHrEvent({
+      organization_id: request.organization_id,
+      profile_id: request.employee_id,
+      entity_type: "leave_request",
+      entity_id: requestId,
+      action: status,
+      old_value: {
+        status: request.status,
+        start_date: request.start_date,
+        end_date: request.end_date,
+        leave_type: request.leave_type,
+      },
+      new_value: { status, reviewed_by: userProfile.id },
+      comment: comment ?? null,
+    });
 
     toast({
       title: "Succès",
       description: `Demande ${status === "approved" ? "approuvée" : "rejetée"}`,
     });
+
 
     // Send email notification to employee
     if (request.employee?.email) {
@@ -249,6 +321,7 @@ export function useLeaveRequests() {
   };
 
   const cancelRequest = async (requestId: string) => {
+    const request = requests.find((r) => r.id === requestId);
     const { error } = await supabase
       .from("leave_requests")
       .update({ status: "cancelled" })
@@ -264,10 +337,23 @@ export function useLeaveRequests() {
       return { error };
     }
 
+    if (request) {
+      await logHrEvent({
+        organization_id: request.organization_id,
+        profile_id: request.employee_id,
+        entity_type: "leave_request",
+        entity_id: requestId,
+        action: "cancelled",
+        old_value: { status: request.status },
+        new_value: { status: "cancelled" },
+      });
+    }
+
     toast({
       title: "Succès",
       description: "Demande annulée",
     });
+
     
     fetchRequests();
     return { error: null };
