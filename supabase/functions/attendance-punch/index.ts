@@ -182,7 +182,21 @@ Deno.serve(async (req) => {
       punchType = hasArrival ? "depart" : "arrivee";
     }
 
-    // 8) Horaire applicable (individuel > structure > organisation)
+    // 8) Moteur RH central : horaire applicable + congé / mission / autorisation
+    //    C'est la source de vérité serveur pour l'heure attendue et la tolérance.
+    const { data: hrStatusRaw } = await admin.rpc("hr_day_status", {
+      _profile_id: targetProfileId,
+      _date: localDate,
+    });
+    const hr = (hrStatusRaw || {}) as {
+      status?: string;
+      detail?: string | null;
+      expected_arrival?: string | null;
+      expected_departure?: string | null;
+      tolerance_minutes?: number | null;
+    };
+
+    // Repli sur les horaires bruts si le moteur ne renvoie pas d'heure attendue
     const { data: schedules } = await admin
       .from("work_schedules")
       .select("*")
@@ -197,15 +211,24 @@ Deno.serve(async (req) => {
       (schedules || []).find((s: any) => s.scope === "organization") ||
       null;
 
-    const tolerance = schedule?.tolerance_minutes ?? 15;
-    const expected = punchType === "depart" ? schedule?.departure_time ?? null : schedule?.arrival_time ?? null;
+    const tolerance = hr.tolerance_minutes ?? schedule?.tolerance_minutes ?? 15;
+    const expected =
+      punchType === "depart"
+        ? hr.expected_departure ?? schedule?.departure_time ?? null
+        : hr.expected_arrival ?? schedule?.arrival_time ?? null;
+
+    // Un agent en congé / mission / autorisation journée complète, un jour férié
+    // ou un jour non travaillé ne peut pas générer de retard.
+    const noLateStatuses = ["leave", "mission", "authorization", "holiday", "non_working_day", "suspended"];
+    const hrJustified = noLateStatuses.includes(hr.status || "");
 
     let lateMinutes = 0;
-    if (punchType === "arrivee") {
+    if (punchType === "arrivee" && !hrJustified) {
       const actual = toMinutes(localTime);
       const exp = toMinutes(expected);
       if (actual !== null && exp !== null) lateMinutes = Math.max(0, actual - (exp + tolerance));
     }
+
 
     // 9) Enregistrement du pointage
     const { data: punch, error: punchError } = await admin
@@ -237,7 +260,15 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (punchType === "arrivee") {
-      const status = PRESENT_LATE(lateMinutes);
+      // Le statut RH justifié prime sur "present"/"retard"
+      const status =
+        hr.status === "leave"
+          ? "conge"
+          : hr.status === "mission"
+          ? "mission"
+          : hr.status === "authorization"
+          ? "permission"
+          : PRESENT_LATE(lateMinutes);
       if (existing) {
         await admin
           .from("attendance")

@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { logHrEvent } from "@/lib/hrAudit";
+import { detectHrConflicts, isBlockingConflict, describeConflicts } from "@/hooks/useHrDayStatus";
 
 type MissionRow = Database["public"]["Tables"]["missions"]["Row"];
 type MissionInsert = Database["public"]["Tables"]["missions"]["Insert"];
@@ -61,6 +63,19 @@ export const useSaveMission = (organizationId?: string | null) => {
       const { data: auth } = await supabase.auth.getUser();
       let missionId = mission.id;
 
+      // Contrôle serveur des chevauchements pour chaque participant
+      const blocking: string[] = [];
+      for (const profileId of participantIds) {
+        const conflicts = (
+          await detectHrConflicts(profileId, mission.start_date, mission.end_date, missionId ?? null)
+        ).filter(isBlockingConflict);
+        if (conflicts.length > 0) blocking.push(describeConflicts(conflicts));
+      }
+      if (blocking.length > 0) {
+        throw new Error(`Conflit détecté : ${blocking.join(" | ")}`);
+      }
+
+
       if (missionId) {
         const { error } = await supabase
           .from("missions")
@@ -99,9 +114,21 @@ export const useSaveMission = (organizationId?: string | null) => {
         if (insError) throw insError;
       }
 
+      await logHrEvent({
+        organization_id: organizationId!,
+        entity_type: "mission",
+        entity_id: missionId!,
+        action: mission.id ? "modified" : "created",
+        new_value: { ...mission, participants: participantIds },
+      });
+
       return missionId!;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["missions"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["missions"] });
+      qc.invalidateQueries({ queryKey: ["hr-day-status-bulk"] });
+      qc.invalidateQueries({ queryKey: ["hr-absence-context"] });
+    },
   });
 };
 
@@ -109,10 +136,29 @@ export const useUpdateMissionStatus = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      const { error } = await supabase.from("missions").update({ status }).eq("id", id);
+      const { data: updated, error } = await supabase
+        .from("missions")
+        .update({ status })
+        .eq("id", id)
+        .select("id, organization_id, status")
+        .maybeSingle();
       if (error) throw error;
+      if (!updated) throw new Error("Action refusée : mission hors de votre périmètre.");
+
+      await logHrEvent({
+        organization_id: updated.organization_id,
+        entity_type: "mission",
+        entity_id: id,
+        action: status,
+        new_value: { status },
+      });
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["missions"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["missions"] });
+      qc.invalidateQueries({ queryKey: ["hr-day-status-bulk"] });
+      qc.invalidateQueries({ queryKey: ["hr-absence-context"] });
+    },
+
   });
 };
 

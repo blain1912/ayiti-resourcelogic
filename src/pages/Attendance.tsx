@@ -25,6 +25,8 @@ import { TeacherAttendanceSection } from "@/components/attendance/TeacherAttenda
 import { useOrgTeacherSlots } from "@/hooks/useTeacherSchedules";
 import { AttendanceCorrections } from "@/components/attendance/AttendanceCorrections";
 import { HrAbsenceContextPanel } from "@/components/attendance/HrAbsenceContextPanel";
+import { useOrgHrDayStatuses } from "@/hooks/useHrDayStatus";
+import { hrDayStatusLabel } from "@/lib/hr";
 
 interface Employee {
   id: string;
@@ -60,6 +62,16 @@ const Attendance = () => {
   const [showNotesDialog, setShowNotesDialog] = useState(false);
   const [currentEmployee, setCurrentEmployee] = useState<{ id: string; name: string } | null>(null);
   const [notes, setNotes] = useState("");
+
+  // Moteur RH central : statut attendu (congé, mission, autorisation, férié…)
+  const { data: hrStatuses = {} } = useOrgHrDayStatuses(
+    organization?.id,
+    format(selectedDate, "yyyy-MM-dd")
+  );
+
+  /** Statuts RH justifiant l'absence de pointage : jamais comptés absents. */
+  const JUSTIFIED = ["leave", "mission", "authorization", "holiday", "non_working_day", "suspended"];
+
 
   useEffect(() => {
     if (organization) {
@@ -153,18 +165,32 @@ const Attendance = () => {
       const now = new Date();
       const currentTime = format(now, "HH:mm:ss");
 
-      // Auto-promote 'present' to 'retard' if past organization threshold (only for today)
-      const threshold = (organization as any)?.late_threshold_time as string | undefined;
-      if (
-        status === "present" &&
-        threshold &&
-        dateStr === format(new Date(), "yyyy-MM-dd")
-      ) {
-        const [th, tm] = threshold.split(":").map(Number);
-        const thresholdMinutes = (th || 0) * 60 + (tm || 0);
-        const nowMinutes = now.getHours() * 60 + now.getMinutes();
-        if (nowMinutes > thresholdMinutes) status = "retard";
+      // Le moteur RH central fait autorité : congé, mission ou autorisation
+      // approuvés priment sur une saisie manuelle "absent" ou "retard".
+      const hr = hrStatuses[profileId];
+
+      if (status === "absent" && hr && JUSTIFIED.includes(hr.status)) {
+        toast({
+          title: "Absence justifiée",
+          description: `${hrDayStatusLabel(hr.status)}${hr.detail ? ` — ${hr.detail}` : ""}. La saisie « Absent » a été remplacée par ce statut RH.`,
+        });
+        status = hr.status === "leave" ? "conge" : hr.status === "mission" ? "mission" : "permission";
       }
+
+      // Retard calculé sur l'heure attendue du moteur (horaire applicable + autorisation),
+      // avec repli sur le seuil de l'organisation quand aucun horaire n'est défini.
+      if (status === "present" && dateStr === format(new Date(), "yyyy-MM-dd")) {
+        const expected =
+          hr?.expected_arrival ?? ((organization as any)?.late_threshold_time as string | undefined);
+        const tolerance = hr?.tolerance_minutes ?? 0;
+        if (expected) {
+          const [th, tm] = expected.split(":").map(Number);
+          const limit = (th || 0) * 60 + (tm || 0) + tolerance;
+          const nowMinutes = now.getHours() * 60 + now.getMinutes();
+          if (nowMinutes > limit) status = "retard";
+        }
+      }
+
 
       // Check if attendance already exists
       const existing = attendance.find(a => a.profile_id === profileId);
@@ -303,6 +329,7 @@ const Attendance = () => {
       maladie: { label: "Maladie", variant: "outline" },
       retard: { label: "Retard", variant: "secondary" },
       permission: { label: "Permission", variant: "outline" },
+      mission: { label: "En mission", variant: "secondary" },
     };
 
     const config = statusMap[status] || { label: status, variant: "outline" };
@@ -312,6 +339,12 @@ const Attendance = () => {
   const getAttendanceStatus = (employeeId: string) => {
     const record = attendance.find(a => a.profile_id === employeeId);
     return record?.status;
+  };
+
+  /** Statut RH justifié pour un agent sans pointage (moteur central). */
+  const getJustifiedStatus = (employeeId: string) => {
+    const hr = hrStatuses[employeeId];
+    return hr && JUSTIFIED.includes(hr.status) ? hr : null;
   };
 
   const filteredEmployees = employees.filter(emp =>
@@ -327,14 +360,22 @@ const Attendance = () => {
   const standardEmployees = employees.filter((e) => !teacherProfileIds.has(e.id));
   const standardIds = new Set(standardEmployees.map((e) => e.id));
   const standardAttendance = attendance.filter((a) => standardIds.has(a.profile_id));
+  const markedIds = new Set(standardAttendance.map((a) => a.profile_id));
+  // Absence de pointage ≠ absence injustifiée : on retire les agents justifiés par le moteur RH.
+  const justifiedUnmarked = standardEmployees.filter(
+    (e) => !markedIds.has(e.id) && getJustifiedStatus(e.id)
+  ).length;
   const stats = {
     total: standardEmployees.length,
     present: standardAttendance.filter(a => a.status === "present").length,
     absent: standardAttendance.filter(a => a.status === "absent").length,
     late: standardAttendance.filter(a => a.status === "retard").length,
-    leave: standardAttendance.filter(a => ["conge", "maladie", "permission"].includes(a.status)).length,
-    notMarked: standardEmployees.length - standardAttendance.length,
+    leave:
+      standardAttendance.filter(a => ["conge", "maladie", "permission", "mission"].includes(a.status)).length +
+      justifiedUnmarked,
+    notMarked: standardEmployees.length - standardAttendance.length - justifiedUnmarked,
   };
+
 
   const attendanceRate = stats.total > 0 ? ((stats.present / stats.total) * 100).toFixed(1) : "0";
 
@@ -554,9 +595,21 @@ const Attendance = () => {
                                 </div>
                               )}
                             </div>
+                          ) : getJustifiedStatus(employee.id) ? (
+                            <div className="space-y-1">
+                              <Badge variant="secondary">
+                                {hrDayStatusLabel(getJustifiedStatus(employee.id)!.status)}
+                              </Badge>
+                              {getJustifiedStatus(employee.id)!.detail && (
+                                <div className="text-xs text-muted-foreground line-clamp-2">
+                                  {getJustifiedStatus(employee.id)!.detail}
+                                </div>
+                              )}
+                            </div>
                           ) : (
                             <span className="text-muted-foreground text-sm">Non pointé</span>
                           )}
+
                         </TableCell>
                         <TableCell className="hidden sm:table-cell">
                           {attendanceRecord?.time ? (
