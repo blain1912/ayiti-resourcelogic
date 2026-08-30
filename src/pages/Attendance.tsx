@@ -25,6 +25,8 @@ import { TeacherAttendanceSection } from "@/components/attendance/TeacherAttenda
 import { useOrgTeacherSlots } from "@/hooks/useTeacherSchedules";
 import { AttendanceCorrections } from "@/components/attendance/AttendanceCorrections";
 import { HrAbsenceContextPanel } from "@/components/attendance/HrAbsenceContextPanel";
+import { useOrgHrDayStatuses } from "@/hooks/useHrDayStatus";
+import { hrDayStatusLabel } from "@/lib/hr";
 
 interface Employee {
   id: string;
