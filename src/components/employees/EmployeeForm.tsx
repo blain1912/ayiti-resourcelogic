@@ -21,9 +21,13 @@ import type { FieldErrors } from "react-hook-form";
 import type { ProfessorGradeData } from "@/hooks/useProfessorGrades";
 import { PhotoUpload } from "@/components/ui/photo-upload";
 import { useAuth } from "@/hooks/useAuth";
+import { useOrganizationCapabilities } from "@/hooks/useOrganizationCapabilities";
+import type { OrganizationCapabilities } from "@/lib/organizationCapabilities";
+
 
 const employeeFormSchema = z.object({
-  code_budgetaire: z.string().min(1, "Code budgétaire requis"),
+  code_budgetaire: z.string().optional(),
+
   photo_url: z.string().optional(),
   nom: z.string().min(2, "Nom requis"),
   prenom: z.string().min(2, "Prénom requis"),
@@ -60,18 +64,33 @@ const employeeFormSchema = z.object({
   professor_code_budgetaire: z.string().optional(),
   professor_salary: z.coerce.number().optional(),
   professor_date_entree_fonction: z.date().optional(),
-}).superRefine((data, ctx) => {
-  if (data.employment_type === "professeur" && !data.professor_grade) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Veuillez sélectionner un grade de professeur",
-      path: ["professor_grade"],
-    });
-  }
-  // Position is now optional for all employment types
 });
 
 type EmployeeFormData = z.infer<typeof employeeFormSchema>;
+
+/**
+ * Le schéma effectif dépend des capacités de l'organisation :
+ * le code budgétaire n'est requis que là où il est réellement utilisé.
+ */
+const buildEmployeeFormSchema = (capabilities: OrganizationCapabilities) =>
+  employeeFormSchema.superRefine((data, ctx) => {
+    if (data.employment_type === "professeur" && !data.professor_grade) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Veuillez sélectionner un grade de professeur",
+        path: ["professor_grade"],
+      });
+    }
+    if (capabilities.supports_budget_code && !data.code_budgetaire?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Code budgétaire requis",
+        path: ["code_budgetaire"],
+      });
+    }
+    // Position is now optional for all employment types
+  });
+
 
 // Composant séparé pour gérer la date d'entrée en fonction avec état local
 function DateEntreeFonctionField({ form }: { form: ReturnType<typeof useForm<EmployeeFormData>> }) {
