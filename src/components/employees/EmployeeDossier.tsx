@@ -178,7 +178,7 @@ export function EmployeeDossier({
   const Field = ({ label, value }: { label: string; value?: React.ReactNode }) => (
     <div>
       <p className="text-sm font-medium text-muted-foreground">{label}</p>
-      <p className="text-base">{value || "Non renseigné"}</p>
+      <div className="text-base">{value || "Non renseigné"}</div>
     </div>
   );
 
