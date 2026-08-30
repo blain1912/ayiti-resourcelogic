@@ -63,6 +63,16 @@ const Attendance = () => {
   const [currentEmployee, setCurrentEmployee] = useState<{ id: string; name: string } | null>(null);
   const [notes, setNotes] = useState("");
 
+  // Moteur RH central : statut attendu (congé, mission, autorisation, férié…)
+  const { data: hrStatuses = {} } = useOrgHrDayStatuses(
+    organization?.id,
+    format(selectedDate, "yyyy-MM-dd")
+  );
+
+  /** Statuts RH justifiant l'absence de pointage : jamais comptés absents. */
+  const JUSTIFIED = ["leave", "mission", "authorization", "holiday", "non_working_day", "suspended"];
+
+
   useEffect(() => {
     if (organization) {
       fetchEmployees();
