@@ -21,9 +21,13 @@ import type { FieldErrors } from "react-hook-form";
 import type { ProfessorGradeData } from "@/hooks/useProfessorGrades";
 import { PhotoUpload } from "@/components/ui/photo-upload";
 import { useAuth } from "@/hooks/useAuth";
+import { useOrganizationCapabilities } from "@/hooks/useOrganizationCapabilities";
+import type { OrganizationCapabilities } from "@/lib/organizationCapabilities";
+
 
 const employeeFormSchema = z.object({
-  code_budgetaire: z.string().min(1, "Code budgétaire requis"),
+  code_budgetaire: z.string().optional(),
+
   photo_url: z.string().optional(),
   nom: z.string().min(2, "Nom requis"),
   prenom: z.string().min(2, "Prénom requis"),
@@ -60,21 +64,36 @@ const employeeFormSchema = z.object({
   professor_code_budgetaire: z.string().optional(),
   professor_salary: z.coerce.number().optional(),
   professor_date_entree_fonction: z.date().optional(),
-}).superRefine((data, ctx) => {
-  if (data.employment_type === "professeur" && !data.professor_grade) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Veuillez sélectionner un grade de professeur",
-      path: ["professor_grade"],
-    });
-  }
-  // Position is now optional for all employment types
 });
 
 type EmployeeFormData = z.infer<typeof employeeFormSchema>;
 
+/**
+ * Le schéma effectif dépend des capacités de l'organisation :
+ * le code budgétaire n'est requis que là où il est réellement utilisé.
+ */
+const buildEmployeeFormSchema = (capabilities: OrganizationCapabilities) =>
+  employeeFormSchema.superRefine((data, ctx) => {
+    if (data.employment_type === "professeur" && !data.professor_grade) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Veuillez sélectionner un grade de professeur",
+        path: ["professor_grade"],
+      });
+    }
+    if (capabilities.supports_budget_code && !data.code_budgetaire?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Code budgétaire requis",
+        path: ["code_budgetaire"],
+      });
+    }
+    // Position is now optional for all employment types
+  });
+
+
 // Composant séparé pour gérer la date d'entrée en fonction avec état local
-function DateEntreeFonctionField({ form }: { form: ReturnType<typeof useForm<EmployeeFormData>> }) {
+function DateEntreeFonctionField({ form, label = "Date d'entrée en fonction" }: { form: ReturnType<typeof useForm<EmployeeFormData>>; label?: string }) {
   const dateValue = form.watch("date_entree_fonction");
   
   const [dayInput, setDayInput] = useState(dateValue ? dateValue.getDate().toString().padStart(2, '0') : '');
@@ -110,7 +129,7 @@ function DateEntreeFonctionField({ form }: { form: ReturnType<typeof useForm<Emp
       name="date_entree_fonction"
       render={() => (
         <FormItem className="flex flex-col">
-          <FormLabel>Date d'entrée en fonction</FormLabel>
+          <FormLabel>{label}</FormLabel>
           <div className="flex gap-2">
             <FormControl>
               <Input
@@ -236,6 +255,8 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
   const [anneesService, setAnneesService] = useState<number | null>(null);
   const [employeeCategories, setEmployeeCategories] = useState<Array<{ id: string; name: string }>>([]);
   const { user } = useAuth();
+  const { capabilities } = useOrganizationCapabilities();
+
 
   // Fetch employee categories from DB
   useEffect(() => {
@@ -250,7 +271,7 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
   }, []);
   
   const form = useForm<EmployeeFormData>({
-    resolver: zodResolver(employeeFormSchema),
+    resolver: zodResolver(buildEmployeeFormSchema(capabilities)),
     defaultValues: defaultValues || {
       nationalite: "Haïtienne",
       etat_civil: "Célibataire",
@@ -357,19 +378,22 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
             <CardTitle>Informations personnelles</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="code_budgetaire"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Code budgétaire *</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {capabilities.supports_budget_code && (
+              <FormField
+                control={form.control}
+                name="code_budgetaire"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Code budgétaire *</FormLabel>
+                    <FormControl>
+                      <Input {...field} value={field.value ?? ""} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
 
             <FormField
               control={form.control}
@@ -876,7 +900,7 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
             <CardTitle>Informations professionnelles</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <DateEntreeFonctionField form={form} />
+            <DateEntreeFonctionField form={form} label={capabilities.entry_date_label} />
 
             <FormItem>
               <FormLabel>Nombre d'années de service</FormLabel>
@@ -978,32 +1002,9 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="niveau_etudes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Niveau d'études</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Universitaire">Universitaire</SelectItem>
-                      <SelectItem value="Professionnel">Professionnel</SelectItem>
-                      <SelectItem value="Secondaire">Secondaire</SelectItem>
-                      <SelectItem value="Fondamental 1er cycle">Fondamental 1er cycle</SelectItem>
-                      <SelectItem value="Fondamental 2ème cycle">Fondamental 2ème cycle</SelectItem>
-                      <SelectItem value="Fondamental 3ème cycle">Fondamental 3ème cycle</SelectItem>
-                      <SelectItem value="Primaire">Primaire</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* « Niveau d'études » est désormais présenté dans la section Formation et qualifications */}
+
+
 
             <FormField
               control={form.control}
@@ -1060,7 +1061,10 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
                       <SelectItem value="permanent">Permanent</SelectItem>
                       <SelectItem value="contractuel">Contractuel</SelectItem>
                       <SelectItem value="journalier">Journalier</SelectItem>
-                      <SelectItem value="professeur">Professeur</SelectItem>
+                      {(capabilities.supports_teaching_role || employmentType === "professeur") && (
+                        <SelectItem value="professeur">Professeur</SelectItem>
+                      )}
+
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -1068,7 +1072,7 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
               )}
             />
 
-            {!isProfessor && (
+            {capabilities.supports_teaching_role && !isProfessor && (
               <div className="flex items-center gap-3 col-span-full">
                 <Switch
                   checked={isAlsoProfessor}
@@ -1198,6 +1202,48 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
             />
           </CardContent>
         </Card>
+
+        {capabilities.supports_education_fields && (
+          <>
+            <Separator />
+
+            {/* Formation et qualifications */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Formation et qualifications</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="niveau_etudes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Niveau d'études</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Universitaire">Universitaire</SelectItem>
+                          <SelectItem value="Professionnel">Professionnel</SelectItem>
+                          <SelectItem value="Secondaire">Secondaire</SelectItem>
+                          <SelectItem value="Fondamental 1er cycle">Fondamental 1er cycle</SelectItem>
+                          <SelectItem value="Fondamental 2ème cycle">Fondamental 2ème cycle</SelectItem>
+                          <SelectItem value="Fondamental 3ème cycle">Fondamental 3ème cycle</SelectItem>
+                          <SelectItem value="Primaire">Primaire</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          </>
+        )}
+
 
         <div className="flex justify-end gap-4">
           <Button type="submit" disabled={isLoading || isSubmitting}>
