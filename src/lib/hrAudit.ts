@@ -8,7 +8,14 @@ import { supabase } from "@/integrations/supabase/client";
 export const logHrEvent = async (event: {
   organization_id: string;
   profile_id?: string | null;
-  entity_type: "leave_request" | "absence_authorization" | "mission" | "staff_assignment";
+  entity_type:
+    | "leave_request"
+    | "absence_authorization"
+    | "mission"
+    | "staff_assignment"
+    | "career_event"
+    | "employee_document"
+    | "profile";
   entity_id?: string | null;
   action: string;
   old_value?: unknown;

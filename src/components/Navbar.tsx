@@ -245,6 +245,12 @@ export default function Navbar() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
+                      <Link to="/required-documents" className="flex items-center cursor-pointer">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Documents requis
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/pension" className="flex items-center cursor-pointer">
                         <ShieldCheck className="h-4 w-4 mr-2" />
                         Demande de pension

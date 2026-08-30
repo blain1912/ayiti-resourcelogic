@@ -9,9 +9,11 @@ import { EmployeeDocuments } from "@/components/employees/EmployeeDocuments";
 import { EmployeeSchedule } from "@/components/employees/EmployeeSchedule";
 import { ProfileTextGenerator } from "@/components/employees/ProfileTextGenerator";
 import { EmployeePayrollPositions } from "@/components/employees/EmployeePayrollPositions";
+import { EmployeeDossier } from "@/components/employees/EmployeeDossier";
+import { CareerTab } from "@/components/employees/CareerTab";
 
 import { toast } from "@/hooks/use-toast";
-import { AlertCircle, CheckCircle, Clock, Download, CreditCard, Printer, FileText, Sparkles, Briefcase } from "lucide-react";
+import { AlertCircle, CheckCircle, Clock, Download, CreditCard, Printer, FileText, Sparkles, Briefcase, IdCard, Milestone } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useProfessorGrades } from "@/hooks/useProfessorGrades";
 import { QRCodeSVG } from "qrcode.react";
@@ -323,9 +325,17 @@ export default function EmployeeProfile() {
         )}
 
         {(profile?.profile_completed || !isOwner) && (
-          <Tabs defaultValue="info" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="info">Informations</TabsTrigger>
+          <Tabs defaultValue="dossier" className="space-y-4">
+            <TabsList className="w-full flex overflow-x-auto justify-start">
+              <TabsTrigger value="dossier">
+                <IdCard className="h-4 w-4 mr-2" />
+                Dossier
+              </TabsTrigger>
+              <TabsTrigger value="info">Identité</TabsTrigger>
+              <TabsTrigger value="career">
+                <Milestone className="h-4 w-4 mr-2" />
+                Carrière
+              </TabsTrigger>
               <TabsTrigger value="profile-text">
                 <Sparkles className="h-4 w-4 mr-2" />
                 Profil
@@ -348,6 +358,27 @@ export default function EmployeeProfile() {
               </TabsTrigger>
             </TabsList>
 
+            <TabsContent value="dossier">
+              <EmployeeDossier
+                profile={profile}
+                organization={organization}
+                units={units}
+                positions={positions}
+                capabilities={capabilities}
+                canManage={isHR}
+                onUpdated={fetchProfile}
+              />
+            </TabsContent>
+
+            <TabsContent value="career">
+              <CareerTab
+                profile={profile}
+                units={units}
+                positions={positions}
+                capabilities={capabilities}
+                canManage={isHR}
+              />
+            </TabsContent>
 
             <TabsContent value="info" className="space-y-4">
               {showForm && profile?.profile_completed ? (
