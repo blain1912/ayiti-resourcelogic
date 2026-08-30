@@ -64,9 +64,11 @@ export function CareerTab({ profile, units, positions, capabilities, canManage }
   const [form, setForm] = useState({
     event_type: "promotion",
     effective_date: new Date().toISOString().slice(0, 10),
+    decision_date: "",
     unit_id: "",
     position_id: "",
     create_assignment: true,
+    close_assignment: false,
     assignment_kind: "principale",
     new_status: "",
     decision_reference: "",
@@ -82,6 +84,7 @@ export function CareerTab({ profile, units, positions, capabilities, canManage }
       ...f,
       event_type: value,
       create_assignment: type?.createsAssignment ?? false,
+      close_assignment: type?.closesAssignment ?? false,
       new_status: type?.suggestedStatus ?? "",
     }));
   };
@@ -167,9 +170,11 @@ export function CareerTab({ profile, units, positions, capabilities, canManage }
         profile_id: profile.id,
         event_type: form.event_type,
         effective_date: form.effective_date,
+        decision_date: form.decision_date || null,
         unit_id: form.unit_id || null,
         position_id: form.position_id || null,
         create_assignment: form.create_assignment,
+        close_assignment: !form.create_assignment && form.close_assignment,
         assignment_kind: form.assignment_kind,
         new_status: form.new_status || null,
         decision_reference: form.decision_reference || null,
@@ -303,6 +308,18 @@ export function CareerTab({ profile, units, positions, capabilities, canManage }
               />
             </div>
 
+            <div>
+              <Label>Date de la décision (facultatif)</Label>
+              <Input
+                type="date"
+                value={form.decision_date}
+                onChange={(e) => setForm((f) => ({ ...f, decision_date: e.target.value }))}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Date de signature de l'acte, si différente de la date d'effet.
+              </p>
+            </div>
+
             <div className="md:col-span-2 flex items-center justify-between rounded-lg border p-3">
               <div>
                 <Label className="text-sm">Créer une affectation</Label>
@@ -315,6 +332,22 @@ export function CareerTab({ profile, units, positions, capabilities, canManage }
                 onCheckedChange={(v) => setForm((f) => ({ ...f, create_assignment: v }))}
               />
             </div>
+
+            {!form.create_assignment && (
+              <div className="md:col-span-2 flex items-center justify-between rounded-lg border p-3">
+                <div>
+                  <Label className="text-sm">Clôturer l'affectation en cours</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Rappel, fin de mission, départ ou retraite : l'affectation principale est
+                    fermée à la date d'effet. L'agent et son historique sont conservés.
+                  </p>
+                </div>
+                <Switch
+                  checked={form.close_assignment}
+                  onCheckedChange={(v) => setForm((f) => ({ ...f, close_assignment: v }))}
+                />
+              </div>
+            )}
 
             {form.create_assignment && (
               <>

@@ -22,9 +22,11 @@ export interface CareerEvent {
   from_category: string | null;
   to_category: string | null;
   effective_date: string;
+  decision_date: string | null;
   decision_reference: string | null;
   notes: string | null;
   assignment_id: string | null;
+  previous_assignment_id: string | null;
   document_id: string | null;
   previous_status: string | null;
   new_status: string | null;
@@ -58,6 +60,8 @@ export interface CareerEventInput {
   position_id?: string | null;
   supervisor_profile_id?: string | null;
   create_assignment?: boolean;
+  close_assignment?: boolean;
+  decision_date?: string | null;
   assignment_kind?: string;
   new_status?: string | null;
   decision_reference?: string | null;
@@ -83,6 +87,8 @@ export const useRecordCareerEvent = (organizationId?: string | null) => {
         _decision_reference: input.decision_reference ?? null,
         _document_id: input.document_id ?? null,
         _notes: input.notes ?? null,
+        _decision_date: input.decision_date || null,
+        _close_assignment: input.close_assignment ?? false,
       });
       if (error) throw error;
       return data as string;
