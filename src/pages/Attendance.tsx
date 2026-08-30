@@ -329,6 +329,7 @@ const Attendance = () => {
       maladie: { label: "Maladie", variant: "outline" },
       retard: { label: "Retard", variant: "secondary" },
       permission: { label: "Permission", variant: "outline" },
+      mission: { label: "En mission", variant: "secondary" },
     };
 
     const config = statusMap[status] || { label: status, variant: "outline" };
@@ -338,6 +339,12 @@ const Attendance = () => {
   const getAttendanceStatus = (employeeId: string) => {
     const record = attendance.find(a => a.profile_id === employeeId);
     return record?.status;
+  };
+
+  /** Statut RH justifié pour un agent sans pointage (moteur central). */
+  const getJustifiedStatus = (employeeId: string) => {
+    const hr = hrStatuses[employeeId];
+    return hr && JUSTIFIED.includes(hr.status) ? hr : null;
   };
 
   const filteredEmployees = employees.filter(emp =>
@@ -353,14 +360,22 @@ const Attendance = () => {
   const standardEmployees = employees.filter((e) => !teacherProfileIds.has(e.id));
   const standardIds = new Set(standardEmployees.map((e) => e.id));
   const standardAttendance = attendance.filter((a) => standardIds.has(a.profile_id));
+  const markedIds = new Set(standardAttendance.map((a) => a.profile_id));
+  // Absence de pointage ≠ absence injustifiée : on retire les agents justifiés par le moteur RH.
+  const justifiedUnmarked = standardEmployees.filter(
+    (e) => !markedIds.has(e.id) && getJustifiedStatus(e.id)
+  ).length;
   const stats = {
     total: standardEmployees.length,
     present: standardAttendance.filter(a => a.status === "present").length,
     absent: standardAttendance.filter(a => a.status === "absent").length,
     late: standardAttendance.filter(a => a.status === "retard").length,
-    leave: standardAttendance.filter(a => ["conge", "maladie", "permission"].includes(a.status)).length,
-    notMarked: standardEmployees.length - standardAttendance.length,
+    leave:
+      standardAttendance.filter(a => ["conge", "maladie", "permission", "mission"].includes(a.status)).length +
+      justifiedUnmarked,
+    notMarked: standardEmployees.length - standardAttendance.length - justifiedUnmarked,
   };
+
 
   const attendanceRate = stats.total > 0 ? ((stats.present / stats.total) * 100).toFixed(1) : "0";
 
