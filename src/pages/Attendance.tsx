@@ -165,18 +165,32 @@ const Attendance = () => {
       const now = new Date();
       const currentTime = format(now, "HH:mm:ss");
 
-      // Auto-promote 'present' to 'retard' if past organization threshold (only for today)
-      const threshold = (organization as any)?.late_threshold_time as string | undefined;
-      if (
-        status === "present" &&
-        threshold &&
-        dateStr === format(new Date(), "yyyy-MM-dd")
-      ) {
-        const [th, tm] = threshold.split(":").map(Number);
-        const thresholdMinutes = (th || 0) * 60 + (tm || 0);
-        const nowMinutes = now.getHours() * 60 + now.getMinutes();
-        if (nowMinutes > thresholdMinutes) status = "retard";
+      // Le moteur RH central fait autorité : congé, mission ou autorisation
+      // approuvés priment sur une saisie manuelle "absent" ou "retard".
+      const hr = hrStatuses[profileId];
+
+      if (status === "absent" && hr && JUSTIFIED.includes(hr.status)) {
+        toast({
+          title: "Absence justifiée",
+          description: `${hrDayStatusLabel(hr.status)}${hr.detail ? ` — ${hr.detail}` : ""}. La saisie « Absent » a été remplacée par ce statut RH.`,
+        });
+        status = hr.status === "leave" ? "conge" : hr.status === "mission" ? "mission" : "permission";
       }
+
+      // Retard calculé sur l'heure attendue du moteur (horaire applicable + autorisation),
+      // avec repli sur le seuil de l'organisation quand aucun horaire n'est défini.
+      if (status === "present" && dateStr === format(new Date(), "yyyy-MM-dd")) {
+        const expected =
+          hr?.expected_arrival ?? ((organization as any)?.late_threshold_time as string | undefined);
+        const tolerance = hr?.tolerance_minutes ?? 0;
+        if (expected) {
+          const [th, tm] = expected.split(":").map(Number);
+          const limit = (th || 0) * 60 + (tm || 0) + tolerance;
+          const nowMinutes = now.getHours() * 60 + now.getMinutes();
+          if (nowMinutes > limit) status = "retard";
+        }
+      }
+
 
       // Check if attendance already exists
       const existing = attendance.find(a => a.profile_id === profileId);
