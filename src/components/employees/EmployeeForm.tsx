@@ -1002,32 +1002,9 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="niveau_etudes"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Niveau d'études</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Universitaire">Universitaire</SelectItem>
-                      <SelectItem value="Professionnel">Professionnel</SelectItem>
-                      <SelectItem value="Secondaire">Secondaire</SelectItem>
-                      <SelectItem value="Fondamental 1er cycle">Fondamental 1er cycle</SelectItem>
-                      <SelectItem value="Fondamental 2ème cycle">Fondamental 2ème cycle</SelectItem>
-                      <SelectItem value="Fondamental 3ème cycle">Fondamental 3ème cycle</SelectItem>
-                      <SelectItem value="Primaire">Primaire</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* « Niveau d'études » est désormais présenté dans la section Formation et qualifications */}
+
+
 
             <FormField
               control={form.control}
@@ -1092,7 +1069,7 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
               )}
             />
 
-            {!isProfessor && (
+            {capabilities.supports_teaching_role && !isProfessor && (
               <div className="flex items-center gap-3 col-span-full">
                 <Switch
                   checked={isAlsoProfessor}
@@ -1222,6 +1199,48 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
             />
           </CardContent>
         </Card>
+
+        {capabilities.supports_education_fields && (
+          <>
+            <Separator />
+
+            {/* Formation et qualifications */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Formation et qualifications</CardTitle>
+              </CardHeader>
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="niveau_etudes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Niveau d'études</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Universitaire">Universitaire</SelectItem>
+                          <SelectItem value="Professionnel">Professionnel</SelectItem>
+                          <SelectItem value="Secondaire">Secondaire</SelectItem>
+                          <SelectItem value="Fondamental 1er cycle">Fondamental 1er cycle</SelectItem>
+                          <SelectItem value="Fondamental 2ème cycle">Fondamental 2ème cycle</SelectItem>
+                          <SelectItem value="Fondamental 3ème cycle">Fondamental 3ème cycle</SelectItem>
+                          <SelectItem value="Primaire">Primaire</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          </>
+        )}
+
 
         <div className="flex justify-end gap-4">
           <Button type="submit" disabled={isLoading || isSubmitting}>
