@@ -919,26 +919,25 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
               name="unit_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Direction *</FormLabel>
-                  <Select 
-                    onValueChange={(value) => {
-                      setSelectedDirectionId(value);
-                      // Si on change de direction, on met unit_id à la direction
-                      field.onChange(value);
-                    }} 
-                    value={selectedDirectionId}
-                  >
+                  <FormLabel>Structure d'affectation *</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || ""}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner une direction" />
+                        <SelectValue placeholder="Sélectionner une structure" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {directions.map((direction) => (
-                        <SelectItem key={direction.id} value={direction.id}>
-                          {direction.name}
-                        </SelectItem>
-                      ))}
+                      {structureOptions.length === 0 ? (
+                        <div className="px-2 py-3 text-sm text-muted-foreground">
+                          Aucune structure configurée pour cette organisation
+                        </div>
+                      ) : (
+                        structureOptions.map((unit) => (
+                          <SelectItem key={unit.id} value={unit.id}>
+                            {unit.depth > 0 ? `${"— ".repeat(unit.depth)}${unit.name}` : unit.name}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -946,36 +945,6 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
               )}
             />
 
-            {selectedDirectionId && services.length > 0 && (
-              <FormField
-                control={form.control}
-                name="unit_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Services</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      value={services.find(s => s.id === field.value) ? field.value : ""}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner un service (optionnel)" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value={selectedDirectionId}>Aucun service (Direction uniquement)</SelectItem>
-                        {services.map((service) => (
-                          <SelectItem key={service.id} value={service.id}>
-                            {service.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
 
             <FormField
               control={form.control}
