@@ -53,12 +53,38 @@ export const useCreateAuthorization = (organizationId?: string | null) => {
       values: Database["public"]["Tables"]["absence_authorizations"]["Insert"]
     ) => {
       const { data: auth } = await supabase.auth.getUser();
-      const { error } = await supabase.from("absence_authorizations").insert({
-        ...values,
-        organization_id: organizationId!,
-        requested_by: auth?.user?.id ?? null,
-      });
+
+      // Contrôle des chevauchements (congé / mission / autorisation journée complète)
+      if (values.profile_id && values.date) {
+        const conflicts = await detectHrConflicts(values.profile_id, values.date, values.date);
+        if (conflicts.some(isBlockingConflict)) {
+          throw new Error(
+            `Situation incompatible déjà approuvée : ${describeConflicts(
+              conflicts.filter(isBlockingConflict)
+            )}`
+          );
+        }
+      }
+
+      const { data: created, error } = await supabase
+        .from("absence_authorizations")
+        .insert({
+          ...values,
+          organization_id: organizationId!,
+          requested_by: auth?.user?.id ?? null,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
+
+      await logHrEvent({
+        organization_id: organizationId!,
+        profile_id: values.profile_id,
+        entity_type: "absence_authorization",
+        entity_id: created.id,
+        action: "created",
+        new_value: values,
+      });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["absence-authorizations"] }),
   });
@@ -77,7 +103,7 @@ export const useReviewAuthorization = () => {
       comment?: string;
     }) => {
       const { data: auth } = await supabase.auth.getUser();
-      const { error } = await supabase
+      const { data: updated, error } = await supabase
         .from("absence_authorizations")
         .update({
           status,
@@ -85,9 +111,30 @@ export const useReviewAuthorization = () => {
           reviewed_at: new Date().toISOString(),
           review_comment: comment || null,
         })
-        .eq("id", id);
+        .eq("id", id)
+        .select("id, organization_id, profile_id, status")
+        .maybeSingle();
       if (error) throw error;
+      if (!updated) {
+        throw new Error(
+          "Action refusée : vous ne pouvez pas valider votre propre demande ou une demande hors de votre périmètre."
+        );
+      }
+
+      await logHrEvent({
+        organization_id: updated.organization_id,
+        profile_id: updated.profile_id,
+        entity_type: "absence_authorization",
+        entity_id: id,
+        action: status,
+        new_value: { status, comment: comment ?? null },
+        comment: comment ?? null,
+      });
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["absence-authorizations"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["absence-authorizations"] });
+      qc.invalidateQueries({ queryKey: ["hr-day-status-bulk"] });
+      qc.invalidateQueries({ queryKey: ["hr-absence-context"] });
+    },
   });
 };
