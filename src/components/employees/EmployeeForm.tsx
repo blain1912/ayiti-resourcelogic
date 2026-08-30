@@ -313,29 +313,33 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
     }
   }, [defaultValues]);
 
-  // Filtrer les directions (direction_generale, direction_technique)
-  const directions = units.filter(unit => 
-    unit.type === "direction_generale" || unit.type === "direction_technique"
-  );
+  /**
+   * Liste unique et hiérarchisée des structures de l'organisation courante.
+   * Toutes les familles d'organisation (administrative, diplomatique…) utilisent
+   * le même champ « Structure d'affectation » : le type Direction reste utilisable,
+   * il n'est simplement plus le nom générique du champ.
+   */
+  const structureOptions = useMemo(() => {
+    const byParent = new Map<string | null, typeof units>();
+    const ids = new Set(units.map((u) => u.id));
+    units.forEach((u) => {
+      const parent = u.parent_id && ids.has(u.parent_id) ? u.parent_id : null;
+      byParent.set(parent, [...(byParent.get(parent) || []), u]);
+    });
+    const out: Array<{ id: string; name: string; depth: number }> = [];
+    const walk = (parent: string | null, depth: number) => {
+      const children = [...(byParent.get(parent) || [])].sort((a, b) =>
+        a.name.localeCompare(b.name, "fr"),
+      );
+      children.forEach((child) => {
+        out.push({ id: child.id, name: child.name, depth });
+        walk(child.id, depth + 1);
+      });
+    };
+    walk(null, 0);
+    return out;
+  }, [units]);
 
-  // Filtrer les services selon la direction sélectionnée
-  const services = units.filter(unit => 
-    unit.type === "service" && unit.parent_id === selectedDirectionId
-  );
-
-  // Initialiser selectedDirectionId si defaultValues a un unit_id
-  useEffect(() => {
-    if (defaultValues?.unit_id && units.length > 0) {
-      const selectedUnit = units.find(u => u.id === defaultValues.unit_id);
-      if (selectedUnit) {
-        if (selectedUnit.type === "service" && selectedUnit.parent_id) {
-          setSelectedDirectionId(selectedUnit.parent_id);
-        } else if (selectedUnit.type === "direction_generale" || selectedUnit.type === "direction_technique") {
-          setSelectedDirectionId(selectedUnit.id);
-        }
-      }
-    }
-  }, [defaultValues?.unit_id, units]);
 
   // Calculer les années de service
   useEffect(() => {
