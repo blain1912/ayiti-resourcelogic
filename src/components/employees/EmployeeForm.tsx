@@ -93,7 +93,7 @@ const buildEmployeeFormSchema = (capabilities: OrganizationCapabilities) =>
 
 
 // Composant séparé pour gérer la date d'entrée en fonction avec état local
-function DateEntreeFonctionField({ form }: { form: ReturnType<typeof useForm<EmployeeFormData>> }) {
+function DateEntreeFonctionField({ form, label = "Date d'entrée en fonction" }: { form: ReturnType<typeof useForm<EmployeeFormData>>; label?: string }) {
   const dateValue = form.watch("date_entree_fonction");
   
   const [dayInput, setDayInput] = useState(dateValue ? dateValue.getDate().toString().padStart(2, '0') : '');
@@ -129,7 +129,7 @@ function DateEntreeFonctionField({ form }: { form: ReturnType<typeof useForm<Emp
       name="date_entree_fonction"
       render={() => (
         <FormItem className="flex flex-col">
-          <FormLabel>Date d'entrée en fonction</FormLabel>
+          <FormLabel>{label}</FormLabel>
           <div className="flex gap-2">
             <FormControl>
               <Input
@@ -269,7 +269,7 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
   }, []);
   
   const form = useForm<EmployeeFormData>({
-    resolver: zodResolver(employeeFormSchema),
+    resolver: zodResolver(buildEmployeeFormSchema(capabilities)),
     defaultValues: defaultValues || {
       nationalite: "Haïtienne",
       etat_civil: "Célibataire",
@@ -895,7 +895,7 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
             <CardTitle>Informations professionnelles</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <DateEntreeFonctionField form={form} />
+            <DateEntreeFonctionField form={form} label={capabilities.entry_date_label} />
 
             <FormItem>
               <FormLabel>Nombre d'années de service</FormLabel>
