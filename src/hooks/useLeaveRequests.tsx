@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logHrEvent } from "@/lib/hrAudit";
+import { detectHrConflicts, isBlockingConflict, describeConflicts } from "@/hooks/useHrDayStatus";
+
 
 export interface LeaveRequest {
   id: string;
