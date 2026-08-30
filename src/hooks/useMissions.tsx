@@ -63,6 +63,19 @@ export const useSaveMission = (organizationId?: string | null) => {
       const { data: auth } = await supabase.auth.getUser();
       let missionId = mission.id;
 
+      // Contrôle serveur des chevauchements pour chaque participant
+      const blocking: string[] = [];
+      for (const profileId of participantIds) {
+        const conflicts = (
+          await detectHrConflicts(profileId, mission.start_date, mission.end_date, missionId ?? null)
+        ).filter(isBlockingConflict);
+        if (conflicts.length > 0) blocking.push(describeConflicts(conflicts));
+      }
+      if (blocking.length > 0) {
+        throw new Error(`Conflit détecté : ${blocking.join(" | ")}`);
+      }
+
+
       if (missionId) {
         const { error } = await supabase
           .from("missions")
