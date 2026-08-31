@@ -89,7 +89,7 @@ export default function Employees() {
           account_status,
           invitation_expires_at,
           position:positions(name, salary),
-          unit:organizational_units(name)
+          unit:organizational_units!profiles_unit_id_fkey(name)
         `)
         .eq("organization_id", organization!.id);
 
