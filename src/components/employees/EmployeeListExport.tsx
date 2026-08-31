@@ -64,7 +64,7 @@ export function EmployeeListExport({
         .select(
           `id, full_name, sexe, employee_category, tel_1, tel_2, email,
            position:positions(name, salary),
-           unit:organizational_units(name)`
+           unit:organizational_units!profiles_unit_id_fkey(name)`
         )
         .eq("organization_id", organizationId)
         .order("full_name");
