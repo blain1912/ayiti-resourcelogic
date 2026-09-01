@@ -1035,6 +1035,7 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
             <FormField
               control={form.control}
               name="employment_type"
+
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Type d'employé *</FormLabel>
