@@ -40,9 +40,10 @@ const employeeFormSchema = z.object({
   religion: z.enum(["Vodouisant", "Catholique", "Protestant", "Autre"]).optional(),
   nif: z.string().optional(),
   cin: z.string().optional(),
-  adresse_rue: z.string().min(3, "Adresse requise"),
-  adresse_ville: z.string().min(2, "Ville requise"),
-  adresse_departement: z.enum(["Artibonite", "Centre", "Grand'Anse", "Nippes", "Nord", "Nord-Est", "Nord-Ouest", "Ouest", "Sud", "Sud-Est"], { required_error: "Département requis" }),
+  adresse_rue: z.string().optional(),
+  adresse_ville: z.string().optional(),
+  adresse_departement: z.enum(["Artibonite", "Centre", "Grand'Anse", "Nippes", "Nord", "Nord-Est", "Nord-Ouest", "Ouest", "Sud", "Sud-Est"]).optional(),
+  adresse_pays_mission: z.string().optional(),
   code_postal: z.string().optional(),
   tel_1: z.string().min(8, "Téléphone requis"),
   tel_2: z.string().optional(),
@@ -57,7 +58,9 @@ const employeeFormSchema = z.object({
   unit_id: z.string().min(1, "Structure d'affectation requise"),
   employee_category: z.string().optional(),
   position_id: z.string().optional(),
-  employment_type: z.enum(["permanent", "contractuel", "journalier", "professeur"], { required_error: "Type d'employé requis" }),
+  fonction_responsabilite: z.string().optional(),
+  staff_status: z.string().optional(),
+  employment_type: z.enum(["permanent", "contractuel", "journalier", "professeur"]).optional(),
   employee_status: z.enum(["actif", "conge_annuel", "conge_maladie", "conge_maternite", "conge_etudes", "mis_a_disposition", "transfere", "renvoye", "decede"], { required_error: "Statut requis" }),
   professor_grade: z.enum(["assistant", "adjoint", "associe", "titulaire", "emerite"]).optional(),
   niveau_etudes: z.enum(["Universitaire", "Professionnel", "Secondaire", "Fondamental 1er cycle", "Fondamental 2ème cycle", "Fondamental 3ème cycle", "Primaire"]).optional(),
@@ -70,26 +73,38 @@ type EmployeeFormData = z.infer<typeof employeeFormSchema>;
 
 /**
  * Le schéma effectif dépend des capacités de l'organisation :
- * le code budgétaire n'est requis que là où il est réellement utilisé.
+ * une donnée n'est requise que là où la capacité correspondante est active.
+ * Aucune valeur existante n'est effacée lorsqu'un champ est masqué.
  */
 const buildEmployeeFormSchema = (capabilities: OrganizationCapabilities) =>
   employeeFormSchema.superRefine((data, ctx) => {
+    const require = (ok: boolean, path: keyof EmployeeFormData, message: string) => {
+      if (!ok) ctx.addIssue({ code: z.ZodIssueCode.custom, message, path: [path] });
+    };
     if (data.employment_type === "professeur" && !data.professor_grade) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Veuillez sélectionner un grade de professeur",
-        path: ["professor_grade"],
-      });
+      require(false, "professor_grade", "Veuillez sélectionner un grade de professeur");
     }
-    if (capabilities.supports_budget_code && !data.code_budgetaire?.trim()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Code budgétaire requis",
-        path: ["code_budgetaire"],
-      });
+    if (capabilities.supports_budget_code) {
+      require(!!data.code_budgetaire?.trim(), "code_budgetaire", "Code budgétaire requis");
+    }
+    if (capabilities.supports_employment_type) {
+      require(!!data.employment_type, "employment_type", "Type d'employé requis");
+    }
+    if (capabilities.supports_home_address) {
+      require((data.adresse_rue?.trim().length ?? 0) >= 3, "adresse_rue", "Adresse requise");
+      require((data.adresse_ville?.trim().length ?? 0) >= 2, "adresse_ville", "Ville requise");
+      require(!!data.adresse_departement, "adresse_departement", "Département requis");
+    }
+    if (capabilities.supports_mission_address) {
+      require(
+        (data.adresse_pays_mission?.trim().length ?? 0) >= 3,
+        "adresse_pays_mission",
+        "Adresse dans le pays de mission requise",
+      );
     }
     // Position is now optional for all employment types
   });
+
 
 
 // Composant séparé pour gérer la date d'entrée en fonction avec état local
@@ -682,72 +697,97 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
             <CardTitle>Adresse</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control}
-              name="adresse_rue"
-              render={({ field }) => (
-                <FormItem className="md:col-span-2">
-                  <FormLabel>Rue # *</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="adresse_ville"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ville *</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="adresse_departement"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Département *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+            {capabilities.supports_mission_address && (
+              <FormField
+                control={form.control}
+                name="adresse_pays_mission"
+                render={({ field }) => (
+                  <FormItem className="md:col-span-2">
+                    <FormLabel>Adresse dans le pays de mission *</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
+                      <Input
+                        {...field}
+                        value={field.value ?? ""}
+                        placeholder="Ex : Santo Domingo, République dominicaine"
+                      />
                     </FormControl>
-                    <SelectContent>
-                      {["Artibonite", "Centre", "Grand'Anse", "Nippes", "Nord", "Nord-Est", "Nord-Ouest", "Ouest", "Sud", "Sud-Est"].map((dept) => (
-                        <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
-            <FormField
-              control={form.control}
-              name="code_postal"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Code postal</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {capabilities.supports_home_address && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="adresse_rue"
+                  render={({ field }) => (
+                    <FormItem className="md:col-span-2">
+                      <FormLabel>Rue # *</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="adresse_ville"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ville *</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="adresse_departement"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Département *</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sélectionner" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {["Artibonite", "Centre", "Grand'Anse", "Nippes", "Nord", "Nord-Est", "Nord-Ouest", "Ouest", "Sud", "Sud-Est"].map((dept) => (
+                            <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="code_postal"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Code postal</FormLabel>
+                      <FormControl>
+                        <Input {...field} value={field.value ?? ""} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
           </CardContent>
         </Card>
+
 
         <Separator />
 
@@ -905,17 +945,20 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <DateEntreeFonctionField form={form} label={capabilities.entry_date_label} />
 
-            <FormItem>
-              <FormLabel>Nombre d'années de service</FormLabel>
-              <FormControl>
-                <Input 
-                  value={anneesService !== null ? `${anneesService} ans` : "—"} 
-                  disabled 
-                  className="bg-muted"
-                />
-              </FormControl>
-              <p className="text-xs text-muted-foreground">Calculé automatiquement</p>
-            </FormItem>
+            {capabilities.supports_years_of_service && (
+              <FormItem>
+                <FormLabel>Nombre d'années de service</FormLabel>
+                <FormControl>
+                  <Input
+                    value={anneesService !== null ? `${anneesService} ans` : "—"}
+                    disabled
+                    className="bg-muted"
+                  />
+                </FormControl>
+                <p className="text-xs text-muted-foreground">Calculé automatiquement</p>
+              </FormItem>
+            )}
+
 
             <FormField
               control={form.control}
@@ -1017,32 +1060,81 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="employment_type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Type d'employé *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="permanent">Permanent</SelectItem>
-                      <SelectItem value="contractuel">Contractuel</SelectItem>
-                      <SelectItem value="journalier">Journalier</SelectItem>
-                      {(capabilities.supports_teaching_role || employmentType === "professeur") && (
-                        <SelectItem value="professeur">Professeur</SelectItem>
-                      )}
+            {capabilities.supports_staff_status && (
+              <FormField
+                control={form.control}
+                name="staff_status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Statut administratif</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {STAFF_STATUSES.map((s) => (
+                          <SelectItem key={s.value} value={s.value}>
+                            {s.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {capabilities.supports_function_title && (
+              <FormField
+                control={form.control}
+                name="fonction_responsabilite"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fonction / responsabilité</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        value={field.value ?? ""}
+                        placeholder="Ex : Responsable du Service commercial"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {capabilities.supports_employment_type && (
+              <FormField
+                control={form.control}
+                name="employment_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type d'employé *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="permanent">Permanent</SelectItem>
+                        <SelectItem value="contractuel">Contractuel</SelectItem>
+                        <SelectItem value="journalier">Journalier</SelectItem>
+                        {(capabilities.supports_teaching_role || employmentType === "professeur") && (
+                          <SelectItem value="professeur">Professeur</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
 
             {capabilities.supports_teaching_role && !isProfessor && (
               <div className="flex items-center gap-3 col-span-full">
