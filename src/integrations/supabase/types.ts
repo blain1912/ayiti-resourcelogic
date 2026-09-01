@@ -2910,6 +2910,7 @@ export type Database = {
           administrative_status_comment: string | null
           administrative_status_since: string | null
           adresse_departement: string | null
+          adresse_pays_mission: string | null
           adresse_rue: string | null
           adresse_ville: string | null
           approval_status: string | null
@@ -2930,6 +2931,7 @@ export type Database = {
           employee_status: Database["public"]["Enums"]["employee_status"] | null
           employment_type: Database["public"]["Enums"]["employment_type"] | null
           etat_civil: string | null
+          fonction_responsabilite: string | null
           full_name: string | null
           groupe_sanguin: string | null
           id: string
@@ -2952,6 +2954,7 @@ export type Database = {
           profile_completed: boolean | null
           religion: string | null
           sexe: string | null
+          staff_status: string | null
           tel_1: string | null
           tel_2: string | null
           unit_id: string | null
@@ -2965,6 +2968,7 @@ export type Database = {
           administrative_status_comment?: string | null
           administrative_status_since?: string | null
           adresse_departement?: string | null
+          adresse_pays_mission?: string | null
           adresse_rue?: string | null
           adresse_ville?: string | null
           approval_status?: string | null
@@ -2989,6 +2993,7 @@ export type Database = {
             | Database["public"]["Enums"]["employment_type"]
             | null
           etat_civil?: string | null
+          fonction_responsabilite?: string | null
           full_name?: string | null
           groupe_sanguin?: string | null
           id?: string
@@ -3013,6 +3018,7 @@ export type Database = {
           profile_completed?: boolean | null
           religion?: string | null
           sexe?: string | null
+          staff_status?: string | null
           tel_1?: string | null
           tel_2?: string | null
           unit_id?: string | null
@@ -3026,6 +3032,7 @@ export type Database = {
           administrative_status_comment?: string | null
           administrative_status_since?: string | null
           adresse_departement?: string | null
+          adresse_pays_mission?: string | null
           adresse_rue?: string | null
           adresse_ville?: string | null
           approval_status?: string | null
@@ -3050,6 +3057,7 @@ export type Database = {
             | Database["public"]["Enums"]["employment_type"]
             | null
           etat_civil?: string | null
+          fonction_responsabilite?: string | null
           full_name?: string | null
           groupe_sanguin?: string | null
           id?: string
@@ -3074,6 +3082,7 @@ export type Database = {
           profile_completed?: boolean | null
           religion?: string | null
           sexe?: string | null
+          staff_status?: string | null
           tel_1?: string | null
           tel_2?: string | null
           unit_id?: string | null
