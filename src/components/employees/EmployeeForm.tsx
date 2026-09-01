@@ -1032,33 +1032,81 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="employment_type"
+            {capabilities.supports_staff_status && (
+              <FormField
+                control={form.control}
+                name="staff_status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Statut administratif</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {STAFF_STATUSES.map((s) => (
+                          <SelectItem key={s.value} value={s.value}>
+                            {s.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Type d'employé *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+            {capabilities.supports_function_title && (
+              <FormField
+                control={form.control}
+                name="fonction_responsabilite"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fonction / responsabilité</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
+                      <Input
+                        {...field}
+                        value={field.value ?? ""}
+                        placeholder="Ex : Responsable du Service commercial"
+                      />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="permanent">Permanent</SelectItem>
-                      <SelectItem value="contractuel">Contractuel</SelectItem>
-                      <SelectItem value="journalier">Journalier</SelectItem>
-                      {(capabilities.supports_teaching_role || employmentType === "professeur") && (
-                        <SelectItem value="professeur">Professeur</SelectItem>
-                      )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {capabilities.supports_employment_type && (
+              <FormField
+                control={form.control}
+                name="employment_type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type d'employé *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="permanent">Permanent</SelectItem>
+                        <SelectItem value="contractuel">Contractuel</SelectItem>
+                        <SelectItem value="journalier">Journalier</SelectItem>
+                        {(capabilities.supports_teaching_role || employmentType === "professeur") && (
+                          <SelectItem value="professeur">Professeur</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
 
             {capabilities.supports_teaching_role && !isProfessor && (
               <div className="flex items-center gap-3 col-span-full">
