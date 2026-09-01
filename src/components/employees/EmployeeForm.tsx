@@ -920,17 +920,20 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <DateEntreeFonctionField form={form} label={capabilities.entry_date_label} />
 
-            <FormItem>
-              <FormLabel>Nombre d'années de service</FormLabel>
-              <FormControl>
-                <Input 
-                  value={anneesService !== null ? `${anneesService} ans` : "—"} 
-                  disabled 
-                  className="bg-muted"
-                />
-              </FormControl>
-              <p className="text-xs text-muted-foreground">Calculé automatiquement</p>
-            </FormItem>
+            {capabilities.supports_years_of_service && (
+              <FormItem>
+                <FormLabel>Nombre d'années de service</FormLabel>
+                <FormControl>
+                  <Input
+                    value={anneesService !== null ? `${anneesService} ans` : "—"}
+                    disabled
+                    className="bg-muted"
+                  />
+                </FormControl>
+                <p className="text-xs text-muted-foreground">Calculé automatiquement</p>
+              </FormItem>
+            )}
+
 
             <FormField
               control={form.control}
