@@ -19,6 +19,8 @@ import { useProfessorGrades } from "@/hooks/useProfessorGrades";
 import { QRCodeSVG } from "qrcode.react";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useOrganizationCapabilities } from "@/hooks/useOrganizationCapabilities";
+import { staffStatusLabel } from "@/lib/organizationCapabilities";
+
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { buildEmployeeAttendanceQrValue } from "@/lib/attendanceQr";
