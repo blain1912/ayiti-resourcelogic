@@ -313,7 +313,11 @@ export default function EmployeeProfile() {
                   unit_id: profile?.unit_id || "",
                   employee_category: profile?.employee_category ?? undefined,
                   position_id: profile?.position_id || "",
-                  employment_type: profile?.employment_type ?? "permanent",
+                  employment_type: profile?.employment_type ?? undefined,
+                  staff_status: (profile as any)?.staff_status ?? undefined,
+                  fonction_responsabilite: (profile as any)?.fonction_responsabilite ?? "",
+                  adresse_pays_mission: (profile as any)?.adresse_pays_mission ?? "",
+
                   employee_status: profile?.employee_status ?? "actif",
                   professor_grade: profile?.professor_grade ?? undefined,
                   professor_date_entree_fonction: profile?.professor_date_entree_fonction ? new Date(profile.professor_date_entree_fonction) : undefined,
