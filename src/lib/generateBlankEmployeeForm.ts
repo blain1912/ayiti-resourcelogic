@@ -1,4 +1,6 @@
 import jsPDF from "jspdf";
+import { DEFAULT_CAPABILITIES, type OrganizationCapabilities } from "@/lib/organizationCapabilities";
+
 
 const PAGE_W = 215.9;
 const PAGE_H = 279.4;
