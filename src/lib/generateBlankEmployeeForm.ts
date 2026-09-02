@@ -20,11 +20,13 @@ interface SectionDef {
   fields: FieldDef[];
 }
 
-const sections: SectionDef[] = [
-  {
+const buildSections = (cap: OrganizationCapabilities): SectionDef[] => {
+  const sections: SectionDef[] = [];
+
+  sections.push({
     title: "INFORMATIONS PERSONNELLES",
     fields: [
-      { label: "Code budgétaire", width: "half" },
+      ...(cap.supports_budget_code ? [{ label: "Code budgétaire", width: "half" as const }] : []),
       { label: "Photo", width: "half" },
       { label: "Nom", width: "half" },
       { label: "Prénom", width: "half" },
@@ -37,19 +39,24 @@ const sections: SectionDef[] = [
       { label: "Religion", width: "half" },
       { label: "NIF", width: "half" },
       { label: "CIN", width: "half" },
-      { label: "Niveau d'études", width: "half" },
     ],
-  },
-  {
-    title: "ADRESSE",
-    fields: [
+  });
+
+  const adresseFields: FieldDef[] = [];
+  if (cap.supports_mission_address) {
+    adresseFields.push({ label: "Adresse dans le pays de mission", width: "full" });
+  }
+  if (cap.supports_home_address) {
+    adresseFields.push(
       { label: "Rue / Adresse", width: "full" },
       { label: "Ville", width: "half" },
       { label: "Département", width: "half" },
       { label: "Code postal", width: "half" },
-    ],
-  },
-  {
+    );
+  }
+  if (adresseFields.length) sections.push({ title: "ADRESSE", fields: adresseFields });
+
+  sections.push({
     title: "CONTACT",
     fields: [
       { label: "Téléphone 1", width: "half" },
@@ -57,31 +64,55 @@ const sections: SectionDef[] = [
       { label: "WhatsApp", width: "half" },
       { label: "Email", width: "half" },
     ],
-  },
-  {
+  });
+
+  sections.push({
     title: "INFORMATIONS PROFESSIONNELLES",
     fields: [
-      { label: "Date d'entrée en fonction (JJ/MM/AAAA)", width: "half" },
-      { label: "Ancienneté (années)", width: "half" },
-      { label: "Direction", width: "half" },
-      { label: "Service", width: "half" },
+      { label: `${cap.entry_date_label} (JJ/MM/AAAA)`, width: "half" },
+      ...(cap.supports_years_of_service
+        ? [{ label: "Ancienneté (années)", width: "half" as const }]
+        : []),
+      { label: "Structure d'affectation", width: "half" },
       { label: "Catégorie d'employé", width: "half" },
-      { label: "Poste / Fonction", width: "half" },
-      { label: "Type d'emploi (Permanent / Contractuel / Journalier / Professeur)", width: "full" },
-      { label: "Statut", width: "half" },
+      { label: "Poste", width: "half" },
+      ...(cap.supports_function_title
+        ? [{ label: "Fonction / responsabilité", width: "half" as const }]
+        : []),
+      ...(cap.supports_staff_status
+        ? [{ label: "Statut administratif", width: "full" as const }]
+        : []),
+      ...(cap.supports_employment_type
+        ? [{
+            label: "Type d'emploi (Permanent / Contractuel / Journalier / Professeur)",
+            width: "full" as const,
+          }]
+        : []),
+      { label: "Statut (Actif / Inactif)", width: "half" },
       { label: "Salaire", width: "half" },
     ],
-  },
-  {
-    title: "POSTE CUMULÉ — PROFESSEUR (si applicable)",
-    fields: [
-      { label: "Grade", width: "half" },
-      { label: "Code budgétaire (prof.)", width: "half" },
-      { label: "Salaire professoral", width: "half" },
-      { label: "Date d'entrée en fonction (prof.)", width: "half" },
-    ],
-  },
-  {
+  });
+
+  if (cap.supports_education_fields) {
+    sections.push({
+      title: "FORMATION ET QUALIFICATIONS",
+      fields: [{ label: "Niveau d'études", width: "half" }],
+    });
+  }
+
+  if (cap.supports_teaching_role) {
+    sections.push({
+      title: "POSTE CUMULÉ — PROFESSEUR (si applicable)",
+      fields: [
+        { label: "Grade", width: "half" },
+        { label: "Code budgétaire (prof.)", width: "half" },
+        { label: "Salaire professoral", width: "half" },
+        { label: "Date d'entrée en fonction (prof.)", width: "half" },
+      ],
+    });
+  }
+
+  sections.push({
     title: "CONTACT D'URGENCE",
     fields: [
       { label: "Nom", width: "half" },
@@ -90,10 +121,17 @@ const sections: SectionDef[] = [
       { label: "Téléphone", width: "half" },
       { label: "WhatsApp", width: "half" },
     ],
-  },
-];
+  });
 
-export const generateBlankEmployeeForm = (organizationName?: string) => {
+  return sections;
+};
+
+export const generateBlankEmployeeForm = (
+  organizationName?: string,
+  capabilities: OrganizationCapabilities = DEFAULT_CAPABILITIES,
+) => {
+  const sections = buildSections(capabilities);
+
   const pdf = new jsPDF("p", "mm", "letter");
   let y = MT;
 
