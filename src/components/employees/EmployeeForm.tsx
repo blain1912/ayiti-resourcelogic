@@ -289,9 +289,10 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
     defaultValues: defaultValues || {
       nationalite: "Haïtienne",
       etat_civil: "Célibataire",
-      employment_type: "permanent",
+      ...(capabilities.supports_employment_type ? { employment_type: "permanent" as const } : {}),
       employee_status: "actif",
     },
+
   });
 
   const { isSubmitting } = form.formState;
