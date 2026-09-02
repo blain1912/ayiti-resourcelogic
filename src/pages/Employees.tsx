@@ -9,6 +9,8 @@ import { InviteEmployeeDialog } from "@/components/employees/InviteEmployeeDialo
 import enartsPayload from "@/data/enartsImportPayload.json";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "@/hooks/useOrganization";
+import { useOrganizationCapabilities } from "@/hooks/useOrganizationCapabilities";
+
 import {
   Table,
   TableBody,
