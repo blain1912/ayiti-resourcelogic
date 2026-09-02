@@ -57,6 +57,8 @@ export default function Employees() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { organization } = useOrganization();
+  const { capabilities } = useOrganizationCapabilities();
+
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
