@@ -609,10 +609,25 @@ export default function EmployeeProfile() {
                         <p className="text-sm font-medium text-muted-foreground">Direction / Unité</p>
                         <p>{units.find(u => u.id === profile.unit_id)?.name || "Non renseigné"}</p>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Type d'emploi</p>
-                        <p>{profile.employment_type || "Non renseigné"}</p>
-                      </div>
+                      {capabilities.supports_staff_status && (
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Statut administratif</p>
+                          <p>{staffStatusLabel((profile as any).staff_status) || "Non renseigné"}</p>
+                        </div>
+                      )}
+                      {capabilities.supports_function_title && (
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Fonction / responsabilité</p>
+                          <p>{(profile as any).fonction_responsabilite || "Non renseigné"}</p>
+                        </div>
+                      )}
+                      {capabilities.supports_employment_type && (
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Type d'emploi</p>
+                          <p>{profile.employment_type || "Non renseigné"}</p>
+                        </div>
+                      )}
+
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Statut</p>
                         <p>{profile.employee_status || "Non renseigné"}</p>
