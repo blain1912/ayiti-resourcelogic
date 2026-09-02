@@ -563,25 +563,36 @@ export default function EmployeeProfile() {
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Rue</p>
-                        <p>{profile.adresse_rue || "Non renseigné"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Ville</p>
-                        <p>{profile.adresse_ville || "Non renseigné"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Département</p>
-                        <p>{profile.adresse_departement || "Non renseigné"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Code postal</p>
-                        <p>{profile.code_postal || "Non renseigné"}</p>
-                      </div>
+                      {capabilities.supports_mission_address && (
+                        <div className="md:col-span-2">
+                          <p className="text-sm font-medium text-muted-foreground">Adresse dans le pays de mission</p>
+                          <p>{(profile as any).adresse_pays_mission || "Non renseigné"}</p>
+                        </div>
+                      )}
+                      {capabilities.supports_home_address && (
+                        <>
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Rue</p>
+                            <p>{profile.adresse_rue || "Non renseigné"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Ville</p>
+                            <p>{profile.adresse_ville || "Non renseigné"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Département</p>
+                            <p>{profile.adresse_departement || "Non renseigné"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Code postal</p>
+                            <p>{profile.code_postal || "Non renseigné"}</p>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
+
 
                 {/* Informations professionnelles - Poste principal */}
                 <Card>
