@@ -256,7 +256,7 @@ export default function Employees() {
             <Button
               variant="outline"
               className="gap-2"
-              onClick={() => generateBlankEmployeeForm(organization?.name)}
+              onClick={() => generateBlankEmployeeForm(organization?.name, capabilities)}
             >
               <FileText className="h-4 w-4" />
               Fiche vierge PDF
