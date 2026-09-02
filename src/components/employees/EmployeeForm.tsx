@@ -22,7 +22,7 @@ import type { ProfessorGradeData } from "@/hooks/useProfessorGrades";
 import { PhotoUpload } from "@/components/ui/photo-upload";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganizationCapabilities } from "@/hooks/useOrganizationCapabilities";
-import type { OrganizationCapabilities } from "@/lib/organizationCapabilities";
+import { STAFF_STATUSES, type OrganizationCapabilities } from "@/lib/organizationCapabilities";
 
 
 const employeeFormSchema = z.object({
