@@ -22,7 +22,7 @@ import type { ProfessorGradeData } from "@/hooks/useProfessorGrades";
 import { PhotoUpload } from "@/components/ui/photo-upload";
 import { useAuth } from "@/hooks/useAuth";
 import { useOrganizationCapabilities } from "@/hooks/useOrganizationCapabilities";
-import type { OrganizationCapabilities } from "@/lib/organizationCapabilities";
+import { STAFF_STATUSES, type OrganizationCapabilities } from "@/lib/organizationCapabilities";
 
 
 const employeeFormSchema = z.object({
@@ -289,9 +289,10 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
     defaultValues: defaultValues || {
       nationalite: "Haïtienne",
       etat_civil: "Célibataire",
-      employment_type: "permanent",
+      ...(capabilities.supports_employment_type ? { employment_type: "permanent" as const } : {}),
       employee_status: "actif",
     },
+
   });
 
   const { isSubmitting } = form.formState;

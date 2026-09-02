@@ -9,6 +9,8 @@ import { InviteEmployeeDialog } from "@/components/employees/InviteEmployeeDialo
 import enartsPayload from "@/data/enartsImportPayload.json";
 import { supabase } from "@/integrations/supabase/client";
 import { useOrganization } from "@/hooks/useOrganization";
+import { useOrganizationCapabilities } from "@/hooks/useOrganizationCapabilities";
+
 import {
   Table,
   TableBody,
@@ -57,6 +59,8 @@ export default function Employees() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { organization } = useOrganization();
+  const { capabilities } = useOrganizationCapabilities();
+
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -256,7 +260,7 @@ export default function Employees() {
             <Button
               variant="outline"
               className="gap-2"
-              onClick={() => generateBlankEmployeeForm(organization?.name)}
+              onClick={() => generateBlankEmployeeForm(organization?.name, capabilities)}
             >
               <FileText className="h-4 w-4" />
               Fiche vierge PDF

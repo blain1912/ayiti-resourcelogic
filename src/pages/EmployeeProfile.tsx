@@ -19,6 +19,8 @@ import { useProfessorGrades } from "@/hooks/useProfessorGrades";
 import { QRCodeSVG } from "qrcode.react";
 import { useOrganization } from "@/hooks/useOrganization";
 import { useOrganizationCapabilities } from "@/hooks/useOrganizationCapabilities";
+import { staffStatusLabel } from "@/lib/organizationCapabilities";
+
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { buildEmployeeAttendanceQrValue } from "@/lib/attendanceQr";
@@ -313,7 +315,11 @@ export default function EmployeeProfile() {
                   unit_id: profile?.unit_id || "",
                   employee_category: profile?.employee_category ?? undefined,
                   position_id: profile?.position_id || "",
-                  employment_type: profile?.employment_type ?? "permanent",
+                  employment_type: profile?.employment_type ?? undefined,
+                  staff_status: (profile as any)?.staff_status ?? undefined,
+                  fonction_responsabilite: (profile as any)?.fonction_responsabilite ?? "",
+                  adresse_pays_mission: (profile as any)?.adresse_pays_mission ?? "",
+
                   employee_status: profile?.employee_status ?? "actif",
                   professor_grade: profile?.professor_grade ?? undefined,
                   professor_date_entree_fonction: profile?.professor_date_entree_fonction ? new Date(profile.professor_date_entree_fonction) : undefined,
@@ -426,11 +432,15 @@ export default function EmployeeProfile() {
                         unit_id: profile?.unit_id || "",
                         employee_category: profile?.employee_category ?? undefined,
                         position_id: profile?.position_id || "",
-                        employment_type: profile?.employment_type ?? "permanent",
+                        employment_type: profile?.employment_type ?? undefined,
+                        staff_status: (profile as any)?.staff_status ?? undefined,
+                        fonction_responsabilite: (profile as any)?.fonction_responsabilite ?? "",
+                        adresse_pays_mission: (profile as any)?.adresse_pays_mission ?? "",
                         employee_status: profile?.employee_status ?? "actif",
                       professor_grade: profile?.professor_grade ?? undefined,
                       professor_date_entree_fonction: profile?.professor_date_entree_fonction ? new Date(profile.professor_date_entree_fonction) : undefined,
                       niveau_etudes: profile?.niveau_etudes ?? undefined,
+
                     }}
                     />
                   </CardContent>
@@ -555,25 +565,36 @@ export default function EmployeeProfile() {
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Rue</p>
-                        <p>{profile.adresse_rue || "Non renseigné"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Ville</p>
-                        <p>{profile.adresse_ville || "Non renseigné"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Département</p>
-                        <p>{profile.adresse_departement || "Non renseigné"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Code postal</p>
-                        <p>{profile.code_postal || "Non renseigné"}</p>
-                      </div>
+                      {capabilities.supports_mission_address && (
+                        <div className="md:col-span-2">
+                          <p className="text-sm font-medium text-muted-foreground">Adresse dans le pays de mission</p>
+                          <p>{(profile as any).adresse_pays_mission || "Non renseigné"}</p>
+                        </div>
+                      )}
+                      {capabilities.supports_home_address && (
+                        <>
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Rue</p>
+                            <p>{profile.adresse_rue || "Non renseigné"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Ville</p>
+                            <p>{profile.adresse_ville || "Non renseigné"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Département</p>
+                            <p>{profile.adresse_departement || "Non renseigné"}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-muted-foreground">Code postal</p>
+                            <p>{profile.code_postal || "Non renseigné"}</p>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
+
 
                 {/* Informations professionnelles - Poste principal */}
                 <Card>
@@ -601,10 +622,25 @@ export default function EmployeeProfile() {
                         <p className="text-sm font-medium text-muted-foreground">Direction / Unité</p>
                         <p>{units.find(u => u.id === profile.unit_id)?.name || "Non renseigné"}</p>
                       </div>
-                      <div>
-                        <p className="text-sm font-medium text-muted-foreground">Type d'emploi</p>
-                        <p>{profile.employment_type || "Non renseigné"}</p>
-                      </div>
+                      {capabilities.supports_staff_status && (
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Statut administratif</p>
+                          <p>{staffStatusLabel((profile as any).staff_status) || "Non renseigné"}</p>
+                        </div>
+                      )}
+                      {capabilities.supports_function_title && (
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Fonction / responsabilité</p>
+                          <p>{(profile as any).fonction_responsabilite || "Non renseigné"}</p>
+                        </div>
+                      )}
+                      {capabilities.supports_employment_type && (
+                        <div>
+                          <p className="text-sm font-medium text-muted-foreground">Type d'emploi</p>
+                          <p>{profile.employment_type || "Non renseigné"}</p>
+                        </div>
+                      )}
+
                       <div>
                         <p className="text-sm font-medium text-muted-foreground">Statut</p>
                         <p>{profile.employee_status || "Non renseigné"}</p>
