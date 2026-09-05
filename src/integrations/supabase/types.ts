@@ -2446,6 +2446,7 @@ export type Database = {
           document_city: string | null
           document_header_text: string | null
           head_name: string | null
+          head_profile_id: string | null
           head_title: string | null
           host_city: string | null
           host_country: string | null
@@ -2495,6 +2496,7 @@ export type Database = {
           document_city?: string | null
           document_header_text?: string | null
           head_name?: string | null
+          head_profile_id?: string | null
           head_title?: string | null
           host_city?: string | null
           host_country?: string | null
@@ -2544,6 +2546,7 @@ export type Database = {
           document_city?: string | null
           document_header_text?: string | null
           head_name?: string | null
+          head_profile_id?: string | null
           head_title?: string | null
           host_city?: string | null
           host_country?: string | null
@@ -2575,6 +2578,13 @@ export type Database = {
           website?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "organizations_head_profile_id_fkey"
+            columns: ["head_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "organizations_parent_organization_id_fkey"
             columns: ["parent_organization_id"]
@@ -3813,6 +3823,16 @@ export type Database = {
         Returns: string
       }
       is_super_admin: { Args: { _user_id: string }; Returns: boolean }
+      list_attachable_representations: {
+        Args: { _organization_id: string }
+        Returns: {
+          host_city: string
+          host_country: string
+          id: string
+          name: string
+          type: string
+        }[]
+      }
       storage_path_in_user_org: {
         Args: { _path: string; _user_id: string }
         Returns: boolean

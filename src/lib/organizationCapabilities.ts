@@ -36,8 +36,13 @@ export interface OrganizationCapabilities {
   supports_staff_status: boolean;
   /** Champ libre « Fonction / responsabilité » exercée dans la structure */
   supports_function_title: boolean;
+  /** Désignation d'un agent responsable de la représentation (chef de poste) */
+  supports_head_of_post: boolean;
+  /** Rattachement institutionnel à une autre représentation/organisation */
+  supports_parent_organization: boolean;
   /** Libellé de la date de début de l'affectation en cours */
   entry_date_label: string;
+
 }
 
 const BASE_CAPABILITIES: OrganizationCapabilities = {
@@ -52,8 +57,11 @@ const BASE_CAPABILITIES: OrganizationCapabilities = {
   supports_employment_type: true,
   supports_staff_status: false,
   supports_function_title: false,
+  supports_head_of_post: false,
+  supports_parent_organization: false,
   entry_date_label: "Date d'entrée en fonction",
 };
+
 
 const FAMILY_CAPABILITIES: Record<OrganizationFamily, Partial<OrganizationCapabilities>> = {
   public: {},
@@ -74,6 +82,8 @@ const FAMILY_CAPABILITIES: Record<OrganizationFamily, Partial<OrganizationCapabi
     supports_employment_type: false,
     supports_staff_status: true,
     supports_function_title: true,
+    supports_head_of_post: true,
+    supports_parent_organization: true,
     entry_date_label: "Date de prise de poste",
   },
 };
