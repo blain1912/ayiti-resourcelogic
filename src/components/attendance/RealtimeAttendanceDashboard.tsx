@@ -24,6 +24,7 @@ interface Stats {
   present: number;
   absent: number;
   late: number;
+  justified: number;
   rate: number;
 }
 
@@ -35,7 +36,7 @@ interface OrganizationalUnit {
 
 export const RealtimeAttendanceDashboard = () => {
   const [events, setEvents] = useState<AttendanceEvent[]>([]);
-  const [stats, setStats] = useState<Stats>({ total: 0, present: 0, absent: 0, late: 0, rate: 0 });
+  const [stats, setStats] = useState<Stats>({ total: 0, present: 0, absent: 0, late: 0, justified: 0, rate: 0 });
   const [isConnected, setIsConnected] = useState(false);
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [units, setUnits] = useState<OrganizationalUnit[]>([]);
