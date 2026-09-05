@@ -1,6 +1,8 @@
-// Pointage sécurisé GRHPro — QR central, QR individuel et validation serveur.
-// Toute la validation (organisation, agent, permission, token, statut, méthode, anti-double)
-// est réalisée côté serveur : les données envoyées par le client ne sont jamais reprises telles quelles.
+// Pointage sécurisé GRHPro — chaîne UNIQUE : QR -> scanner -> validation serveur
+// -> contrôles métier (organisation, agent, permission, token, horaire, lieu)
+// -> enregistrement -> audit.
+// L'heure faisant foi est celle du SERVEUR. L'heure de l'appareil n'est conservée
+// qu'à titre technique (audit / détection d'écart).
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const corsHeaders = {
@@ -24,6 +26,43 @@ const toMinutes = (t?: string | null) => {
   const [h, m] = t.split(":").map(Number);
   if (Number.isNaN(h) || Number.isNaN(m)) return null;
   return h * 60 + m;
+};
+
+/** Date/heure locales d'une organisation ou d'un site, calculées côté serveur. */
+const localParts = (instant: Date, timeZone: string) => {
+  try {
+    const fmt = new Intl.DateTimeFormat("en-CA", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+    const parts = Object.fromEntries(fmt.formatToParts(instant).map((p) => [p.type, p.value]));
+    return {
+      date: `${parts.year}-${parts.month}-${parts.day}`,
+      time: `${parts.hour === "24" ? "00" : parts.hour}:${parts.minute}:${parts.second}`,
+    };
+  } catch {
+    return {
+      date: instant.toISOString().slice(0, 10),
+      time: instant.toISOString().slice(11, 19),
+    };
+  }
+};
+
+const distanceMeters = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+  const R = 6371000;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return Math.round(2 * R * Math.asin(Math.sqrt(a)));
 };
 
 Deno.serve(async (req) => {
@@ -60,7 +99,7 @@ Deno.serve(async (req) => {
     // 1) Token
     const { data: qrToken } = await admin
       .from("attendance_qr_tokens")
-      .select("id, organization_id, scope, profile_id, status")
+      .select("id, organization_id, scope, profile_id, status, site_id")
       .eq("token", token)
       .maybeSingle();
 
@@ -95,6 +134,9 @@ Deno.serve(async (req) => {
     const centralEnabled = settings ? settings.central_qr_enabled : false;
     const individualEnabled = settings ? settings.individual_qr_enabled : false;
     const antiDouble = settings?.anti_double_seconds ?? 60;
+    const geoEnabled = settings?.geo_control_enabled === true;
+    const offsitePolicy: string = settings?.offsite_policy || "autorise";
+    const storeCoordinates = settings?.store_coordinates === true;
 
     // 4) Détermination de l'agent pointé + contrôle multi-tenant
     let targetProfileId: string;
@@ -154,19 +196,127 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 6) Date locale de l'organisation transmise par le client, sinon UTC
-    const localDate: string =
-      typeof body.local_date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.local_date)
-        ? body.local_date
-        : now.toISOString().slice(0, 10);
-    const localTime: string =
-      typeof body.local_time === "string" && /^\d{2}:\d{2}(:\d{2})?$/.test(body.local_time)
-        ? body.local_time.length === 5
-          ? `${body.local_time}:00`
-          : body.local_time
-        : now.toISOString().slice(11, 19);
+    // 6) SITE : le QR central porte le site ; sinon site principal de l'agent.
+    let site: any = null;
+    if (qrToken.site_id) {
+      const { data } = await admin
+        .from("work_sites")
+        .select("*")
+        .eq("id", qrToken.site_id)
+        .eq("organization_id", organizationId)
+        .maybeSingle();
+      site = data;
+    }
+    if (!site) {
+      const { data: links } = await admin
+        .from("profile_work_sites")
+        .select("site_id, site_role, work_sites(*)")
+        .eq("profile_id", targetProfileId)
+        .eq("is_current", true);
+      const ordered = (links || []).sort((a: any, b: any) => {
+        const rank = (r: string) => (r === "temporaire" ? 0 : r === "principal" ? 1 : 2);
+        return rank(a.site_role) - rank(b.site_role);
+      });
+      site = ordered[0]?.work_sites ?? null;
+    }
 
-    // 7) Arrivée / départ
+    // Sites autorisés de l'agent (pour distinguer HORS_SITE_AUTORISE de HORS_ZONE)
+    const { data: allowedLinks } = await admin
+      .from("profile_work_sites")
+      .select("site_id, work_sites(*)")
+      .eq("profile_id", targetProfileId)
+      .eq("is_current", true);
+
+    // 7) HORODATAGE SERVEUR — heure officielle dans le fuseau du site,
+    //    à défaut celui de l'organisation, à défaut UTC.
+    const { data: org } = await admin
+      .from("organizations")
+      .select("time_zone")
+      .eq("id", organizationId)
+      .maybeSingle();
+
+    const timeZone = site?.time_zone || org?.time_zone || "UTC";
+    const server = localParts(now, timeZone);
+    const localDate = server.date;
+    const localTime = server.time;
+
+    const deviceReportedAt =
+      typeof body.device_time === "string" && !Number.isNaN(Date.parse(body.device_time))
+        ? new Date(body.device_time)
+        : null;
+    const deviceDriftSeconds = deviceReportedAt
+      ? Math.round((deviceReportedAt.getTime() - now.getTime()) / 1000)
+      : null;
+
+    // 8) CONTRÔLE DE LIEU (uniquement si activé pour l'organisation)
+    let locationStatus: string | null = null;
+    let distance: number | null = null;
+    let needsReview = false;
+    const lat = typeof body.latitude === "number" ? body.latitude : null;
+    const lon = typeof body.longitude === "number" ? body.longitude : null;
+    const accuracy = typeof body.accuracy === "number" ? body.accuracy : null;
+
+    if (geoEnabled) {
+      if (!site || site.latitude === null || site.longitude === null) {
+        locationStatus = "SITE_NON_CONFIGURE";
+      } else if (lat === null || lon === null) {
+        locationStatus = "LOCALISATION_INDISPONIBLE";
+      } else {
+        distance = distanceMeters(lat, lon, Number(site.latitude), Number(site.longitude));
+        if (distance <= (site.radius_meters ?? 150) + (accuracy ?? 0)) {
+          locationStatus = "SUR_SITE";
+        } else {
+          // un autre site autorisé de l'agent couvre-t-il la position ?
+          const match = (allowedLinks || [])
+            .map((l: any) => l.work_sites)
+            .filter((s: any) => s && s.latitude !== null && s.longitude !== null)
+            .find(
+              (s: any) =>
+                distanceMeters(lat, lon, Number(s.latitude), Number(s.longitude)) <=
+                (s.radius_meters ?? 150) + (accuracy ?? 0)
+            );
+          if (match) {
+            locationStatus = "HORS_SITE_AUTORISE";
+            site = match;
+            distance = distanceMeters(lat, lon, Number(match.latitude), Number(match.longitude));
+          } else {
+            locationStatus = "HORS_ZONE";
+          }
+        }
+      }
+
+      const outside =
+        locationStatus === "HORS_ZONE" || locationStatus === "LOCALISATION_INDISPONIBLE";
+
+      if (outside) {
+        if (offsitePolicy === "interdit") {
+          await admin.from("attendance_audit_log").insert({
+            organization_id: organizationId,
+            profile_id: targetProfileId,
+            actor_user_id: user.id,
+            action: "pointage_refuse_lieu",
+            method,
+            new_value: { location_status: locationStatus, distance_meters: distance },
+          });
+          return json(
+            {
+              error:
+                locationStatus === "HORS_ZONE"
+                  ? "Pointage refusé : vous n'êtes pas dans la zone autorisée du site."
+                  : "Pointage refusé : localisation indisponible.",
+              code: locationStatus,
+              distance_meters: distance,
+            },
+            403
+          );
+        }
+        if (offsitePolicy === "justification" || offsitePolicy === "approbation") {
+          needsReview = true;
+        }
+      }
+    }
+
+    // 9) Arrivée / départ
     const { data: dayPunches } = await admin
       .from("attendance_punches")
       .select("punch_type")
@@ -182,8 +332,8 @@ Deno.serve(async (req) => {
       punchType = hasArrival ? "depart" : "arrivee";
     }
 
-    // 8) Moteur RH central : horaire applicable + congé / mission / autorisation
-    //    C'est la source de vérité serveur pour l'heure attendue et la tolérance.
+    // 10) Moteur RH central : horaire applicable (spécial, enseignant, individuel,
+    //     structure, organisation) + congé / mission / autorisation.
     const { data: hrStatusRaw } = await admin.rpc("hr_day_status", {
       _profile_id: targetProfileId,
       _date: localDate,
@@ -196,29 +346,10 @@ Deno.serve(async (req) => {
       tolerance_minutes?: number | null;
     };
 
-    // Repli sur les horaires bruts si le moteur ne renvoie pas d'heure attendue
-    const { data: schedules } = await admin
-      .from("work_schedules")
-      .select("*")
-      .eq("organization_id", organizationId)
-      .eq("is_active", true);
-
-    const schedule =
-      (schedules || []).find((s: any) => s.scope === "profile" && s.profile_id === targetProfileId) ||
-      (schedules || []).find(
-        (s: any) => s.scope === "unit" && targetProfile.unit_id && s.unit_id === targetProfile.unit_id
-      ) ||
-      (schedules || []).find((s: any) => s.scope === "organization") ||
-      null;
-
-    const tolerance = hr.tolerance_minutes ?? schedule?.tolerance_minutes ?? 15;
+    const tolerance = hr.tolerance_minutes ?? 15;
     const expected =
-      punchType === "depart"
-        ? hr.expected_departure ?? schedule?.departure_time ?? null
-        : hr.expected_arrival ?? schedule?.arrival_time ?? null;
+      punchType === "depart" ? hr.expected_departure ?? null : hr.expected_arrival ?? null;
 
-    // Un agent en congé / mission / autorisation journée complète, un jour férié
-    // ou un jour non travaillé ne peut pas générer de retard.
     const noLateStatuses = ["leave", "mission", "authorization", "holiday", "non_working_day", "suspended"];
     const hrJustified = noLateStatuses.includes(hr.status || "");
 
@@ -229,8 +360,8 @@ Deno.serve(async (req) => {
       if (actual !== null && exp !== null) lateMinutes = Math.max(0, actual - (exp + tolerance));
     }
 
-
-    // 9) Enregistrement du pointage
+    // 11) Enregistrement du pointage (minimisation : coordonnées conservées
+    //     uniquement si l'organisation l'a explicitement demandé)
     const { data: punch, error: punchError } = await admin
       .from("attendance_punches")
       .insert({
@@ -245,13 +376,23 @@ Deno.serve(async (req) => {
         late_minutes: lateMinutes,
         token_id: qrToken.id,
         recorded_by: user.id,
+        server_recorded_at: now.toISOString(),
+        device_reported_at: deviceReportedAt?.toISOString() ?? null,
+        device_drift_seconds: deviceDriftSeconds,
+        site_id: site?.id ?? null,
+        location_status: locationStatus,
+        distance_meters: distance,
+        location_accuracy_meters: geoEnabled ? accuracy : null,
+        latitude: geoEnabled && storeCoordinates ? lat : null,
+        longitude: geoEnabled && storeCoordinates ? lon : null,
+        needs_review: needsReview,
       })
       .select()
       .single();
 
     if (punchError) return json({ error: punchError.message }, 400);
 
-    // 10) Synchronisation de la feuille de présence journalière
+    // 12) Synchronisation de la feuille de présence journalière
     const { data: existing } = await admin
       .from("attendance")
       .select("id, status, check_in_time, late_minutes")
@@ -260,7 +401,6 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (punchType === "arrivee") {
-      // Le statut RH justifié prime sur "present"/"retard"
       const status =
         hr.status === "leave"
           ? "conge"
@@ -317,7 +457,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 11) Audit
+    // 13) Audit
     await admin.from("attendance_audit_log").insert({
       organization_id: organizationId,
       profile_id: targetProfileId,
@@ -328,7 +468,13 @@ Deno.serve(async (req) => {
         punch_type: punchType,
         date: localDate,
         time: localTime,
+        time_zone: timeZone,
         late_minutes: lateMinutes,
+        site_id: site?.id ?? null,
+        location_status: locationStatus,
+        distance_meters: distance,
+        device_drift_seconds: deviceDriftSeconds,
+        needs_review: needsReview,
       },
     });
 
@@ -339,6 +485,13 @@ Deno.serve(async (req) => {
       late_minutes: lateMinutes,
       employee_name: targetProfile.full_name,
       method,
+      time: localTime,
+      date: localDate,
+      time_zone: timeZone,
+      site: site ? { id: site.id, name: site.name } : null,
+      location_status: locationStatus,
+      distance_meters: distance,
+      needs_review: needsReview,
     });
   } catch (error) {
     console.error("attendance-punch error", error);

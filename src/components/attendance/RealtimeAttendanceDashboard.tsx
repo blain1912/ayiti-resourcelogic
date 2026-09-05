@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { attendanceCategory, CATEGORY_LABELS } from "@/lib/attendanceReporting";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Users, UserCheck, UserX, Clock, Activity, Wifi, Building2 } from "lucide-react";
@@ -23,6 +24,7 @@ interface Stats {
   present: number;
   absent: number;
   late: number;
+  justified: number;
   rate: number;
 }
 
@@ -34,7 +36,7 @@ interface OrganizationalUnit {
 
 export const RealtimeAttendanceDashboard = () => {
   const [events, setEvents] = useState<AttendanceEvent[]>([]);
-  const [stats, setStats] = useState<Stats>({ total: 0, present: 0, absent: 0, late: 0, rate: 0 });
+  const [stats, setStats] = useState<Stats>({ total: 0, present: 0, absent: 0, late: 0, justified: 0, rate: 0 });
   const [isConnected, setIsConnected] = useState(false);
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [units, setUnits] = useState<OrganizationalUnit[]>([]);
@@ -132,9 +134,13 @@ export const RealtimeAttendanceDashboard = () => {
       }));
       setEvents(recentEvents);
 
-      const present = filteredData.filter((a: any) => a.status === "present").length;
-      const absent = filteredData.filter((a: any) => a.status === "absent").length;
-      const late = filteredData.filter((a: any) => a.status === "late").length;
+      const cats = filteredData.map((a: any) => attendanceCategory(a.status));
+      const present = cats.filter((c) => c === "present").length;
+      const absent = cats.filter((c) => c === "absent").length;
+      const late = cats.filter((c) => c === "late").length;
+      const justified = cats.filter(
+        (c) => c === "leave" || c === "sick" || c === "mission" || c === "authorization"
+      ).length;
       const total = totalEmployees || 0;
 
       setStats({
@@ -142,7 +148,8 @@ export const RealtimeAttendanceDashboard = () => {
         present,
         absent,
         late,
-        rate: total > 0 ? Math.round((present / total) * 100) : 0,
+        justified,
+        rate: total > 0 ? Math.round(((present + late) / total) * 100) : 0,
       });
     }
   };
@@ -209,15 +216,20 @@ export const RealtimeAttendanceDashboard = () => {
   };
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
+    const category = attendanceCategory(status);
+    const label = CATEGORY_LABELS[category];
+    switch (category) {
       case "present":
-        return <Badge className="bg-green-500">Présent</Badge>;
+        return <Badge className="bg-green-500">{label}</Badge>;
       case "absent":
-        return <Badge variant="destructive">Absent</Badge>;
+        return <Badge variant="destructive">{label}</Badge>;
       case "late":
-        return <Badge className="bg-yellow-500">En retard</Badge>;
+        return <Badge className="bg-yellow-500">{label}</Badge>;
       case "leave":
-        return <Badge variant="secondary">Congé</Badge>;
+      case "sick":
+      case "mission":
+      case "authorization":
+        return <Badge variant="secondary">{label}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }

@@ -1,5 +1,4 @@
 import { PunchScanner } from "@/components/attendance/PunchScanner";
-import { ScanCentralQR } from "@/components/attendance/ScanCentralQR";
 import { Button } from "@/components/ui/button";
 import { QrCode } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -16,7 +15,6 @@ const ScanAttendance = () => {
 
       <div className="max-w-md mx-auto space-y-6">
         <PunchScanner />
-        <ScanCentralQR />
       </div>
 
       <div className="max-w-2xl mx-auto">

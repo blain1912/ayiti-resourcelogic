@@ -22,6 +22,7 @@ import { History, Plus } from "lucide-react";
 import { useHrProfile, hrProfileName } from "@/hooks/useHrProfile";
 import { useCreateAssignment, useStaffAssignments } from "@/hooks/useStaffAssignments";
 import { ASSIGNMENT_KINDS, assignmentKindLabel, formatFrShortDate } from "@/lib/hr";
+import { ProfileWorkSitesCard } from "@/components/attendance/ProfileWorkSitesCard";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -239,6 +240,15 @@ const Assignments = () => {
             )}
           </CardContent>
         </Card>
+
+      {orgId && currentProfileId && (
+        <ProfileWorkSitesCard
+          organizationId={orgId}
+          profileId={currentProfileId}
+          canManage={canManage}
+        />
+      )}
+
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
