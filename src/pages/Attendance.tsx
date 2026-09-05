@@ -24,6 +24,7 @@ import { LateHistoryTable } from "@/components/attendance/LateHistoryTable";
 import { TeacherAttendanceSection } from "@/components/attendance/TeacherAttendanceSection";
 import { useOrgTeacherSlots } from "@/hooks/useTeacherSchedules";
 import { AttendanceCorrections } from "@/components/attendance/AttendanceCorrections";
+import { PunchJournal } from "@/components/attendance/PunchJournal";
 import { HrAbsenceContextPanel } from "@/components/attendance/HrAbsenceContextPanel";
 import { useOrgHrDayStatuses } from "@/hooks/useHrDayStatus";
 import { hrDayStatusLabel } from "@/lib/hr";
@@ -701,6 +702,8 @@ const Attendance = () => {
           lateThresholdTime={(organization as any).late_threshold_time}
         />
       )}
+
+      {organization && <PunchJournal organizationId={organization.id} date={format(selectedDate, "yyyy-MM-dd")} />}
 
       {organization && (
         <AttendanceCorrections organizationId={organization.id} canReview />
