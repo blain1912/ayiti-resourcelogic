@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { RefreshCw, ShieldOff, Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { buildSecureQrValue } from "@/lib/attendance";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useWorkSites } from "@/hooks/useWorkSites";
 import {
   useAttendanceQrTokens,
   useRegenerateQrToken,
@@ -33,6 +36,8 @@ export const SecureAttendanceQR = ({
   size = 260,
 }: SecureAttendanceQRProps) => {
   const { data: tokens, isLoading } = useAttendanceQrTokens(organizationId, scope);
+  const { data: sites } = useWorkSites(organizationId, true);
+  const [siteId, setSiteId] = useState<string>("none");
   const regenerate = useRegenerateQrToken(organizationId);
   const revoke = useRevokeQrToken();
 
@@ -48,7 +53,7 @@ export const SecureAttendanceQR = ({
 
   const handleRegenerate = () => {
     regenerate.mutate(
-      { scope, profileId },
+      { scope, profileId, siteId: siteId === "none" ? null : siteId },
       {
         onSuccess: () =>
           toast({
@@ -104,6 +109,29 @@ export const SecureAttendanceQR = ({
           <p className="text-sm text-muted-foreground text-center">
             Aucun QR code actif. {canManage ? "Générez-en un ci-dessous." : "Contactez votre service RH."}
           </p>
+        )}
+
+        {canManage && scope === "central" && (
+          <div className="w-full max-w-xs space-y-2">
+            <Label>Site rattaché à ce QR code</Label>
+            <Select value={siteId} onValueChange={setSiteId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Aucun site" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Aucun site</SelectItem>
+                {(sites || []).map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              Le site est appliqué lors de la génération du code : QR -> site -> organisation ->
+              validation serveur.
+            </p>
+          </div>
         )}
 
         {canManage && (

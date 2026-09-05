@@ -202,7 +202,11 @@ export const useAttendanceQrTokens = (
 export const useRegenerateQrToken = (organizationId?: string | null) => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { scope: "central" | "individual"; profileId?: string | null }) => {
+    mutationFn: async (input: {
+      scope: "central" | "individual";
+      profileId?: string | null;
+      siteId?: string | null;
+    }) => {
       let revoke = supabase
         .from("attendance_qr_tokens")
         .update({ status: "revoked", revoked_at: new Date().toISOString() })
@@ -223,6 +227,7 @@ export const useRegenerateQrToken = (organizationId?: string | null) => {
           organization_id: organizationId!,
           scope: input.scope,
           profile_id: input.scope === "individual" ? input.profileId! : null,
+          site_id: input.scope === "central" ? input.siteId ?? null : null,
           created_by: user?.id ?? null,
         })
         .select()
