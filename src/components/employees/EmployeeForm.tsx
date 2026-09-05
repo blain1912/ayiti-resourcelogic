@@ -271,6 +271,11 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
   const [employeeCategories, setEmployeeCategories] = useState<Array<{ id: string; name: string }>>([]);
   const { user } = useAuth();
   const { capabilities } = useOrganizationCapabilities();
+  const responsibilitySuggestions = useMemo(
+    () => getResponsibilitySuggestions(capabilities.supports_diplomatic_assignment),
+    [capabilities.supports_diplomatic_assignment],
+  );
+
 
 
   // Fetch employee categories from DB
