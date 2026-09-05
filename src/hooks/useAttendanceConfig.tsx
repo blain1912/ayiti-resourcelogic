@@ -17,6 +17,9 @@ export const DEFAULT_ATTENDANCE_SETTINGS = {
   individual_qr_enabled: false,
   telework_enabled: false,
   anti_double_seconds: 60,
+  geo_control_enabled: false,
+  offsite_policy: "autorise",
+  store_coordinates: false,
 };
 
 /* ------------------------------- Paramètres ------------------------------- */

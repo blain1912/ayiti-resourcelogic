@@ -8,10 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trash2, Plus, CalendarDays, Clock } from "lucide-react";
+import { Trash2, Plus, CalendarDays, Clock, MapPin } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { WEEK_DAYS, type AttendanceScheduleScope } from "@/lib/attendance";
+import { OFFSITE_POLICIES } from "@/lib/worksites";
 import { SecureAttendanceQR } from "@/components/attendance/SecureAttendanceQR";
 import {
   DEFAULT_ATTENDANCE_SETTINGS,
@@ -64,6 +65,9 @@ export const AttendanceSettings = ({ organizationId }: Props) => {
         individual_qr_enabled: settings.individual_qr_enabled,
         telework_enabled: settings.telework_enabled,
         anti_double_seconds: settings.anti_double_seconds,
+        geo_control_enabled: settings.geo_control_enabled ?? false,
+        offsite_policy: settings.offsite_policy ?? "autorise",
+        store_coordinates: settings.store_coordinates ?? false,
       });
     }
   }, [settings]);
@@ -147,7 +151,7 @@ export const AttendanceSettings = ({ organizationId }: Props) => {
             { key: "manual_enabled", label: "Saisie manuelle par le service RH" },
             { key: "central_qr_enabled", label: "QR code central (affiché sur site)" },
             { key: "individual_qr_enabled", label: "QR code individuel par agent" },
-            { key: "telework_enabled", label: "Télétravail / mission hors site" },
+            { key: "telework_enabled", label: "Télétravail autorisé" },
           ].map((mode) => (
             <div key={mode.key} className="flex items-center justify-between gap-4">
               <Label htmlFor={mode.key}>{mode.label}</Label>
@@ -180,6 +184,69 @@ export const AttendanceSettings = ({ organizationId }: Props) => {
       {modes.central_qr_enabled && (
         <SecureAttendanceQR organizationId={organizationId} scope="central" canManage />
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MapPin className="h-5 w-5" /> Contrôle du lieu de pointage
+          </CardTitle>
+          <CardDescription>
+            Facultatif. La position n'est demandée qu'au moment du pointage : aucun suivi
+            permanent n'est effectué. Les sites et leur rayon se configurent dans « Sites de travail ».
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <Label htmlFor="geo_control_enabled">Vérifier le lieu au moment du pointage</Label>
+            <Switch
+              id="geo_control_enabled"
+              checked={modes.geo_control_enabled}
+              onCheckedChange={(checked) =>
+                persistModes({ ...modes, geo_control_enabled: checked })
+              }
+            />
+          </div>
+
+          <div className="space-y-2 max-w-md">
+            <Label>Travail hors site</Label>
+            <Select
+              value={modes.offsite_policy}
+              onValueChange={(value) => persistModes({ ...modes, offsite_policy: value })}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {OFFSITE_POLICIES.map((p) => (
+                  <SelectItem key={p.value} value={p.value}>
+                    {p.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {OFFSITE_POLICIES.find((p) => p.value === modes.offsite_policy)?.description}
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <Label htmlFor="store_coordinates">Conserver les coordonnées exactes</Label>
+              <p className="text-xs text-muted-foreground">
+                Désactivé, seul le résultat du contrôle et la distance sont enregistrés
+                (minimisation des données).
+              </p>
+            </div>
+            <Switch
+              id="store_coordinates"
+              checked={modes.store_coordinates}
+              onCheckedChange={(checked) =>
+                persistModes({ ...modes, store_coordinates: checked })
+              }
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
