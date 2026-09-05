@@ -703,7 +703,7 @@ const Attendance = () => {
         />
       )}
 
-      {organization && <PunchJournal organizationId={organization.id} date={dateStr} />}
+      {organization && <PunchJournal organizationId={organization.id} date={format(selectedDate, "yyyy-MM-dd")} />}
 
       {organization && (
         <AttendanceCorrections organizationId={organization.id} canReview />
