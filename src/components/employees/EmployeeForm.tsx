@@ -1098,11 +1098,21 @@ export function EmployeeForm({ onSubmit, defaultValues, units, positions, profes
                     <FormControl>
                       <Input
                         {...field}
+                        list="responsibility-suggestions"
                         value={field.value ?? ""}
-                        placeholder="Ex : Responsable du Service commercial"
+                        placeholder="Ex : Chef de poste, Responsable du Service commercial"
                       />
                     </FormControl>
+                    <datalist id="responsibility-suggestions">
+                      {responsibilitySuggestions.map((r) => (
+                        <option key={r} value={r} />
+                      ))}
+                    </datalist>
+                    <FormDescription>
+                      Responsabilité exercée dans la structure. Distincte du poste et des droits d'accès.
+                    </FormDescription>
                     <FormMessage />
+
                   </FormItem>
                 )}
               />
