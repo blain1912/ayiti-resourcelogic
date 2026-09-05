@@ -158,6 +158,61 @@ const OrganizationDetails = ({ organization, onUpdate }: Props) => {
           ))}
         </div>
 
+        {(capabilities.supports_head_of_post || capabilities.supports_parent_organization) && (
+          <div className="grid gap-4 md:grid-cols-2 border-t pt-4">
+            {capabilities.supports_head_of_post && (
+              <div className="space-y-1.5">
+                <Label>Responsable de la représentation</Label>
+                <Select value={headProfileId} onValueChange={setHeadProfileId}>
+                  <SelectTrigger id="org-head-profile">
+                    <SelectValue placeholder="Sélectionner un agent" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NONE}>Non désigné</SelectItem>
+                    {agents.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>
+                        {a.full_name || "Sans nom"}
+                        {a.fonction_responsabilite ? ` — ${a.fonction_responsabilite}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Agent dirigeant la représentation. Son poste (Consul, Consul général…) et sa
+                  responsabilité (« Chef de poste ») restent renseignés sur sa fiche. Cette
+                  désignation ne modifie aucun droit d'accès.
+                </p>
+              </div>
+            )}
+
+            {capabilities.supports_parent_organization && (
+              <div className="space-y-1.5">
+                <Label>Représentation de rattachement</Label>
+                <Select value={parentOrgId} onValueChange={setParentOrgId}>
+                  <SelectTrigger id="org-parent">
+                    <SelectValue placeholder="Aucune" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NONE}>Aucune</SelectItem>
+                    {representations.map((r) => (
+                      <SelectItem key={r.id} value={r.id}>
+                        {r.name}
+                        {r.host_city ? ` — ${r.host_city}` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Lien institutionnel de coordination uniquement. Chaque représentation conserve
+                  ses structures, agents et données ; ce rattachement n'ouvre aucun accès aux
+                  données d'une autre organisation.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
+
         <div className="space-y-1.5">
           <Label htmlFor="org-notes">Observations</Label>
           <Textarea
