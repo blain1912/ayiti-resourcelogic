@@ -82,6 +82,8 @@ const FAMILY_CAPABILITIES: Record<OrganizationFamily, Partial<OrganizationCapabi
     supports_employment_type: false,
     supports_staff_status: true,
     supports_function_title: true,
+    supports_head_of_post: true,
+    supports_parent_organization: true,
     entry_date_label: "Date de prise de poste",
   },
 };
