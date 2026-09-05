@@ -49,10 +49,23 @@ const DIPLOMATIC_FIELDS: { key: string; label: string; placeholder?: string }[] 
   },
 ];
 
+const NONE = "__none__";
+
 const OrganizationDetails = ({ organization, onUpdate }: Props) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [values, setValues] = useState<Record<string, string>>({});
+  const [headProfileId, setHeadProfileId] = useState<string>(NONE);
+  const [parentOrgId, setParentOrgId] = useState<string>(NONE);
+  const [agents, setAgents] = useState<Array<{ id: string; full_name: string | null; fonction_responsabilite?: string | null }>>([]);
+  const [representations, setRepresentations] = useState<
+    Array<{ id: string; name: string; type: string; host_city: string | null; host_country: string | null }>
+  >([]);
+
+  const capabilities = useMemo(
+    () => getOrganizationCapabilities(organization?.type, organization?.form_capabilities),
+    [organization?.type, organization?.form_capabilities],
+  );
 
   useEffect(() => {
     if (!organization) return;
@@ -62,7 +75,28 @@ const OrganizationDetails = ({ organization, onUpdate }: Props) => {
     });
     next.notes = organization.notes ?? "";
     setValues(next);
+    setHeadProfileId(organization.head_profile_id ?? NONE);
+    setParentOrgId(organization.parent_organization_id ?? NONE);
   }, [organization]);
+
+  // Agents de l'organisation (responsable de la représentation)
+  useEffect(() => {
+    if (!organization?.id || !capabilities.supports_head_of_post) return;
+    supabase
+      .from("profiles")
+      .select("id, full_name, fonction_responsabilite")
+      .eq("organization_id", organization.id)
+      .order("full_name")
+      .then(({ data }) => setAgents((data as any) || []));
+  }, [organization?.id, capabilities.supports_head_of_post]);
+
+  // Représentations rattachables (identité publique uniquement)
+  useEffect(() => {
+    if (!organization?.id || !capabilities.supports_parent_organization) return;
+    (supabase as any)
+      .rpc("list_attachable_representations", { _organization_id: organization.id })
+      .then(({ data }: any) => setRepresentations(data || []));
+  }, [organization?.id, capabilities.supports_parent_organization]);
 
   const diplomatic = isDiplomaticInstitution(organization?.type);
 
@@ -74,6 +108,12 @@ const OrganizationDetails = ({ organization, onUpdate }: Props) => {
       Object.entries(values).forEach(([k, v]) => {
         payload[k] = v.trim() === "" ? null : v.trim();
       });
+      if (capabilities.supports_head_of_post) {
+        payload.head_profile_id = headProfileId === NONE ? null : headProfileId;
+      }
+      if (capabilities.supports_parent_organization) {
+        payload.parent_organization_id = parentOrgId === NONE ? null : parentOrgId;
+      }
       const { error } = await supabase
         .from("organizations")
         .update(payload as any)
@@ -87,6 +127,7 @@ const OrganizationDetails = ({ organization, onUpdate }: Props) => {
       setLoading(false);
     }
   };
+
 
   if (!organization) return null;
 
