@@ -117,6 +117,8 @@ export const AttendanceCorrections = ({ organizationId, profileId, canReview = f
           punch_type: request.punch_type,
           method: "correction",
           recorded_by: user?.id ?? null,
+          server_recorded_at: new Date().toISOString(),
+          location_status: "exception_validee",
         });
       }
 
