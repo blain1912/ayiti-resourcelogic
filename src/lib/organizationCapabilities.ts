@@ -36,8 +36,13 @@ export interface OrganizationCapabilities {
   supports_staff_status: boolean;
   /** Champ libre « Fonction / responsabilité » exercée dans la structure */
   supports_function_title: boolean;
+  /** Désignation d'un agent responsable de la représentation (chef de poste) */
+  supports_head_of_post: boolean;
+  /** Rattachement institutionnel à une autre représentation/organisation */
+  supports_parent_organization: boolean;
   /** Libellé de la date de début de l'affectation en cours */
   entry_date_label: string;
+
 }
 
 const BASE_CAPABILITIES: OrganizationCapabilities = {
