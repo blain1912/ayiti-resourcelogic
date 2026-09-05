@@ -393,11 +393,19 @@ export type Database = {
         Row: {
           created_at: string
           date: string
+          device_drift_seconds: number | null
+          device_reported_at: string | null
+          distance_meters: number | null
           expected_time: string | null
           id: string
           is_deleted: boolean
           late_minutes: number
+          latitude: number | null
+          location_accuracy_meters: number | null
+          location_status: string | null
+          longitude: number | null
           method: string
+          needs_review: boolean
           notes: string | null
           organization_id: string
           profile_id: string
@@ -405,6 +413,8 @@ export type Database = {
           punch_type: string
           punched_at: string
           recorded_by: string | null
+          server_recorded_at: string
+          site_id: string | null
           token_id: string | null
           tolerance_minutes: number | null
           updated_at: string
@@ -412,11 +422,19 @@ export type Database = {
         Insert: {
           created_at?: string
           date?: string
+          device_drift_seconds?: number | null
+          device_reported_at?: string | null
+          distance_meters?: number | null
           expected_time?: string | null
           id?: string
           is_deleted?: boolean
           late_minutes?: number
+          latitude?: number | null
+          location_accuracy_meters?: number | null
+          location_status?: string | null
+          longitude?: number | null
           method?: string
+          needs_review?: boolean
           notes?: string | null
           organization_id: string
           profile_id: string
@@ -424,6 +442,8 @@ export type Database = {
           punch_type?: string
           punched_at?: string
           recorded_by?: string | null
+          server_recorded_at?: string
+          site_id?: string | null
           token_id?: string | null
           tolerance_minutes?: number | null
           updated_at?: string
@@ -431,11 +451,19 @@ export type Database = {
         Update: {
           created_at?: string
           date?: string
+          device_drift_seconds?: number | null
+          device_reported_at?: string | null
+          distance_meters?: number | null
           expected_time?: string | null
           id?: string
           is_deleted?: boolean
           late_minutes?: number
+          latitude?: number | null
+          location_accuracy_meters?: number | null
+          location_status?: string | null
+          longitude?: number | null
           method?: string
+          needs_review?: boolean
           notes?: string | null
           organization_id?: string
           profile_id?: string
@@ -443,6 +471,8 @@ export type Database = {
           punch_type?: string
           punched_at?: string
           recorded_by?: string | null
+          server_recorded_at?: string
+          site_id?: string | null
           token_id?: string | null
           tolerance_minutes?: number | null
           updated_at?: string
@@ -460,6 +490,13 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_punches_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "work_sites"
             referencedColumns: ["id"]
           },
           {
@@ -481,6 +518,7 @@ export type Database = {
           profile_id: string | null
           revoked_at: string | null
           scope: string
+          site_id: string | null
           status: string
           token: string
           updated_at: string
@@ -494,6 +532,7 @@ export type Database = {
           profile_id?: string | null
           revoked_at?: string | null
           scope: string
+          site_id?: string | null
           status?: string
           token?: string
           updated_at?: string
@@ -507,6 +546,7 @@ export type Database = {
           profile_id?: string | null
           revoked_at?: string | null
           scope?: string
+          site_id?: string | null
           status?: string
           token?: string
           updated_at?: string
@@ -526,6 +566,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "attendance_qr_tokens_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "work_sites"
+            referencedColumns: ["id"]
+          },
         ]
       }
       attendance_settings: {
@@ -533,9 +580,13 @@ export type Database = {
           anti_double_seconds: number
           central_qr_enabled: boolean
           created_at: string
+          geo_control_enabled: boolean
           individual_qr_enabled: boolean
+          location_retention_days: number
           manual_enabled: boolean
+          offsite_policy: string
           organization_id: string
+          store_coordinates: boolean
           telework_enabled: boolean
           updated_at: string
         }
@@ -543,9 +594,13 @@ export type Database = {
           anti_double_seconds?: number
           central_qr_enabled?: boolean
           created_at?: string
+          geo_control_enabled?: boolean
           individual_qr_enabled?: boolean
+          location_retention_days?: number
           manual_enabled?: boolean
+          offsite_policy?: string
           organization_id: string
+          store_coordinates?: boolean
           telework_enabled?: boolean
           updated_at?: string
         }
@@ -553,9 +608,13 @@ export type Database = {
           anti_double_seconds?: number
           central_qr_enabled?: boolean
           created_at?: string
+          geo_control_enabled?: boolean
           individual_qr_enabled?: boolean
+          location_retention_days?: number
           manual_enabled?: boolean
+          offsite_policy?: string
           organization_id?: string
+          store_coordinates?: boolean
           telework_enabled?: boolean
           updated_at?: string
         }
@@ -2473,6 +2532,7 @@ export type Database = {
           subscription_expires_at: string | null
           subscription_started_at: string | null
           subscription_tier: Database["public"]["Enums"]["subscription_tier"]
+          time_zone: string | null
           type: Database["public"]["Enums"]["organization_type"]
           updated_at: string
           website: string | null
@@ -2523,6 +2583,7 @@ export type Database = {
           subscription_expires_at?: string | null
           subscription_started_at?: string | null
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
+          time_zone?: string | null
           type: Database["public"]["Enums"]["organization_type"]
           updated_at?: string
           website?: string | null
@@ -2573,6 +2634,7 @@ export type Database = {
           subscription_expires_at?: string | null
           subscription_started_at?: string | null
           subscription_tier?: Database["public"]["Enums"]["subscription_tier"]
+          time_zone?: string | null
           type?: Database["public"]["Enums"]["organization_type"]
           updated_at?: string
           website?: string | null
@@ -2909,6 +2971,83 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profile_work_sites: {
+        Row: {
+          assignment_id: string | null
+          comment: string | null
+          created_at: string
+          created_by: string | null
+          end_date: string | null
+          id: string
+          is_current: boolean
+          organization_id: string
+          profile_id: string
+          site_id: string
+          site_role: string
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          assignment_id?: string | null
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          end_date?: string | null
+          id?: string
+          is_current?: boolean
+          organization_id: string
+          profile_id: string
+          site_id: string
+          site_role?: string
+          start_date?: string
+          updated_at?: string
+        }
+        Update: {
+          assignment_id?: string | null
+          comment?: string | null
+          created_at?: string
+          created_by?: string | null
+          end_date?: string | null
+          id?: string
+          is_current?: boolean
+          organization_id?: string
+          profile_id?: string
+          site_id?: string
+          site_role?: string
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_work_sites_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "staff_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_work_sites_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_work_sites_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_work_sites_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "work_sites"
             referencedColumns: ["id"]
           },
         ]
@@ -3335,6 +3474,7 @@ export type Database = {
           organization_id: string
           position_id: string | null
           profile_id: string
+          site_id: string | null
           start_date: string
           supervisor_profile_id: string | null
           unit_id: string | null
@@ -3353,6 +3493,7 @@ export type Database = {
           organization_id: string
           position_id?: string | null
           profile_id: string
+          site_id?: string | null
           start_date: string
           supervisor_profile_id?: string | null
           unit_id?: string | null
@@ -3371,6 +3512,7 @@ export type Database = {
           organization_id?: string
           position_id?: string | null
           profile_id?: string
+          site_id?: string | null
           start_date?: string
           supervisor_profile_id?: string | null
           unit_id?: string | null
@@ -3397,6 +3539,13 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "staff_assignments_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "work_sites"
             referencedColumns: ["id"]
           },
           {
@@ -3721,6 +3870,74 @@ export type Database = {
           },
         ]
       }
+      work_sites: {
+        Row: {
+          address: string | null
+          city: string | null
+          code: string | null
+          country: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          latitude: number | null
+          longitude: number | null
+          name: string
+          observations: string | null
+          organization_id: string
+          radius_meters: number
+          site_type: string
+          time_zone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          code?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          observations?: string | null
+          organization_id: string
+          radius_meters?: number
+          site_type?: string
+          time_zone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          code?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          observations?: string | null
+          organization_id?: string
+          radius_meters?: number
+          site_type?: string
+          time_zone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_sites_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -3732,6 +3949,10 @@ export type Database = {
       }
       can_approve_leaves: {
         Args: { _organization_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_read_employee_document_path: {
+        Args: { _path: string; _user_id: string }
         Returns: boolean
       }
       check_previous_steps_approved: {
@@ -3764,6 +3985,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      hr_applicable_schedule: {
+        Args: { _date: string; _profile_id: string }
+        Returns: Json
       }
       hr_create_assignment: {
         Args: {
