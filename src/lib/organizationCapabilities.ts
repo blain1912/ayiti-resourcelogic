@@ -57,8 +57,11 @@ const BASE_CAPABILITIES: OrganizationCapabilities = {
   supports_employment_type: true,
   supports_staff_status: false,
   supports_function_title: false,
+  supports_head_of_post: false,
+  supports_parent_organization: false,
   entry_date_label: "Date d'entrée en fonction",
 };
+
 
 const FAMILY_CAPABILITIES: Record<OrganizationFamily, Partial<OrganizationCapabilities>> = {
   public: {},
