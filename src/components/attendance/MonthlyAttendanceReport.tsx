@@ -13,6 +13,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Users, UserCheck, UserX, Clock, TrendingUp, Calendar, Download, Building2, FileDown } from "lucide-react";
 import { exportToPdf } from "@/lib/exportPdf";
 import { ReportAnalysis } from "@/components/reports/ReportAnalysis";
+import { attendanceCategory } from "@/lib/attendanceReporting";
 
 interface EmployeeAttendance {
   id: string;
@@ -22,6 +23,9 @@ interface EmployeeAttendance {
   absent: number;
   late: number;
   leave: number;
+  sick: number;
+  mission: number;
+  authorization: number;
   rate: number;
 }
 
@@ -32,6 +36,8 @@ interface DailyStats {
   absent: number;
   late: number;
   leave: number;
+  mission: number;
+  authorization: number;
 }
 
 interface MonthlyStats {
@@ -42,6 +48,9 @@ interface MonthlyStats {
   totalAbsent: number;
   totalLate: number;
   totalLeave: number;
+  totalSick: number;
+  totalMission: number;
+  totalAuthorization: number;
 }
 
 interface OrganizationalUnit {
@@ -49,7 +58,7 @@ interface OrganizationalUnit {
   name: string;
 }
 
-const COLORS = ["#22c55e", "#ef4444", "#f59e0b", "#3b82f6"];
+const COLORS = ["#22c55e", "#ef4444", "#f59e0b", "#3b82f6", "#8b5cf6", "#14b8a6", "#64748b"];
 
 export const MonthlyAttendanceReport = () => {
   const [organizationId, setOrganizationId] = useState<string | null>(null);
@@ -158,11 +167,15 @@ export const MonthlyAttendanceReport = () => {
     // Calculate employee-level stats
     const employeeStats: EmployeeAttendance[] = employees.map(emp => {
       const empAttendance = filteredAttendance.filter(a => a.profile_id === emp.id);
-      const present = empAttendance.filter(a => a.status === "present").length;
-      const absent = empAttendance.filter(a => a.status === "absent").length;
-      const late = empAttendance.filter(a => a.status === "late").length;
-      const leave = empAttendance.filter(a => ["leave", "sick", "permission"].includes(a.status)).length;
-      const totalDays = present + absent + late + leave;
+      const cats = empAttendance.map(a => attendanceCategory(a.status));
+      const present = cats.filter(c => c === "present").length;
+      const absent = cats.filter(c => c === "absent").length;
+      const late = cats.filter(c => c === "late").length;
+      const leave = cats.filter(c => c === "leave").length;
+      const sick = cats.filter(c => c === "sick").length;
+      const mission = cats.filter(c => c === "mission").length;
+      const authorization = cats.filter(c => c === "authorization").length;
+      const totalDays = present + absent + late + leave + sick + mission + authorization;
 
       return {
         id: emp.id,
@@ -172,6 +185,9 @@ export const MonthlyAttendanceReport = () => {
         absent,
         late,
         leave,
+        sick,
+        mission,
+        authorization,
         rate: totalDays > 0 ? Math.round(((present + late) / workingDays) * 100) : 0,
       };
     });
@@ -190,10 +206,12 @@ export const MonthlyAttendanceReport = () => {
         return {
           date: dateStr,
           day: format(day, "EEE d", { locale: fr }),
-          present: dayAttendance.filter(a => a.status === "present").length,
-          absent: dayAttendance.filter(a => a.status === "absent").length,
-          late: dayAttendance.filter(a => a.status === "late").length,
-          leave: dayAttendance.filter(a => ["leave", "sick", "permission"].includes(a.status)).length,
+          present: dayAttendance.filter(a => attendanceCategory(a.status) === "present").length,
+          absent: dayAttendance.filter(a => attendanceCategory(a.status) === "absent").length,
+          late: dayAttendance.filter(a => attendanceCategory(a.status) === "late").length,
+          leave: dayAttendance.filter(a => ["leave", "sick"].includes(attendanceCategory(a.status))).length,
+          mission: dayAttendance.filter(a => attendanceCategory(a.status) === "mission").length,
+          authorization: dayAttendance.filter(a => attendanceCategory(a.status) === "authorization").length,
         };
       });
 
@@ -204,6 +222,9 @@ export const MonthlyAttendanceReport = () => {
     const totalAbsent = employeeStats.reduce((sum, e) => sum + e.absent, 0);
     const totalLate = employeeStats.reduce((sum, e) => sum + e.late, 0);
     const totalLeave = employeeStats.reduce((sum, e) => sum + e.leave, 0);
+    const totalSick = employeeStats.reduce((sum, e) => sum + e.sick, 0);
+    const totalMission = employeeStats.reduce((sum, e) => sum + e.mission, 0);
+    const totalAuthorization = employeeStats.reduce((sum, e) => sum + e.authorization, 0);
     const totalPossible = employees.length * workingDays;
     const avgRate = totalPossible > 0 ? Math.round(((totalPresent + totalLate) / totalPossible) * 100) : 0;
 
@@ -215,6 +236,9 @@ export const MonthlyAttendanceReport = () => {
       totalAbsent,
       totalLate,
       totalLeave,
+      totalSick,
+      totalMission,
+      totalAuthorization,
     });
 
     setLoading(false);
@@ -230,10 +254,13 @@ export const MonthlyAttendanceReport = () => {
     { name: "Absents", value: monthlyStats.totalAbsent },
     { name: "En retard", value: monthlyStats.totalLate },
     { name: "Congés", value: monthlyStats.totalLeave },
+    { name: "Maladie", value: monthlyStats.totalSick },
+    { name: "Mission", value: monthlyStats.totalMission },
+    { name: "Autorisation", value: monthlyStats.totalAuthorization },
   ].filter(d => d.value > 0) : [];
 
   const exportToCSV = () => {
-    const headers = ["Employé", "Unité", "Présent", "Absent", "En retard", "Congé", "Taux (%)"];
+    const headers = ["Employé", "Unité", "Présent", "Absent", "En retard", "Congé", "Maladie", "Mission", "Autorisation", "Taux (%)"];
     const rows = employeeAttendance.map(e => [
       e.name,
       e.unitName || "-",
@@ -241,6 +268,9 @@ export const MonthlyAttendanceReport = () => {
       e.absent,
       e.late,
       e.leave,
+      e.sick,
+      e.mission,
+      e.authorization,
       e.rate,
     ]);
 
