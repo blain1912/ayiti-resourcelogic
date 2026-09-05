@@ -128,8 +128,7 @@ export const SecureAttendanceQR = ({
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              Le site est appliqué lors de la génération du code : QR -> site -> organisation ->
-              validation serveur.
+              Le site est appliqué lors de la génération du code : QR, puis site, puis organisation, avec validation par le serveur.
             </p>
           </div>
         )}
