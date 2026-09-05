@@ -18,6 +18,7 @@ import { LeavePolicySettings } from "@/components/settings/LeavePolicySettings";
 import { LeaveTypeSettings } from "@/components/settings/LeaveTypeSettings";
 import { LateNotificationSettings } from "@/components/settings/LateNotificationSettings";
 import { AttendanceSettings } from "@/components/settings/AttendanceSettings";
+import { WorkSitesSettings } from "@/components/settings/WorkSitesSettings";
 import { OnboardingKitButton } from "@/components/OnboardingKitButton";
 import { Upload } from "lucide-react";
 
@@ -193,6 +194,9 @@ const Settings = () => {
             <TabsTrigger value="attendance">
               {language === "fr" ? "Présences" : "Attendance"}
             </TabsTrigger>
+            <TabsTrigger value="sites">
+              {language === "fr" ? "Sites" : "Sites"}
+            </TabsTrigger>
             <TabsTrigger value="leaves">
               {language === "fr" ? "Congés" : "Leaves"}
             </TabsTrigger>
@@ -236,6 +240,10 @@ const Settings = () => {
 
           <TabsContent value="attendance">
             {organization && <AttendanceSettings organizationId={organization.id} />}
+          </TabsContent>
+
+          <TabsContent value="sites">
+            {organization && <WorkSitesSettings organizationId={organization.id} />}
           </TabsContent>
 
           <TabsContent value="leaves" className="space-y-6">
