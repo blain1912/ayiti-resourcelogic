@@ -91,7 +91,7 @@ const Attendance = () => {
           code_budgetaire,
           email,
           positions (name),
-          organizational_units (name)
+          organizational_units!profiles_unit_id_fkey (name)
         `)
         .eq("organization_id", organization!.id)
         .eq("approval_status", "approved")
