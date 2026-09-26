@@ -17,6 +17,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { QRScanner } from "@/components/attendance/QRScanner";
+import { PunchScanner } from "@/components/attendance/PunchScanner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { getQrEmail, getQrEmployeeId, getQrMatricule, getQrOrganizationId, parseAttendanceQrPayload } from "@/lib/attendanceQr";
@@ -463,10 +464,8 @@ const Attendance = () => {
 
       <Dialog open={showQRScanner} onOpenChange={setShowQRScanner}>
         <DialogContent className="max-w-md">
-          <QRScanner 
-            onScanSuccess={handleQRScan}
-            onClose={() => setShowQRScanner(false)}
-          />
+          {/* Étape 2 : scanner sécurisé GRHPRO-ATT → attendance-punch (validation serveur). */}
+          <PunchScanner />
         </DialogContent>
       </Dialog>
 
