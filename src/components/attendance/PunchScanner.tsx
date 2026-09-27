@@ -134,8 +134,8 @@ export const PunchScanner = () => {
           <Alert>
             <CheckCircle2 className="h-4 w-4" />
             <AlertDescription>
-              <span className="font-medium">{result.employee_name || "Agent"}</span> —{" "}
-              {PUNCH_TYPE_LABELS[result.punch_type]} enregistrée à {result.time}
+              Pointage de <span className="font-medium">{result.employee_name || "l'agent"}</span> enregistré —{" "}
+              {PUNCH_TYPE_LABELS[result.punch_type]} à {result.time}
               {result.site && (
                 <span className="block text-muted-foreground mt-1">
                   <MapPin className="inline h-3 w-3 mr-1" />
