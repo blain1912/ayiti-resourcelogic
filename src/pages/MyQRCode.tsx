@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { EmployeeQRCode } from "@/components/attendance/EmployeeQRCode";
 import { SecureAttendanceQR } from "@/components/attendance/SecureAttendanceQR";
 import { AttendanceCorrections } from "@/components/attendance/AttendanceCorrections";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,10 +34,13 @@ const MyQRCode = () => {
             organizationId={profile.organization_id}
             scope="individual"
             profileId={profile.id}
-            canManage
+            autoEnsure
           />
         ) : (
-          <EmployeeQRCode />
+          <p className="text-sm text-muted-foreground text-center">
+            Le QR code individuel n'est pas activé pour votre organisation.
+            Utilisez le QR code central affiché sur site.
+          </p>
         )}
       </div>
 
@@ -96,7 +98,7 @@ const MyQRCode = () => {
           <div className="mt-6 p-4 bg-background rounded-lg border">
             <p className="text-sm text-muted-foreground">
               <strong className="text-foreground">Note:</strong> Gardez votre QR Code en sécurité.
-              En cas de perte, régénérez-le : l'ancien code est immédiatement invalidé.
+              En cas de perte, demandez au service RH de le régénérer : l'ancien code est immédiatement invalidé.
             </p>
           </div>
         </div>
