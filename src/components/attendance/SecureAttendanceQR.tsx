@@ -1,4 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { QRCodeSVG } from "qrcode.react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +25,8 @@ interface SecureAttendanceQRProps {
   description?: string;
   /** Autorise la régénération / révocation (RH, admin) */
   canManage?: boolean;
+  /** Crée automatiquement le QR individuel manquant (contrôle serveur) */
+  autoEnsure?: boolean;
   size?: number;
 }
 
@@ -33,6 +37,7 @@ export const SecureAttendanceQR = ({
   title,
   description,
   canManage = false,
+  autoEnsure = false,
   size = 260,
 }: SecureAttendanceQRProps) => {
   const { data: tokens, isLoading } = useAttendanceQrTokens(organizationId, scope);
@@ -50,6 +55,20 @@ export const SecureAttendanceQR = ({
       ) || null,
     [tokens, scope, profileId]
   );
+
+  // Création automatique (serveur, idempotente) du QR individuel manquant.
+  const qc = useQueryClient();
+  const ensuredRef = useRef<string | null>(null);
+  const [ensureError, setEnsureError] = useState<string | null>(null);
+  useEffect(() => {
+    if (!autoEnsure || scope !== "individual" || !profileId || isLoading || activeToken) return;
+    if (ensuredRef.current === profileId) return;
+    ensuredRef.current = profileId;
+    supabase.rpc("ensure_individual_qr_token", { _profile_id: profileId }).then(({ error }) => {
+      if (error) setEnsureError(error.message);
+      else qc.invalidateQueries({ queryKey: ["attendance-qr-tokens"] });
+    });
+  }, [autoEnsure, scope, profileId, isLoading, activeToken, qc]);
 
   const handleRegenerate = () => {
     regenerate.mutate(
@@ -107,7 +126,9 @@ export const SecureAttendanceQR = ({
           </div>
         ) : (
           <p className="text-sm text-muted-foreground text-center">
-            Aucun QR code actif. {canManage ? "Générez-en un ci-dessous." : "Contactez votre service RH."}
+            {ensureError
+              ? ensureError
+              : `Aucun QR code actif. ${canManage ? "Générez-en un ci-dessous." : "Contactez votre service RH."}`}
           </p>
         )}
 

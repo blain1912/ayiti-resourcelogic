@@ -3962,6 +3962,14 @@ export type Database = {
       check_unit_limit: { Args: { _organization_id: string }; Returns: boolean }
       check_user_limit: { Args: { _organization_id: string }; Returns: boolean }
       current_profile_id: { Args: { _user_id: string }; Returns: string }
+      ensure_individual_qr_token: {
+        Args: { _profile_id?: string }
+        Returns: {
+          created: boolean
+          token: string
+          token_id: string
+        }[]
+      }
       generate_correspondence_reference: {
         Args: {
           _category: string

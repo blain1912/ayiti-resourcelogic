@@ -23,6 +23,7 @@ import { useHrProfile, hrProfileName } from "@/hooks/useHrProfile";
 import { useCreateAssignment, useStaffAssignments } from "@/hooks/useStaffAssignments";
 import { ASSIGNMENT_KINDS, assignmentKindLabel, formatFrShortDate } from "@/lib/hr";
 import { ProfileWorkSitesCard } from "@/components/attendance/ProfileWorkSitesCard";
+import { SecureAttendanceQR } from "@/components/attendance/SecureAttendanceQR";
 
 const today = () => new Date().toISOString().slice(0, 10);
 
@@ -246,6 +247,18 @@ const Assignments = () => {
           organizationId={orgId}
           profileId={currentProfileId}
           canManage={canManage}
+        />
+      )}
+
+      {orgId && currentProfileId && canManage && (
+        <SecureAttendanceQR
+          organizationId={orgId}
+          scope="individual"
+          profileId={currentProfileId}
+          title="QR code individuel de l'agent"
+          description="État, révocation et régénération du QR personnel sécurisé."
+          canManage
+          size={180}
         />
       )}
 
