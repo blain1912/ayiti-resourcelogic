@@ -13,7 +13,7 @@ export type AccountStatus =
 export const ACCOUNT_STATUS_LABELS: Record<AccountStatus, string> = {
   no_account: "Aucun compte",
   invitation_pending: "Invitation à envoyer",
-  invitation_sent: "Invitation envoyée",
+  invitation_sent: "Invitation créée",
   invitation_expired: "Invitation expirée",
   active: "Compte activé",
   suspended: "Compte suspendu",

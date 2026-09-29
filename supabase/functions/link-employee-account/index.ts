@@ -279,7 +279,7 @@ Deno.serve(async (req) => {
           html: `<p>Bonjour ${prof.full_name || ""},</p>
 <p>Votre fiche agent est prête. Cliquez sur le lien ci-dessous pour définir votre mot de passe et accéder à votre espace :</p>
 <p><a href="${actionLink}">Activer mon compte</a></p>
-<p>Ce lien est personnel et expire le ${expiresAt.toLocaleDateString("fr-FR")}.</p>`,
+<p>Ce lien est personnel, temporaire et à usage unique. S'il a expiré, demandez un nouveau lien à votre service RH.</p>`,
         }),
       });
       emailSent = resp.ok;
