@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Mail, RotateCcw, Ban, ShieldCheck, XCircle } from "lucide-react";
+import { Loader2, Mail, RotateCcw, Ban, ShieldCheck, XCircle, Copy } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -52,6 +52,7 @@ export function InviteEmployeeDialog({ open, onOpenChange, profile, onDone }: Pr
   const [role, setRole] = useState("employe");
   const [busy, setBusy] = useState<string | null>(null);
   const [link, setLink] = useState<string | null>(null);
+  const [emailSent, setEmailSent] = useState<boolean | null>(null);
   const [status, setStatus] = useState(
     effectiveAccountStatus(profile?.account_status, profile?.invitation_expires_at),
   );
@@ -61,8 +62,19 @@ export function InviteEmployeeDialog({ open, onOpenChange, profile, onDone }: Pr
       setEmail(profile.email || "");
       setStatus(effectiveAccountStatus(profile.account_status, profile.invitation_expires_at));
       setLink(null);
+      setEmailSent(null);
     }
   }, [profile]);
+
+  const copyLink = async () => {
+    if (!link) return;
+    try {
+      await navigator.clipboard.writeText(link);
+      toast({ title: "Lien copié" });
+    } catch {
+      toast({ title: "Copie impossible", description: "Sélectionnez le lien et copiez-le manuellement.", variant: "destructive" });
+    }
+  };
 
   const run = async (action: string, extra: Record<string, unknown> = {}) => {
     if (!profile) return;
@@ -76,13 +88,17 @@ export function InviteEmployeeDialog({ open, onOpenChange, profile, onDone }: Pr
       if (data?.account_status) setStatus(effectiveAccountStatus(data.account_status));
       if (action === "invite" || action === "resend") {
         setLink(data.action_link || null);
+        setEmailSent(!!data.email_sent);
         toast({
-          title: "Invitation envoyée",
+          title: "Invitation créée",
           description: data.email_sent
-            ? `Un e-mail d'activation a été envoyé à ${email}.`
-            : "E-mail non envoyé : copiez le lien d'activation ci-dessous.",
+            ? `E-mail envoyé à ${email}.`
+            : "E-mail non délivré : copiez le lien d'activation dans la fenêtre.",
+          variant: data.email_sent ? undefined : "destructive",
         });
       } else {
+        setLink(null);
+        setEmailSent(null);
         toast({ title: "Opération effectuée" });
       }
       onDone?.();
@@ -102,7 +118,10 @@ export function InviteEmployeeDialog({ open, onOpenChange, profile, onDone }: Pr
       open={open}
       onOpenChange={(v) => {
         onOpenChange(v);
-        if (!v) setLink(null);
+        if (!v) {
+          setLink(null);
+          setEmailSent(null);
+        }
       }}
     >
       <DialogContent className="max-w-md">
@@ -152,10 +171,40 @@ export function InviteEmployeeDialog({ open, onOpenChange, profile, onDone }: Pr
           </div>
         )}
 
+        {emailSent !== null && (
+          <div
+            className={`rounded-md border p-3 text-sm space-y-1 ${
+              emailSent ? "border-border bg-muted/40" : "border-destructive/40 bg-destructive/5"
+            }`}
+          >
+            <p className="font-medium">Invitation créée</p>
+            <p>
+              E-mail :{" "}
+              <strong className={emailSent ? "" : "text-destructive"}>
+                {emailSent ? "envoyé" : "non délivré"}
+              </strong>
+            </p>
+            {!emailSent && (
+              <p className="text-muted-foreground">
+                Vous pouvez copier le lien d'activation et le transmettre directement à l'agent.
+              </p>
+            )}
+          </div>
+        )}
+
         {link && (
           <div className="space-y-1">
             <Label className="text-xs">Lien d'activation</Label>
-            <Input readOnly value={link} onFocus={(e) => e.currentTarget.select()} className="text-xs" />
+            <div className="flex gap-2">
+              <Input readOnly value={link} onFocus={(e) => e.currentTarget.select()} className="text-xs" />
+              <Button type="button" variant="outline" size="sm" onClick={copyLink}>
+                <Copy className="h-4 w-4 mr-1" />
+                Copier le lien
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Ce lien est temporaire et à usage unique. Un renvoi génère un nouveau lien et annule le précédent.
+            </p>
           </div>
         )}
 
