@@ -1,28 +1,23 @@
 project_id = "gvroklegcmxsqdcascvp"
 
-[functions.send-approval-notification]
-verify_jwt = false
-
-[functions.notify-job-application]
-verify_jwt = false
-
-[functions.submit-external-application]
-verify_jwt = false
-
-[functions.send-birthday-notifications]
-verify_jwt = false
-
-[functions.send-greeting-card]
-verify_jwt = false
-
-[functions.send-leave-notification]
-verify_jwt = false
-
-[functions.send-schedule-notification]
-verify_jwt = false
-
-[functions.send-correspondence-notification]
-verify_jwt = false
-
-[functions.analyze-report]
-verify_jwt = false
+[functions]
+  [functions.analyze-report]
+    verify_jwt = false
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.notify-job-application]
+    verify_jwt = false
+  [functions.send-approval-notification]
+    verify_jwt = false
+  [functions.send-birthday-notifications]
+    verify_jwt = false
+  [functions.send-correspondence-notification]
+    verify_jwt = false
+  [functions.send-greeting-card]
+    verify_jwt = false
+  [functions.send-leave-notification]
+    verify_jwt = false
+  [functions.send-schedule-notification]
+    verify_jwt = false
+  [functions.submit-external-application]
+    verify_jwt = false
